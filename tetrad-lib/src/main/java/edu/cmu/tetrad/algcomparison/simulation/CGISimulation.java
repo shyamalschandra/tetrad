@@ -339,7 +339,7 @@ public class CGISimulation implements Simulation {
                                 if (intervention.getEffected().contains(node) && intervention.getDomain(i) > 0) {
                                     double prob = RandomUtils.nextDouble(0,1);
                                     if (prob <= intervention.getPotency()) {
-                                        int a = (int) intervention.getInterventionValue(node, i);
+                                        k = (int) intervention.getInterventionValue(node, i) - 1;
                                     }
                                     break;
                                 }

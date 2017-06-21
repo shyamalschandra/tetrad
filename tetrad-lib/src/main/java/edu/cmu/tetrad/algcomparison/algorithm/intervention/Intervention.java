@@ -96,17 +96,17 @@ public class Intervention {
                 sorted[i] = this.interventionValues.get(i);
             }
             Arrays.sort(sorted);
-            int w = this.samplesSize * 1/3;
-            double a = sorted[this.samplesSize * 1/3];
-            double b = sorted[this.samplesSize * 2/3];
+            double a = sorted[this.samplesSize * 1/2];
+            //double a = sorted[this.samplesSize * 1/3];
+            //double b = sorted[this.samplesSize * 2/3];
             List<Double> effectValue = new ArrayList<>();
             for (Double value : this.interventionValues) {
                 if (value < a) {
                     effectValue.add(1.0);
-                } else if(value < b) {
-                    effectValue.add(1.0);
+                //} else if(value < b) {
+                //    effectValue.add(1.0);
                 } else {
-                    effectValue.add(1.0);
+                    effectValue.add(2.0);
                 }
             }
             this.effectValues.put(effect, effectValue);
