@@ -24,6 +24,7 @@ package edu.cmu.tetrad.algcomparison;
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithm;
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithms;
 import edu.cmu.tetrad.algcomparison.algorithm.MultiDataSetAlgorithm;
+import edu.cmu.tetrad.algcomparison.algorithm.intervention.CleanInterventions;
 import edu.cmu.tetrad.algcomparison.independence.FisherZ;
 import edu.cmu.tetrad.algcomparison.independence.IndependenceWrapper;
 import edu.cmu.tetrad.algcomparison.score.BdeuScore;
@@ -1500,15 +1501,27 @@ public class Comparison {
             parameters.addAll(simulationWrapper.getParameters());
         }
 
+        // THESE HAVE BEEN MODIFIED TEMPORARILY
+
         @Override
         public Graph search(DataModel DataModel, Parameters parameters) {
-            return algorithmWrapper.getAlgorithm().search(DataModel, parameters);
+            CleanInterventions ci = new CleanInterventions();
+            Graph G = algorithmWrapper.getAlgorithm().search(DataModel, parameters);
+            ci.removeEdges(G);
+            ci.removeNodes(G);
+            return G;
         }
 
         @Override
         public Graph getComparisonGraph(Graph graph) {
-            return algorithmWrapper.getComparisonGraph(graph);
+            CleanInterventions ci = new CleanInterventions();
+            Graph G = algorithmWrapper.getComparisonGraph(graph);
+            ci.removeEdges(G);
+            ci.removeNodes(G);
+            return G;
         }
+
+        // THESE HAVE BEEN MODIFIED TEMPORARILY
 
         @Override
         public String getDescription() {

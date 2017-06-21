@@ -22,26 +22,17 @@
 package edu.cmu.tetrad.algcomparison.testing_scripts;
 
 import edu.cmu.tetrad.algcomparison.Comparison;
-import edu.cmu.tetrad.algcomparison.algorithm.Algorithms;
-import edu.cmu.tetrad.algcomparison.algorithm.intervention.Pc_I;
-import edu.cmu.tetrad.algcomparison.algorithm.intervention.Pc_woI;
-import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.*;
 import edu.cmu.tetrad.algcomparison.graph.RandomForward;
-import edu.cmu.tetrad.algcomparison.independence.ConditionalGaussianLRT;
-import edu.cmu.tetrad.algcomparison.independence.FisherZ;
-import edu.cmu.tetrad.algcomparison.score.SemBicScore;
 import edu.cmu.tetrad.algcomparison.simulation.CGISimulation;
-import edu.cmu.tetrad.algcomparison.simulation.SemSimulation;
-import edu.cmu.tetrad.algcomparison.simulation.Simulations;
-import edu.cmu.tetrad.algcomparison.statistic.*;
+import edu.cmu.tetrad.algcomparison.simulation.Simulation;
 import edu.cmu.tetrad.util.Parameters;
 
 /**
- * An example script to simulate data and run a comparison analysis on it.
+ * An example script to save out data files and graphs from a simulation.
  *
  * @author jdramsey
  */
-public class ExampleCompareSimulation {
+public class ExampleInterventionSave {
     public static void main(String... args) {
         Parameters parameters = new Parameters();
 
@@ -64,35 +55,10 @@ public class ExampleCompareSimulation {
         parameters.set("minPotency", 0.8);
         parameters.set("maxPotency", 1.0);
 
-        Statistics statistics = new Statistics();
-
-        statistics.add(new AdjacencyPrecision());
-        statistics.add(new AdjacencyRecall());
-        statistics.add(new ArrowheadPrecision());
-        statistics.add(new ArrowheadRecall());
-        statistics.add(new ElapsedTime());
-
-        statistics.setWeight("AP", 1.0);
-        statistics.setWeight("AR", 0.5);
-
-        Algorithms algorithms = new Algorithms();
-
-        algorithms.add(new Pc_I(new ConditionalGaussianLRT()));
-        algorithms.add(new Pc_woI(new ConditionalGaussianLRT()));
-
-        Simulations simulations = new Simulations();
-
-        simulations.add(new CGISimulation(new RandomForward()));
-
+        Simulation simulation = new CGISimulation(new RandomForward());
         Comparison comparison = new Comparison();
-
         comparison.setShowAlgorithmIndices(true);
-        comparison.setShowSimulationIndices(true);
-        comparison.setSortByUtility(false);
-        comparison.setShowUtilities(false);
-        comparison.setParallelized(true);
-
-        comparison.compareFromSimulations("comparison", simulations, algorithms, statistics, parameters);
+        comparison.saveToFiles("comparison", simulation, parameters);
     }
 }
 
