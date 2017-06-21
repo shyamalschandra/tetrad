@@ -23,8 +23,7 @@ package edu.cmu.tetrad.algcomparison.testing_scripts;
 
 import edu.cmu.tetrad.algcomparison.Comparison;
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithms;
-import edu.cmu.tetrad.algcomparison.algorithm.intervention.Pc_I;
-import edu.cmu.tetrad.algcomparison.algorithm.intervention.Pc_woI;
+import edu.cmu.tetrad.algcomparison.algorithm.intervention.*;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.*;
 import edu.cmu.tetrad.algcomparison.graph.RandomForward;
 import edu.cmu.tetrad.algcomparison.independence.ConditionalGaussianLRT;
@@ -79,6 +78,9 @@ public class ExampleCompareSimulation {
 
         algorithms.add(new Pc_I(new ConditionalGaussianLRT()));
         algorithms.add(new Pc_woI(new ConditionalGaussianLRT()));
+        algorithms.add(new Rfci_I(new ConditionalGaussianLRT()));
+        algorithms.add(new Rfci_woI(new ConditionalGaussianLRT()));
+
 
         Simulations simulations = new Simulations();
 

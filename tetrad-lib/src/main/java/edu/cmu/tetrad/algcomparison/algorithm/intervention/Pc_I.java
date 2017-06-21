@@ -40,12 +40,16 @@ public class Pc_I implements Algorithm, TakesInitialGraph, HasKnowledge {
     @Override
     public Graph search(DataModel dataSet, Parameters parameters) {
 
+        //KNOWLEDGE ADDED
+
         Graph nodes = GraphUtils.emptyGraph(0);
         for (Node node : dataSet.getVariables()) {
             nodes.addNode(node);
         }
         InterventionalKnowledge k = new InterventionalKnowledge(nodes);
         this.knowledge = k.getKnowledge();
+
+        //KNOWLEDGE ADDED
 
         edu.cmu.tetrad.search.Pc search = new edu.cmu.tetrad.search.Pc(test.getTest(dataSet, parameters));
         search.setDepth(parameters.getInt("depth"));

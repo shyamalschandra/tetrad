@@ -281,6 +281,9 @@ public class CGISimulation implements Simulation {
         for (int mixedIndex : tiers) {
             for (int i = 0; i < this.sampleSize + this.numInterventions * this.interventionSize; i++) {
                 if (nodes.get(mixedIndex) instanceof DiscreteVariable) {
+                    if( i == 0 ) {
+                        int a = 0;
+                    }
                     int bayesIndex = bayesIm.getNodeIndex(nodes.get(mixedIndex));
 
                     int[] bayesParents = bayesIm.getParents(bayesIndex);

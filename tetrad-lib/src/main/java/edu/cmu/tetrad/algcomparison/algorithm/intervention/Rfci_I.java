@@ -3,7 +3,6 @@ package edu.cmu.tetrad.algcomparison.algorithm.intervention;
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithm;
 import edu.cmu.tetrad.algcomparison.independence.IndependenceWrapper;
 import edu.cmu.tetrad.algcomparison.utils.HasKnowledge;
-import edu.cmu.tetrad.algcomparison.utils.TakesInitialGraph;
 import edu.cmu.tetrad.data.DataModel;
 import edu.cmu.tetrad.data.DataType;
 import edu.cmu.tetrad.data.IKnowledge;
@@ -12,59 +11,54 @@ import edu.cmu.tetrad.graph.EdgeListGraph;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.GraphUtils;
 import edu.cmu.tetrad.graph.Node;
-import edu.cmu.tetrad.search.SearchGraphUtils;
+import edu.cmu.tetrad.search.DagToPag;
 import edu.cmu.tetrad.util.Parameters;
 
 import java.util.List;
 
 /**
- * PC.
+ * RFCI.
  *
  * @author jdramsey
  */
-public class Pc_woI implements Algorithm, TakesInitialGraph, HasKnowledge {
+public class Rfci_I implements Algorithm, HasKnowledge {
     static final long serialVersionUID = 23L;
     private IndependenceWrapper test;
-    private Algorithm initialGraph = null;
     private IKnowledge knowledge = new Knowledge2();
 
-    public Pc_woI(IndependenceWrapper test) {
+    public Rfci_I(IndependenceWrapper test) {
         this.test = test;
-    }
-
-    public Pc_woI(IndependenceWrapper test, Algorithm initialGraph) {
-        this.test = test;
-        this.initialGraph = initialGraph;
     }
 
     @Override
     public Graph search(DataModel dataSet, Parameters parameters) {
 
-        //REMOVE INTERVENTIONS
+        // KNOWLEDGE ADDED
 
-        CleanInterventions ci = new CleanInterventions();
-        dataSet = ci.removeVars(dataSet);
+        Graph nodes = GraphUtils.emptyGraph(0);
+        for (Node node : dataSet.getVariables()) {
+            nodes.addNode(node);
+        }
+        InterventionalKnowledge k = new InterventionalKnowledge(nodes);
+        this.knowledge = k.getKnowledge();
 
-        //REMOVE INTERVENTIONS
+        // KNOWLEDGE ADDED
 
-        edu.cmu.tetrad.search.Pc search = new edu.cmu.tetrad.search.Pc(test.getTest(dataSet, parameters));
-        search.setDepth(parameters.getInt("depth"));
+        edu.cmu.tetrad.search.Rfci search = new edu.cmu.tetrad.search.Rfci(test.getTest(dataSet, parameters));
         search.setKnowledge(knowledge);
-        search.setVerbose(parameters.getBoolean("verbose"));
+        search.setDepth(parameters.getInt("depth"));
+        search.setMaxPathLength(parameters.getInt("maxPathLength"));
+        search.setCompleteRuleSetUsed(parameters.getBoolean("completeRuleSetUsed"));
         return search.search();
     }
 
     @Override
     public Graph getComparisonGraph(Graph graph) {
-        InterventionalKnowledge k = new InterventionalKnowledge(graph);
-        return SearchGraphUtils.patternForDag(new EdgeListGraph(graph), k.getKnowledge());
+        return new DagToPag(new EdgeListGraph(graph)).convert();
     }
 
-    @Override
     public String getDescription() {
-        return "PC w/o Interventions (\"Peter and Clark\") using " + test.getDescription()
-                + (initialGraph != null ? " with initial graph from " +
-                initialGraph.getDescription() : "");
+        return "RFCI (Really Fast Causal Inference) using " + test.getDescription();
     }
 
     @Override
@@ -76,7 +70,8 @@ public class Pc_woI implements Algorithm, TakesInitialGraph, HasKnowledge {
     public List<String> getParameters() {
         List<String> parameters = test.getParameters();
         parameters.add("depth");
-        parameters.add("verbose");
+        parameters.add("maxPathLength");
+        parameters.add("completeRuleSetUsed");
         return parameters;
     }
 
