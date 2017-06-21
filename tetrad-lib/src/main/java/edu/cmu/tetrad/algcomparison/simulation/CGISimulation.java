@@ -281,9 +281,7 @@ public class CGISimulation implements Simulation {
         for (int mixedIndex : tiers) {
             for (int i = 0; i < this.sampleSize + this.numInterventions * this.interventionSize; i++) {
                 if (nodes.get(mixedIndex) instanceof DiscreteVariable) {
-                    if( i == 0 ) {
-                        int a = 0;
-                    }
+
                     int bayesIndex = bayesIm.getNodeIndex(nodes.get(mixedIndex));
 
                     int[] bayesParents = bayesIm.getParents(bayesIndex);
@@ -335,17 +333,19 @@ public class CGISimulation implements Simulation {
                         sum += probability;
 
                         if (sum >= r) {
-                            mixedData.setInt(i, mixedIndex, k);
 
                             String node = mixedData.getVariable(mixedIndex).getName();
                             for (Intervention intervention : I) {
                                 if (intervention.getEffected().contains(node) && intervention.getDomain(i) > 0) {
                                     double prob = RandomUtils.nextDouble(0,1);
                                     if (prob <= intervention.getPotency()) {
-                                        mixedData.setInt(i, mixedIndex, (int) intervention.getInterventionValue(node, i));
+                                        int a = (int) intervention.getInterventionValue(node, i);
                                     }
+                                    break;
                                 }
                             }
+
+                            mixedData.setInt(i, mixedIndex, k);
 
                             break;
                         }
@@ -392,17 +392,19 @@ public class CGISimulation implements Simulation {
                     }
 
                     value += getParamValue(muComb, paramValues);
-                    mixedData.setDouble(i, mixedIndex, value);
 
                     String node = mixedData.getVariable(mixedIndex).getName();
                     for (Intervention intervention : I) {
                         if (intervention.getEffected().contains(node) && intervention.getDomain(i) > 0) {
                             double prob = RandomUtils.nextDouble(0,1);
                             if (prob <= intervention.getPotency()) {
-                                mixedData.setDouble(i, mixedIndex, intervention.getInterventionValue(node, i));
+                                value = intervention.getInterventionValue(node, i);
                             }
+                            break;
                         }
                     }
+
+                    mixedData.setDouble(i, mixedIndex, value);
 
                 }
             }

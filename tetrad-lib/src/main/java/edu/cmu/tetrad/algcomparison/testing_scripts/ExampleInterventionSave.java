@@ -47,7 +47,7 @@ public class ExampleInterventionSave {
 
         parameters.set("interventionSize", 100);
         parameters.set("numInterventions", 2);
-        parameters.set("percentIDiscrete", 100);
+        parameters.set("percentIDiscrete", 0);
         parameters.set("minICategories", 1);
         parameters.set("maxICategories", 1);
         parameters.set("minEffected", 1);

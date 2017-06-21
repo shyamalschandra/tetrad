@@ -7,6 +7,9 @@ import java.util.*;
 /**
  * Created by bandrews on 6/20/17.
  */
+
+// KNOWN ISSUE, ERRORS OCCUR WHEN NUMBER OF INTERVENTIONS CAN BE GREATER THAN NUMBER OF CATEGORIES //
+
 public class Intervention {
 
     private List<Integer> domains;
@@ -29,9 +32,14 @@ public class Intervention {
         this.interventionValues = new ArrayList<>();
         for (int i = 0; i < startIndex; i++) {
             this.domains.add(0);
-            this.interventionValues.add(0.0);
+            if (isDiscrete) {
+                int category = this.rng.nextInt(numICategories) + 1;
+                this.interventionValues.add((double) category);
+            } else {
+                double value = mean + rng.nextGaussian() * Math.sqrt(var);
+                this.interventionValues.add(value);
+            }
         }
-
         if (isDiscrete) {
             for (int i = 0; i < this.interventionSize; i++) {
                 int category = this.rng.nextInt(numICategories) + 1;
@@ -47,7 +55,13 @@ public class Intervention {
         }
         while (this.domains.size() < this.samplesSize) {
             this.domains.add(0);
-            this.interventionValues.add(0.0);
+            if (isDiscrete) {
+                int category = this.rng.nextInt(numICategories) + 1;
+                this.interventionValues.add((double) category);
+            } else {
+                double value = mean + rng.nextGaussian() * Math.sqrt(var);
+                this.interventionValues.add(value);
+            }
         }
 
     }
@@ -82,6 +96,7 @@ public class Intervention {
                 sorted[i] = this.interventionValues.get(i);
             }
             Arrays.sort(sorted);
+            int w = this.samplesSize * 1/3;
             double a = sorted[this.samplesSize * 1/3];
             double b = sorted[this.samplesSize * 2/3];
             List<Double> effectValue = new ArrayList<>();
@@ -89,9 +104,9 @@ public class Intervention {
                 if (value < a) {
                     effectValue.add(1.0);
                 } else if(value < b) {
-                    effectValue.add(2.0);
+                    effectValue.add(1.0);
                 } else {
-                    effectValue.add(3.0);
+                    effectValue.add(1.0);
                 }
             }
             this.effectValues.put(effect, effectValue);
