@@ -33,6 +33,13 @@ public class Rfci_I implements Algorithm, HasKnowledge {
     @Override
     public Graph search(DataModel dataSet, Parameters parameters) {
 
+        //REMOVE EXTRA OBSERVATIONS
+
+        CleanInterventions ci = new CleanInterventions();
+        dataSet = ci.removeExtra(dataSet);
+
+        //REMOVE EXTRA OBSERVATIONS
+
         // KNOWLEDGE ADDED
 
         Graph nodes = GraphUtils.emptyGraph(0);
@@ -58,7 +65,7 @@ public class Rfci_I implements Algorithm, HasKnowledge {
     }
 
     public String getDescription() {
-        return "RFCI (Really Fast Causal Inference) using " + test.getDescription();
+        return "RFCI Interventions (Really Fast Causal Inference) using " + test.getDescription();
     }
 
     @Override

@@ -40,6 +40,13 @@ public class Pc_I implements Algorithm, TakesInitialGraph, HasKnowledge {
     @Override
     public Graph search(DataModel dataSet, Parameters parameters) {
 
+        //REMOVE EXTRA OBSERVATIONS
+
+        CleanInterventions ci = new CleanInterventions();
+        dataSet = ci.removeExtra(dataSet);
+
+        //REMOVE EXTRA OBSERVATIONS
+
         //KNOWLEDGE ADDED
 
         Graph nodes = GraphUtils.emptyGraph(0);

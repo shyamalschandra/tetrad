@@ -73,6 +73,8 @@ public class CGISimulation implements Simulation {
         setMeanLow(parameters.getDouble("meanLow"));
         setMeanHigh(parameters.getDouble("meanHigh"));
 
+        this.sampleSize += this.numInterventions * this.interventionSize;
+
         double percentDiscrete = parameters.getDouble("percentDiscrete");
 
         boolean discrete = parameters.getString("dataType").equals("discrete");

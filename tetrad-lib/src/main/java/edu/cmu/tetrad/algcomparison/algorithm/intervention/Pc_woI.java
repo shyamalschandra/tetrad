@@ -43,6 +43,8 @@ public class Pc_woI implements Algorithm, TakesInitialGraph, HasKnowledge {
         //REMOVE INTERVENTIONS
 
         CleanInterventions ci = new CleanInterventions();
+        //dataSet = ci.removeExtra(dataSet);  //REMOVE EXTRA OBSERVATIONS
+        dataSet = ci.removeRows(dataSet);  //REMOVE INTERVENTIONS
         dataSet = ci.removeVars(dataSet);
 
         //REMOVE INTERVENTIONS

@@ -34,6 +34,8 @@ public class Rfci_woI implements Algorithm, HasKnowledge {
         //REMOVE INTERVENTIONS
 
         CleanInterventions ci = new CleanInterventions();
+        //dataSet = ci.removeExtra(dataSet);  //REMOVE EXTRA OBSERVATIONS
+        dataSet = ci.removeRows(dataSet);  //REMOVE INTERVENTIONS
         dataSet = ci.removeVars(dataSet);
 
         //REMOVE INTERVENTIONS
@@ -52,7 +54,7 @@ public class Rfci_woI implements Algorithm, HasKnowledge {
     }
 
     public String getDescription() {
-        return "RFCI (Really Fast Causal Inference) using " + test.getDescription();
+        return "RFCI w/o Interventions (Really Fast Causal Inference) using " + test.getDescription();
     }
 
     @Override
