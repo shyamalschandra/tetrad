@@ -997,6 +997,16 @@ public class Comparison {
 
         Graph comparisonGraph = trueGraph == null ? null : algorithmSimulationWrapper.getComparisonGraph(trueGraph);
 
+        // THESE HAVE BEEN MODIFIED TEMPORARILY
+
+        CleanInterventions ci = new CleanInterventions();
+        comparisonGraph = ci.removeEdges(comparisonGraph);
+        comparisonGraph = ci.removeNodes(comparisonGraph);
+        out = ci.removeEdges(out);
+        out = ci.removeNodes(out);
+
+        // THESE HAVE BEEN MODIFIED TEMPORARILY
+
         est[0] = out;
         graphTypeUsed[0] = true;
 
@@ -1501,27 +1511,15 @@ public class Comparison {
             parameters.addAll(simulationWrapper.getParameters());
         }
 
-        // THESE HAVE BEEN MODIFIED TEMPORARILY
-
         @Override
         public Graph search(DataModel DataModel, Parameters parameters) {
-            CleanInterventions ci = new CleanInterventions();
-            Graph G = algorithmWrapper.getAlgorithm().search(DataModel, parameters);
-            ci.removeEdges(G);
-            ci.removeNodes(G);
-            return G;
+            return algorithmWrapper.getAlgorithm().search(DataModel, parameters);
         }
 
         @Override
         public Graph getComparisonGraph(Graph graph) {
-            CleanInterventions ci = new CleanInterventions();
-            Graph G = algorithmWrapper.getComparisonGraph(graph);
-            ci.removeEdges(G);
-            ci.removeNodes(G);
-            return G;
+            return algorithmWrapper.getComparisonGraph(graph);
         }
-
-        // THESE HAVE BEEN MODIFIED TEMPORARILY
 
         @Override
         public String getDescription() {

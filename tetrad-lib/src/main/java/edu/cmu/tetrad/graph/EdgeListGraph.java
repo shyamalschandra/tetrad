@@ -1567,10 +1567,18 @@ public class EdgeListGraph implements Graph, TripleClassifier {
         List<Edge> edges = edgeLists.get(node1);
         List<Edge> _edges = new ArrayList<>();
 
-        for (Edge edge : edges) {
-            if (edge.getDistalNode(node1) == node2) {
-                _edges.add(edge);
+        try {
+
+            for (Edge edge : edges) {
+                if (edge.getDistalNode(node1) == node2) {
+                    _edges.add(edge);
+                }
             }
+
+        } catch(Exception e) {
+
+            int a = 0;
+
         }
 
         return _edges;

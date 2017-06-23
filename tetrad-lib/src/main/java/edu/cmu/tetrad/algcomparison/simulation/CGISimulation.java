@@ -97,6 +97,13 @@ public class CGISimulation implements Simulation {
 
         dataSets = new ArrayList<>();
         graphs = new ArrayList<>();
+        iGraphs = new ArrayList<>();
+
+        System.out.println("");
+        for (String p : parameters.getParametersNames()) {
+            System.out.println(p + ": " + parameters.get(p));
+        }
+        System.out.println("");
 
         for (int i = 0; i < parameters.getInt("numRuns"); i++) {
             System.out.println("Simulating dataset #" + (i + 1));
@@ -111,6 +118,15 @@ public class CGISimulation implements Simulation {
             iGraphs.add(iGraph);
 
             DataSet dataSet = simulate(graph, interventions, parameters);
+
+            List<Node> measured = new ArrayList<>();
+            for (Node node : iGraph.getNodes()) {
+                if (node.getNodeType() == NodeType.MEASURED) {
+                    measured.add(dataSet.getVariable(node.getName()));
+                }
+            }
+            dataSet = dataSet.subsetColumns(measured);
+
             dataSet.setName("" + (i + 1));
             dataSets.add(dataSet);
         }
@@ -589,10 +605,14 @@ public class CGISimulation implements Simulation {
                 interventions.add(I);
             }
 
-            for (int j = 0; j < numEffected; j++) {
-                String effected = nodes.get(index).getName();
-                I.addEffect(effected);
-                index ++;
+            int j = 0;
+            while (j < numEffected) {
+                if (nodes.get(index).getNodeType() == NodeType.MEASURED) {
+                    String effected = nodes.get(index).getName();
+                    I.addEffect(effected);
+                    j++;
+                }
+                index++;
             }
         }
         return interventions;

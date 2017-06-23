@@ -18,7 +18,7 @@ public class CleanInterventions {
     }
 
     public Graph removeEdges(Graph I) {
-        Graph G = GraphUtils.emptyGraph(0);
+        Graph G = clone(I);
         for (Edge edge : G.getEdges()) {
             if (edge.getNode1().getName().startsWith("I") || edge.getNode2().getName().startsWith("I")) {
                 G.removeEdge(edge);
@@ -28,13 +28,24 @@ public class CleanInterventions {
     }
 
     public Graph removeNodes(Graph I) {
-        Graph G = GraphUtils.emptyGraph(0);
+        Graph G = clone(I);
         for (Node node : G.getNodes()) {
             if (node.getName().startsWith("I")) {
                 G.removeNode(node);
             }
         }
         return G;
+    }
+
+    private Graph clone(Graph G1) {
+        Graph G2 = GraphUtils.emptyGraph(0);
+        for (Node node : G1.getNodes()) {
+            G2.addNode(node);
+        }
+        for (Edge edge : G1.getEdges()) {
+            G2.addEdge(edge);
+        }
+        return G2;
     }
 
     public DataModel removeVars(DataModel I) {

@@ -24,14 +24,16 @@ package edu.cmu.tetrad.algcomparison.testing_scripts;
 import edu.cmu.tetrad.algcomparison.Comparison;
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithms;
 import edu.cmu.tetrad.algcomparison.algorithm.intervention.*;
+import edu.cmu.tetrad.algcomparison.algorithm.oracle.pag.Fci;
+import edu.cmu.tetrad.algcomparison.algorithm.oracle.pag.Rfci;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.*;
 import edu.cmu.tetrad.algcomparison.graph.RandomForward;
+import edu.cmu.tetrad.algcomparison.independence.ConditionalCorrelation;
 import edu.cmu.tetrad.algcomparison.independence.ConditionalGaussianLRT;
 import edu.cmu.tetrad.algcomparison.independence.FisherZ;
+import edu.cmu.tetrad.algcomparison.independence.IndependenceWrapper;
 import edu.cmu.tetrad.algcomparison.score.SemBicScore;
-import edu.cmu.tetrad.algcomparison.simulation.CGISimulation;
-import edu.cmu.tetrad.algcomparison.simulation.SemSimulation;
-import edu.cmu.tetrad.algcomparison.simulation.Simulations;
+import edu.cmu.tetrad.algcomparison.simulation.*;
 import edu.cmu.tetrad.algcomparison.statistic.*;
 import edu.cmu.tetrad.util.Parameters;
 
@@ -45,21 +47,25 @@ public class ExampleCompareSimulation {
         Parameters parameters = new Parameters();
 
         parameters.set("numRuns", 10);
-        parameters.set("numMeasures", 20);
-        parameters.set("avgDegree", 3);
+        parameters.set("numMeasures", 100);
+        parameters.set("numLatents", 0, 5, 10);
+        parameters.set("avgDegree", 2, 4);
         parameters.set("sampleSize", 500);
-        parameters.set("percentDiscrete", 50);
+        parameters.set("percentDiscrete", 0, 50, 100);
         parameters.set("minCategories", 2);
         parameters.set("maxCategories", 5);
-        parameters.set("differentGraphs",true);
+        parameters.set("differentGraphs", true);
 
-        parameters.set("interventionSize", 100);
-        parameters.set("numInterventions", 2);
-        parameters.set("percentIDiscrete", 100);
+        parameters.set("meanLow", 0);
+        parameters.set("meanHigh", 1);
+
+        parameters.set("interventionSize", 200);
+        parameters.set("numInterventions", 10);
+        parameters.set("percentIDiscrete", 0, 100);
         parameters.set("minICategories", 1);
         parameters.set("maxICategories", 1);
         parameters.set("minEffected", 1);
-        parameters.set("maxEffected", 1);
+        parameters.set("maxEffected", 1, 3);
         parameters.set("minPotency", 0.8);
         parameters.set("maxPotency", 1.0);
 
@@ -78,9 +84,10 @@ public class ExampleCompareSimulation {
 
         algorithms.add(new Pc_I(new ConditionalGaussianLRT()));
         algorithms.add(new Pc_woI(new ConditionalGaussianLRT()));
+        algorithms.add(new PcMax_I(new ConditionalGaussianLRT(), false));
+        algorithms.add(new PcMax_woI(new ConditionalGaussianLRT(), false));
         algorithms.add(new Rfci_I(new ConditionalGaussianLRT()));
         algorithms.add(new Rfci_woI(new ConditionalGaussianLRT()));
-
 
         Simulations simulations = new Simulations();
 
