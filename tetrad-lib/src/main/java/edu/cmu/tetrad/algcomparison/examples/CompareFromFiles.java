@@ -52,12 +52,12 @@ public class CompareFromFiles {
         // Can leave the simulation parameters out since
         // we're loading from file here.
 
-        parameters.set("numRuns", 3);
+        parameters.set("numRuns", 10);
         parameters.set("maxDistinctValuesDiscrete", 5);
 
-        parameters.set("structurePrior", -0.5);
+        parameters.set("structurePrior", 1);
         parameters.set("fDegree", -1);
-        parameters.set("discretize", 0);
+        parameters.set("discretize", 0, 1);
 
         parameters.set("alpha", 1e-3, 1e-4);
 
@@ -78,8 +78,8 @@ public class CompareFromFiles {
 
         Algorithms algorithms = new Algorithms();
 
-//        algorithms.add(new Fges(new ConditionalGaussianBicScore()));
-//        algorithms.add(new Fges(new ConditionalGaussianOtherBicScore()));
+        algorithms.add(new Fges(new ConditionalGaussianBicScore()));
+//        algorithms.add(new Fges(new ConditionalGaussianExactBicScore()));
         algorithms.add(new Fges(new MVPBicScore()));
 //        algorithms.add(new Fges(new MNLRBicScore()));
 //        algorithms.add(new Fges(new DiscreteMixedBicScore()));

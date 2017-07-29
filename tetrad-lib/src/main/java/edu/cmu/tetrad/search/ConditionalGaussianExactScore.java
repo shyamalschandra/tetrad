@@ -31,7 +31,7 @@ import java.util.List;
  *
  * @author Joseph Ramsey
  */
-public class ConditionalGaussianOtherScore implements Score {
+public class ConditionalGaussianExactScore implements Score {
 
     private DataSet dataSet;
 
@@ -39,7 +39,7 @@ public class ConditionalGaussianOtherScore implements Score {
     private List<Node> variables;
 
     // Likelihood function
-    private ConditionalGaussianOtherLikelihood likelihood;
+    private ConditionalGaussianExactLikelihood likelihood;
 
     private double penaltyDiscount = 1;
     private int numCategoriesToDiscretize = 3;
@@ -48,7 +48,7 @@ public class ConditionalGaussianOtherScore implements Score {
     /**
      * Constructs the score using a covariance matrix.
      */
-    public ConditionalGaussianOtherScore(DataSet dataSet, double sp, boolean discretize) {
+    public ConditionalGaussianExactScore(DataSet dataSet, double sp, boolean discretize) {
         if (dataSet == null) {
             throw new NullPointerException();
         }
@@ -57,7 +57,7 @@ public class ConditionalGaussianOtherScore implements Score {
         this.variables = dataSet.getVariables();
         this.sp = sp;
 
-        this.likelihood = new ConditionalGaussianOtherLikelihood(dataSet);
+        this.likelihood = new ConditionalGaussianExactLikelihood(dataSet);
         //this.likelihood.setDiscretize(discretize);
     }
 
@@ -68,7 +68,7 @@ public class ConditionalGaussianOtherScore implements Score {
         likelihood.setNumCategoriesToDiscretize(numCategoriesToDiscretize);
         likelihood.setPenaltyDiscount(penaltyDiscount);
 
-        ConditionalGaussianOtherLikelihood.Ret ret = likelihood.getLikelihood(i, parents);
+        ConditionalGaussianExactLikelihood.Ret ret = likelihood.getLikelihood(i, parents);
 
         int N = dataSet.getNumRows();
         double lik = ret.getLik();

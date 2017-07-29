@@ -46,7 +46,7 @@ import static java.lang.Math.log;
  *
  * @author Joseph Ramsey
  */
-public class ConditionalGaussianOtherLikelihood {
+public class ConditionalGaussianExactLikelihood {
 
     // The data set. May contain continuous and/or discrete mixedVariables.
     private DataSet mixedDataSet;
@@ -107,7 +107,7 @@ public class ConditionalGaussianOtherLikelihood {
     /**
      * Constructs the score using a covariance matrix.
      */
-    public ConditionalGaussianOtherLikelihood(DataSet dataSet) {
+    public ConditionalGaussianExactLikelihood(DataSet dataSet) {
         if (dataSet == null) {
             throw new NullPointerException();
         }

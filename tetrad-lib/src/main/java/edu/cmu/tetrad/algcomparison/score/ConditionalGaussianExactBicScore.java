@@ -4,8 +4,7 @@ import edu.cmu.tetrad.data.DataModel;
 import edu.cmu.tetrad.data.DataType;
 import edu.cmu.tetrad.data.DataUtils;
 import edu.cmu.tetrad.graph.Node;
-import edu.cmu.tetrad.search.ConditionalGaussianOtherScore;
-import edu.cmu.tetrad.search.ConditionalGaussianScore;
+import edu.cmu.tetrad.search.ConditionalGaussianExactScore;
 import edu.cmu.tetrad.search.Score;
 import edu.cmu.tetrad.util.Experimental;
 import edu.cmu.tetrad.util.Parameters;
@@ -18,13 +17,13 @@ import java.util.List;
  *
  * @author jdramsey
  */
-public class ConditionalGaussianOtherBicScore implements ScoreWrapper, Experimental {
+public class ConditionalGaussianExactBicScore implements ScoreWrapper, Experimental {
     static final long serialVersionUID = 23L;
 
     @Override
     public Score getScore(DataModel dataSet, Parameters parameters) {
-        final ConditionalGaussianOtherScore conditionalGaussianScore
-                = new ConditionalGaussianOtherScore(DataUtils.getMixedDataSet(dataSet), parameters.getDouble("structurePrior"), parameters.getInt("discretize")>0);
+        final ConditionalGaussianExactScore conditionalGaussianScore
+                = new ConditionalGaussianExactScore(DataUtils.getMixedDataSet(dataSet), parameters.getDouble("structurePrior"), parameters.getInt("discretize")>0);
         conditionalGaussianScore.setNumCategoriesToDiscretize(parameters.getInt("numCategoriesToDiscretize"));
         return conditionalGaussianScore;
     }
