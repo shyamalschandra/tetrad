@@ -1,6 +1,5 @@
 package edu.cmu.tetrad.intervention;
 
-import edu.cmu.tetrad.util.RandomUtil;
 import org.apache.commons.lang3.RandomUtils;
 
 import java.util.*;

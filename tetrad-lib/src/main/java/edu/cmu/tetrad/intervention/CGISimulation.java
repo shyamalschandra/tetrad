@@ -1,11 +1,11 @@
 package edu.cmu.tetrad.intervention;
 
-import edu.cmu.tetrad.algcomparison.simulation.Simulation;
 import edu.cmu.tetrad.algcomparison.graph.RandomGraph;
-import edu.cmu.tetrad.bayes.*;
+import edu.cmu.tetrad.algcomparison.simulation.Simulation;
+import edu.cmu.tetrad.bayes.BayesIm;
+import edu.cmu.tetrad.bayes.BayesPm;
 import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.*;
-import edu.cmu.tetrad.search.DagInPatternIterator;
 import edu.cmu.tetrad.sem.ParamType;
 import edu.cmu.tetrad.sem.Parameter;
 import edu.cmu.tetrad.sem.SemPm;
@@ -15,9 +15,6 @@ import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.math3.distribution.GammaDistribution;
 
 import java.util.*;
-
-import static edu.cmu.tetrad.search.SearchGraphUtils.dagFromPattern;
-import static edu.cmu.tetrad.search.SearchGraphUtils.patternFromDag;
 
 /**
  * A simulation method based on the conditional Gaussian assumption which allows for interventions.
