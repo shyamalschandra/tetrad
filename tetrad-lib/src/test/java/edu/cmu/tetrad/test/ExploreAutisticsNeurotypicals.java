@@ -444,7 +444,7 @@ public final class ExploreAutisticsNeurotypicals {
         dataSet = new BoxDataSet(new DoubleDataBox(dataSet.getDoubleData().toArray()), _nodes);
         dataSet.setNumberFormat(new DecimalFormat("0"));
 
-        File file1 = new File(path, prefix + ".data.txt");
+        File file1 = new File(path, prefix + ".data_context_discrete.txt");
         File file2 = new File(path, prefix + ".dict.txt");
 
         try {
@@ -494,7 +494,7 @@ public final class ExploreAutisticsNeurotypicals {
 //        dataSet = new BoxDataSet(new DoubleDataBox(dataSet.getDoubleData().toArray()), _nodes);
         dataSet.setNumberFormat(new DecimalFormat("0"));
 
-        File file1 = new File(path, prefix + ".data.txt");
+        File file1 = new File(path, prefix + ".data_context_discrete.txt");
         File file2 = new File(path, prefix + ".dict.txt");
 
         try {

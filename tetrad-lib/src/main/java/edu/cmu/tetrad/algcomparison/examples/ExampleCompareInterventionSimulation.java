@@ -47,7 +47,7 @@ public class ExampleCompareInterventionSimulation {
         Parameters parameters = new Parameters();
         parameters.set("numRuns", 10);
         parameters.set("numMeasures", 100);
-        parameters.set("numLatents", 10);
+        parameters.set("numLatents", 0);
         parameters.set("sampleSize", 200);
         parameters.set("percentDiscrete", 0);
         parameters.set("minCategories", 2);
@@ -109,14 +109,14 @@ public class ExampleCompareInterventionSimulation {
 //        algorithms.add(new IPcStable(new ConditionalGaussianLRT()));
 //        algorithms.add(new woIPcStable(new ConditionalGaussianLRT()));
 
-//        algorithms.add(new IFges(new ConditionalGaussianBicScore()));
-//        algorithms.add(new woIFges(new ConditionalGaussianBicScore()));
+        algorithms.add(new IFges(new ConditionalGaussianBicScore()));
+        algorithms.add(new woIFges(new ConditionalGaussianBicScore()));
 
-        algorithms.add(new IFci(new ConditionalGaussianLRT()));
-        algorithms.add(new woIFci(new ConditionalGaussianLRT()));
+//        algorithms.add(new IFci(new ConditionalGaussianLRT()));
+//        algorithms.add(new woIFci(new ConditionalGaussianLRT()));
 
-        algorithms.add(new IGfci(new ConditionalGaussianLRT(), new ConditionalGaussianBicScore()));
-        algorithms.add(new woIGfci(new ConditionalGaussianLRT(), new ConditionalGaussianBicScore()));
+//        algorithms.add(new IGfci(new ConditionalGaussianLRT(), new ConditionalGaussianBicScore()));
+//        algorithms.add(new woIGfci(new ConditionalGaussianLRT(), new ConditionalGaussianBicScore()));
 
         Simulations simulations = new Simulations();
         simulations.add(new CGISimulation(new RandomForward()));

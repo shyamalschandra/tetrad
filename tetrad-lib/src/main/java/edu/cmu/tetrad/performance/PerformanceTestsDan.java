@@ -93,7 +93,7 @@ public class PerformanceTestsDan {
                 out7 = new PrintStream(new File(dir, "pag.matrix.txt"));
                 out8 = new PrintStream(new File(dir, "pattern.long.txt"));
                 out9 = new PrintStream(new File(dir, "pattern.matrix.txt"));
-                out10 = new PrintStream(new File(dir, "data.txt"));
+                out10 = new PrintStream(new File(dir, "data_context_discrete.txt"));
                 out11 = new PrintStream(new File(dir, "true.pag.long.txt"));
                 out12 = new PrintStream(new File(dir, "true.pag.matrix.txt"));
             } catch (FileNotFoundException e) {

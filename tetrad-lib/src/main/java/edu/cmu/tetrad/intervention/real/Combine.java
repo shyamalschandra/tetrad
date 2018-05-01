@@ -38,9 +38,9 @@ public class Combine {
         for (Integer intervention : this.interventions) {
             Node new_context = this.dataSets.get(1).getVariable(intervention);
             boolean non_deterministic = true;
-            for (Node variables : this.variables) {
-                if (check_deterministic(new_context, variables, 1, 1)) {
-                    variables.setName(variables.getName() + ":IC" + new_context.getName().substring(1));
+            for (Node variable : this.variables) {
+                if (check_deterministic(new_context, variable, 1, 1)) {
+                    variable.setName(variable.getName() + ":IC" + new_context.getName().substring(1));
                     non_deterministic = false;
                 }
                 if (!non_deterministic) {
@@ -106,7 +106,7 @@ public class Combine {
         } else if (this.dataSets.get(0).isDiscrete() && this.dataSets.get(1).isDiscrete()) {
             dataSet = new BoxDataSet(new IntDataBox(this.dataSets.get(0).getNumRows(), this.variables.size()), this.variables);
         } else {
-            dataSet = new BoxDataSet(new MixedDataBox(this.variables, this.variables.size()), this.variables);
+            dataSet = new BoxDataSet(new MixedDataBox(this.variables, this.dataSets.get(0).getNumRows()), this.variables);
         }
         for (int i = 0; i < this.dataSets.get(0).getNumRows(); i++) {
             for (int j = 0; j < this.variables.size(); j++) {
@@ -127,60 +127,33 @@ public class Combine {
         int ac = this.dataSets.get(i).getColumn(a);
         int bc = this.dataSets.get(j).getColumn(b);
 
-        HashMap<Double, Double> mapping = new HashMap<>();
+        HashMap<Double, Double> mapping_forward = new HashMap<>();
+        HashMap<Double, Double> mapping_reverse = new HashMap<>();
 
         if (a instanceof DiscreteVariable && b instanceof DiscreteVariable) {
             for (int k = 0; k < this.dataSets.get(0).getNumRows(); k++) {
                 double v1 = this.dataSets.get(i).getInt(k,ac);
                 double v2 = this.dataSets.get(j).getInt(k,bc);
-                if (mapping.containsKey(v1)) {
-                    if (mapping.get(v1) != v2) {
+                if (mapping_forward.containsKey(v1)) {
+                    if (mapping_forward.get(v1) != v2) {
                         deterministic = false;
                         break;
                     }
                 } else {
-                    mapping.put(v1, v2);
+                    mapping_forward.put(v1, v2);
                 }
-            }
-        } else if (a instanceof DiscreteVariable && b instanceof ContinuousVariable) {
-            for (int k = 0; k < this.dataSets.get(0).getNumRows(); k++) {
-                double v1 = this.dataSets.get(i).getDouble(k,ac);
-                double v2 = this.dataSets.get(j).getInt(k,bc);
-                if (mapping.containsKey(v1)) {
-                    if (mapping.get(v1) != v2) {
+                if (mapping_reverse.containsKey(v2)) {
+                    if (mapping_reverse.get(v2) != v1) {
                         deterministic = false;
                         break;
                     }
                 } else {
-                    mapping.put(v1, v2);
+                    mapping_reverse.put(v2, v1);
                 }
             }
-        } else if (a instanceof ContinuousVariable && b instanceof DiscreteVariable) {
-            for (int k = 0; k < this.dataSets.get(0).getNumRows(); k++) {
-                double v1 = this.dataSets.get(i).getInt(k,ac);
-                double v2 = this.dataSets.get(j).getDouble(k,bc);
-                if (mapping.containsKey(v1)) {
-                    if (mapping.get(v1) != v2) {
-                        deterministic = false;
-                        break;
-                    }
-                } else {
-                    mapping.put(v1, v2);
-                }
-            }
+
         } else {
-            for (int k = 0; k < this.dataSets.get(0).getNumRows(); k++) {
-                double v1 = this.dataSets.get(i).getDouble(k,ac);
-                double v2 = this.dataSets.get(j).getDouble(k,bc);
-                if (mapping.containsKey(v1)) {
-                    if (mapping.get(v1) != v2) {
-                        deterministic = false;
-                        break;
-                    }
-                } else {
-                    mapping.put(v1, v2);
-                }
-            }
+            deterministic = false;
         }
 
         return deterministic;

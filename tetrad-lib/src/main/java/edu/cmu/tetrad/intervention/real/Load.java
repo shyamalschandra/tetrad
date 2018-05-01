@@ -20,8 +20,8 @@ public class Load {
         List<DataSet> dataSets = new ArrayList<>();
 
         try {
-            File data_file = new File(path + "/data.txt");
-            File meta_file = new File(path + "/meta.txt");
+            File data_file = new File(path + "/data_interventions_continuous.txt");
+            File meta_file = new File(path + "/meta_interventions.txt");
             DataReader reader = new DataReader();
             reader.setVariablesSupplied(true);
             reader.setMaxIntegralDiscrete(max_discrete);

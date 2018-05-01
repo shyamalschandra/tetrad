@@ -45,21 +45,16 @@ import java.util.List;
 public class Run {
     public static void main(String... args) {
         Load load = new Load();
-        String path = "tetrad-lib/src/main/java/edu/cmu/tetrad/Bryan/";
-        List<DataSet> dataSets = load.load_data(path + "data", 5);
+        String path = "tetrad-lib/src/main/java/edu/cmu/tetrad/intervention/real/";
+        List<DataSet> dataSets = load.load_data(path + "data", 10);
         edu.cmu.tetrad.intervention.real.Combine combine = new Combine(dataSets);
         DataSet dataSet = combine.combine_datasets();
-        Knowledge knowledge = new Knowledge(dataSet, dataSets.get(0));
+        Knowledge knowledge = new Knowledge(dataSet);
         Knowledge2 prior_knowledge = knowledge.get_knowledge();
         Parameters parameters = new Parameters();
         parameters.set("alpha", 0.01);
         parameters.set("structurePrior", 1);
-//        Pc search = new Pc(new ChiSquare());
-//        PcMax search = new PcMax(new ChiSquare(), false);
-//        PcStable search = new PcStable(new ChiSquare());
-//        CpcStable search = new CpcStable(new ChiSquare());
-//        Rfci search = new Rfci(new ChiSquare());
-//        Gfci search = new Gfci(new ConditionalGaussianLRT(), new ConditionalGaussianBicScore());
+//        PcStable search = new PcStable(new ConditionalGaussianLRT());
         Fges search = new Fges(new ConditionalGaussianBicScore());
 
         search.setKnowledge(prior_knowledge);
