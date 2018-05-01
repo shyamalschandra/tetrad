@@ -183,6 +183,17 @@ public final class FciOrient {
         graph.reorientAllWith(Endpoint.CIRCLE);
         fciOrientbk(knowledge, graph, graph.getNodes());
 
+        // TEMP BGK FOR INTERVENTIONS
+        for (Node a : graph.getNodes()) {
+            for (Node b : graph.getNodes()) {
+                if (graph.isAdjacentTo(a, b) && (a.getName().startsWith("C") || a.getName().startsWith("I")) && b.getName().startsWith("X")) {
+                    graph.setEndpoint(a, b, Endpoint.ARROW);
+                    graph.setEndpoint(b, a, Endpoint.TAIL);
+                }
+            }
+        }
+        // TEMP BGK FOR INTERVENTIONS
+
         List<Node> nodes = graph.getNodes();
 
         for (Node b : nodes) {

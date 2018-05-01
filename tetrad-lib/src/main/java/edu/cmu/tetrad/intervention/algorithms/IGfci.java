@@ -49,7 +49,7 @@ public class IGfci implements Algorithm, HasKnowledge, UsesScoreWrapper, TakesIn
 
     @Override
     public Graph search(DataModel dataSet, Parameters parameters) {
-        if (!parameters.getBoolean("bootstrapping")) {
+        if (parameters.getInt("bootstrapSampleSize") < 1) {
 
             //REMOVE EXTRA OBSERVATIONS
             CleanInterventions ci = new CleanInterventions();

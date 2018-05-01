@@ -4,6 +4,7 @@ import edu.cmu.tetrad.algcomparison.graph.RandomGraph;
 import edu.cmu.tetrad.algcomparison.simulation.Simulation;
 import edu.cmu.tetrad.bayes.BayesIm;
 import edu.cmu.tetrad.bayes.BayesPm;
+import edu.cmu.tetrad.bayes.MlBayesIm;
 import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.sem.ParamType;
@@ -357,8 +358,8 @@ public class CGISimulation implements Simulation {
         // Parameterize the graph and get causal ordering.
 
         BayesPm bayesPm = new BayesPm(AG);
-//        BayesIm bayesIm = new MlBayesIm(bayesPm, MlBayesIm.RANDOM);
-        BayesIm bayesIm = new MlBayesIm_o(bayesPm, MlBayesIm_o.RANDOM);
+        BayesIm bayesIm = new MlBayesIm(bayesPm, MlBayesIm.RANDOM);
+//        BayesIm bayesIm = new MlBayesIm_o(bayesPm, MlBayesIm_o.RANDOM);
 
         SemPm semPm = new SemPm(XG);
 

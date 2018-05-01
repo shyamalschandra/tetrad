@@ -44,7 +44,7 @@ public class woIPcStable implements Algorithm, TakesInitialGraph, HasKnowledge, 
 
     @Override
     public Graph search(DataModel dataSet, Parameters parameters) {
-        if (!parameters.getBoolean("bootstrapping")) {
+        if (parameters.getInt("bootstrapSampleSize") < 1) {
             if (algorithm != null) {
 //            	initialGraph = algorithm.search(dataSet, parameters);
             }

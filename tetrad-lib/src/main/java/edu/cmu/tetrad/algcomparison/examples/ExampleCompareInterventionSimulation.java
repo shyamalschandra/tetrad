@@ -25,12 +25,16 @@ import edu.cmu.tetrad.algcomparison.Comparison;
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithms;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.*;
 import edu.cmu.tetrad.algcomparison.graph.RandomForward;
+import edu.cmu.tetrad.algcomparison.independence.ConditionalGaussianLRT;
 import edu.cmu.tetrad.algcomparison.independence.FisherZ;
-import edu.cmu.tetrad.algcomparison.score.MVPBicScore;
+import edu.cmu.tetrad.algcomparison.score.ConditionalGaussianBicScore;
 import edu.cmu.tetrad.algcomparison.score.SemBicScore;
 import edu.cmu.tetrad.algcomparison.simulation.SemSimulation;
+import edu.cmu.tetrad.algcomparison.simulation.Simulation;
 import edu.cmu.tetrad.algcomparison.simulation.Simulations;
 import edu.cmu.tetrad.algcomparison.statistic.*;
+import edu.cmu.tetrad.intervention.CGISimulation;
+import edu.cmu.tetrad.intervention.algorithms.*;
 import edu.cmu.tetrad.util.Parameters;
 
 /**
@@ -38,15 +42,59 @@ import edu.cmu.tetrad.util.Parameters;
  *
  * @author jdramsey
  */
-public class ExampleCompareSimulation {
+public class ExampleCompareInterventionSimulation {
     public static void main(String... args) {
         Parameters parameters = new Parameters();
-        https://arxiv.org/abs/1607.08110
         parameters.set("numRuns", 10);
         parameters.set("numMeasures", 100);
-        parameters.set("avgDegree", 4, 6);
-        parameters.set("sampleSize", 500);
-        parameters.set("alpha", 1e-4, 1e-3, 1e-2);
+        parameters.set("numLatents", 10);
+        parameters.set("sampleSize", 200);
+        parameters.set("percentDiscrete", 0);
+        parameters.set("minCategories", 2);
+        parameters.set("maxCategories", 5);
+        parameters.set("differentGraphs", true);
+
+        parameters.set("avgDegree", 2);
+        parameters.set("maxDegree", 100);
+        parameters.set("maxIndegree", 100);
+        parameters.set("maxOutdegree", 100);
+
+        parameters.set("meanLow", 0);
+        parameters.set("meanHigh", 1);
+
+        parameters.set("interventionSize", 200);
+        parameters.set("numInterventions", 5);
+        parameters.set("percentIDiscrete", 100);
+        parameters.set("minICategories", 1);
+        parameters.set("maxICategories", 3);
+        parameters.set("minEffected", 1);
+        parameters.set("maxEffected", 1);
+
+        parameters.set("minPotency", 0.8);
+        parameters.set("maxPotency", 1.0);
+
+//        parameters.set("minPotency", 0);
+//        parameters.set("maxPotency", 0);
+
+        parameters.set("percentCInfluence", 0);
+        parameters.set("discreteCInfluence", 0);
+        parameters.set("continuousCInfluence", 0);
+
+//        parameters.set("percentCInfluence", 0.1);
+//        parameters.set("discreteCInfluence", 0.5);
+//        parameters.set("continuousCInfluence", 1.0);
+
+        parameters.set("observationCondition", 2);
+        parameters.set("hand", 0);
+        parameters.set("removeContext", false);
+
+        parameters.set("alpha", 0.05);
+        parameters.set("structurePrior", 1.0);
+        parameters.set("discretize", false);
+        parameters.set("faithfulnessAssumed", false);
+        parameters.set("symmetricFirstStep", true);
+        parameters.set("maxPathLength", 0);
+        parameters.set("completeRuleSetUsed", false);
 
         Statistics statistics = new Statistics();
 
@@ -54,36 +102,39 @@ public class ExampleCompareSimulation {
         statistics.add(new AdjacencyRecall());
         statistics.add(new ArrowheadPrecision());
         statistics.add(new ArrowheadRecall());
-        statistics.add(new MathewsCorrAdj());
-        statistics.add(new MathewsCorrArrow());
-        statistics.add(new F1Adj());
-        statistics.add(new F1Arrow());
-        statistics.add(new SHD());
         statistics.add(new ElapsedTime());
-
-        statistics.setWeight("AP", 1.0);
-        statistics.setWeight("AR", 0.5);
 
         Algorithms algorithms = new Algorithms();
 
-        algorithms.add(new Pc(new FisherZ()));
-        algorithms.add(new Cpc(new FisherZ(), new Fges(new SemBicScore(), false)));
-        algorithms.add(new PcStable(new FisherZ()));
-        algorithms.add(new CpcStable(new FisherZ()));
+//        algorithms.add(new IPcStable(new ConditionalGaussianLRT()));
+//        algorithms.add(new woIPcStable(new ConditionalGaussianLRT()));
+
+//        algorithms.add(new IFges(new ConditionalGaussianBicScore()));
+//        algorithms.add(new woIFges(new ConditionalGaussianBicScore()));
+
+        algorithms.add(new IFci(new ConditionalGaussianLRT()));
+        algorithms.add(new woIFci(new ConditionalGaussianLRT()));
+
+        algorithms.add(new IGfci(new ConditionalGaussianLRT(), new ConditionalGaussianBicScore()));
+        algorithms.add(new woIGfci(new ConditionalGaussianLRT(), new ConditionalGaussianBicScore()));
 
         Simulations simulations = new Simulations();
-
-        simulations.add(new SemSimulation(new RandomForward()));
+        simulations.add(new CGISimulation(new RandomForward()));
 
         Comparison comparison = new Comparison();
-
         comparison.setShowAlgorithmIndices(true);
         comparison.setShowSimulationIndices(true);
-        comparison.setSortByUtility(true);
-        comparison.setShowUtilities(true);
-        comparison.setParallelized(true);
+        comparison.setSortByUtility(false);
+        comparison.setShowUtilities(false);
+        comparison.setParallelized(false);
+        comparison.setSaveGraphs(true);
+
+        for (Simulation simulation : simulations.getSimulations()) {
+            comparison.saveToFiles("comparison", simulation, parameters);
+        }
 
         comparison.compareFromSimulations("comparison", simulations, algorithms, statistics, parameters);
+
     }
 }
 

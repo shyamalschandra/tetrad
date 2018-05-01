@@ -46,7 +46,7 @@ public class woIGfci implements Algorithm, HasKnowledge, UsesScoreWrapper, Takes
 
     @Override
     public Graph search(DataModel dataSet, Parameters parameters) {
-        if (!parameters.getBoolean("bootstrapping")) {
+        if (parameters.getInt("bootstrapSampleSize") < 1) {
 
             //REMOVE INTERVENTIONS / CONTEXT
 

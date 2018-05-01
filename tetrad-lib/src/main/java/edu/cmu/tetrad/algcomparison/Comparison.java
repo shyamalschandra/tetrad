@@ -42,6 +42,7 @@ import edu.cmu.tetrad.algcomparison.utils.HasParameters;
 import edu.cmu.tetrad.algcomparison.utils.TakesInitialGraph;
 import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.*;
+import edu.cmu.tetrad.intervention.CleanInterventions;
 import edu.cmu.tetrad.search.DagToPag;
 import edu.cmu.tetrad.search.DagToPag2;
 import edu.cmu.tetrad.search.SearchGraphUtils;
@@ -1235,6 +1236,48 @@ public class Comparison {
         }
 
 //        Graph comparisonGraph = trueGraph == null ? null : algorithmSimulationWrapper.getComparisonGraph(trueGraph);
+
+
+        // THESE HAVE BEEN MODIFIED TEMPORARILY
+
+        CleanInterventions ci = new CleanInterventions();
+        comparisonGraph = ci.removeEdges(comparisonGraph);
+        comparisonGraph = ci.removeNodes(comparisonGraph);
+        out = ci.removeEdges(out);
+        out = ci.removeNodes(out);
+
+
+        // Get MAG
+
+        DagToPag2 d2p = new DagToPag2(comparisonGraph);
+        Graph pag = d2p.convert();
+        for (Edge e : pag.getEdges()) {
+            if (e.getEndpoint1() == Endpoint.CIRCLE) {
+                Node n1 = e.getNode1();
+                Node n2 = e.getNode2();
+                if (comparisonGraph.isAncestorOf(n1, n2)) {
+                    e.setEndpoint1(Endpoint.TAIL);
+                } else {
+                    e.setEndpoint1(Endpoint.ARROW);
+                }
+            }
+            if (e.getEndpoint2() == Endpoint.CIRCLE) {
+                Node n1 = e.getNode1();
+                Node n2 = e.getNode2();
+                if (comparisonGraph.isAncestorOf(n2, n1)) {
+                    e.setEndpoint2(Endpoint.TAIL);
+                } else {
+                    e.setEndpoint2(Endpoint.ARROW);
+                }
+            }
+        }
+
+        // Compare against MAG
+
+        comparisonGraph = pag;
+
+        // THESE HAVE BEEN MODIFIED TEMPORARILY
+
 
         est[0] = out;
         graphTypeUsed[0] = true;
