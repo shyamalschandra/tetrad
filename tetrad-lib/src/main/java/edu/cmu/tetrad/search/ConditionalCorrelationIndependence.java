@@ -173,16 +173,9 @@ public final class ConditionalCorrelationIndependence {
         double alpha2 = (exp(log(alpha) + logChoose(v, d1) - logChoose(v, d2)));
         cutoff = getZForAlpha(alpha2);
 
-        double[] f1 = residuals(x, z, false);
-        double[] g = residuals(y, z, false);
-        final boolean independent1 = independent(f1, g);
-
-        if (!independent1) {
-            return false;
-        }
-
-        double[] f2 = residuals(x, z, true);
-        return independent(f2, g);
+        double[] f = residuals(x, z);
+        double[] g = residuals(y, z);
+        return independent(f, g);
     }
 
     /**
@@ -221,8 +214,6 @@ public final class ConditionalCorrelationIndependence {
                     _y[i] = function(n, y[i]);
                 }
 
-                if (variance(_x) < 1e-4 || varHat(_y) < 1e-4) continue;
-
                 final double score = abs(nonparametricFisherZ(_x, _y));
                 if (Double.isInfinite(score) || Double.isNaN(score)) continue;
                 if (score > maxScore) maxScore = score;
@@ -240,7 +231,7 @@ public final class ConditionalCorrelationIndependence {
      * @return a double[2][] array. The first double[] array contains the residuals for x
      * and the second double[] array contains the resituls for y.
      */
-    public double[] residuals(String x, List<String> z, boolean cross) {
+    public double[] residuals(String x, List<String> z) {
         int N = data[0].length;
 
         int _x = indices.get(x);
@@ -248,16 +239,6 @@ public final class ConditionalCorrelationIndependence {
         double[] residualsx = new double[N];
 
         double[] xdata = data[_x];
-
-        if (cross) {
-            xdata = Arrays.copyOf(data[_x], data[_x].length);
-
-            for (int i = 0; i < xdata.length; i++) {
-                for (String _z : z) {
-                    xdata[i] += data[indices.get(_z)][i];
-                }
-            }
-        }
 
         double[] sumx = new double[N];
 
@@ -372,9 +353,7 @@ public final class ConditionalCorrelationIndependence {
 
     public double getPValue() {
         return 2.0 * (1.0 - new NormalDistribution(0, 1).cumulativeProbability(score));
-
     }
-
 
     //=====================PRIVATE METHODS====================//
 

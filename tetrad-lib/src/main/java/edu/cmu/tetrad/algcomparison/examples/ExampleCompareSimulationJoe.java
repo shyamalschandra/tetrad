@@ -52,8 +52,7 @@ public class ExampleCompareSimulationJoe {
         parameters.set("useMaxPOrientationHeuristic", false);
         parameters.set("maxPOrientationMaxPathLength", 3);
 
-        parameters.set("alpha", 0.2);
-        parameters.set("alphaDependentCase", 0.0001);
+        parameters.set("alpha", 0.0001);
         parameters.set("numBasisFunctions", 20);
         parameters.set("kernelType", 2);
         parameters.set("kernelMultiplier", 1);
@@ -106,8 +105,8 @@ public class ExampleCompareSimulationJoe {
 
 //        algorithms.add(new PcAll(new Kci()));
 //        algorithms.add(new PcAll(new KciMatlab()));
-//        algorithms.add(new PcAll(new RcitJRI()));
-//        algorithms.add(new PcAll(new CciTest()));
+        algorithms.add(new PcAll(new RcitJRI()));
+        algorithms.add(new PcAll(new CciTest()));
         algorithms.add(new Fges(new CciScore()));
 //        algorithms.add(new PcAll(new ConditionalGaussianLRT()));
 //        algorithms.add(new PcAll(new FisherZ()));

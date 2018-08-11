@@ -114,6 +114,8 @@ public final class IndTestConditionalCorrelation implements IndependenceTest {
         for (int i = 0; i < nodes.size(); i++) {
             indices.put(nodes.get(i), i);
         }
+
+        this.dataSet = dataSet;
     }
 
     //==========================PUBLIC METHODS=============================//
@@ -182,7 +184,7 @@ public final class IndTestConditionalCorrelation implements IndependenceTest {
      * @return the probability associated with the most recently computed independence test.
      */
     public double getPValue() {
-        return cci.getScore();
+        return cci.getPValue();
     }
 
     /**
