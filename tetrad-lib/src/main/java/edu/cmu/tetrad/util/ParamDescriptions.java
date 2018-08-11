@@ -29,6 +29,7 @@ public class ParamDescriptions {
         map.put("numRuns", new ParamDescription("Number of runs (min = 1)", 1, 1, Integer.MAX_VALUE));
         map.put("differentGraphs", new ParamDescription("Yes if a different graph should be used for each run", false));
         map.put("alpha", new ParamDescription("Cutoff for p values (alpha) (min = 0.0)", 0.01, 0.0, 1.0));
+        map.put("alphaDependentCase", new ParamDescription("Cutoff for p values (alpha) for the dependent case (min = 0.0)", 0.01, 0.0, 1.0));
         map.put("penaltyDiscount", new ParamDescription("Penalty discount (min = 0.0)", 2.0, 0.0, Double.MAX_VALUE));
         map.put("fgesDepth", new ParamDescription("Maximum number of new colliders (min = 1)", 1, 1, Integer.MAX_VALUE));
         map.put("standardize", new ParamDescription("Yes if the data should be standardized", false));

@@ -112,7 +112,7 @@ public class TsFciRunner2 extends AbstractAlgorithmRunner
         Graph graph;
 
         IndependenceTest independenceTest = getIndependenceTest();
-        Score score = new ScoredIndTest(independenceTest);
+        Score score = new ScoredIndTest(independenceTest, independenceTest.getAlpha(), independenceTest.getAlpha());
 
         if (independenceTest instanceof  IndTestDSep) {
             final DagToPag dagToPag = new DagToPag(((IndTestDSep) independenceTest).getGraph());

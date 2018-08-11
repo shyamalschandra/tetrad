@@ -27,10 +27,7 @@ import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.util.ChoiceGenerator;
 import edu.cmu.tetrad.util.TetradLogger;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Implements a convervative version of PC, in which the Markov condition is assumed but faithfulness is tested
@@ -313,9 +310,6 @@ public final class PcAll implements GraphSearch {
         SearchGraphUtils.pcOrientbk(knowledge, graph, nodes);
 
         if (colliderDiscovery == ColliderDiscovery.FAS_SEPSETS) {
-            if (verbose) {
-                System.out.println("FAS Sepset orientation...");
-            }
             orientCollidersUsingSepsets(this.sepsets, knowledge, graph, verbose, conflictRule);
         } else if (colliderDiscovery == ColliderDiscovery.MAX_P) {
             if (verbose) {
@@ -574,11 +568,16 @@ public final class PcAll implements GraphSearch {
      * Step C of PC; orients colliders using specified sepset. That is, orients x *-* y *-* z as x *-> y <-* z just in
      * case y is in Sepset({x, z}).
      */
-    private static void orientCollidersUsingSepsets(SepsetMap set, IKnowledge knowledge, Graph graph, boolean verbose,
-                                                    ConflictRule conflictRule) {
+    private void orientCollidersUsingSepsets(SepsetMap set, IKnowledge knowledge, Graph graph, boolean verbose,
+                                             ConflictRule conflictRule) {
+        if (verbose) {
+            System.out.println("FAS Sepset orientation...");
+        }
+
         TetradLogger.getInstance().log("details", "Starting Collider Orientation:");
 
         List<Node> nodes = graph.getNodes();
+        Map<Triple, Double> scoredTriples = new HashMap<>();
 
         for (Node b : nodes) {
             List<Node> adjacentNodes = graph.getAdjacentNodes(b);
@@ -604,22 +603,45 @@ public final class PcAll implements GraphSearch {
                 }
 
                 List<Node> sepset = set.get(a, c);
+//
+                List<Node> s2 = new ArrayList<>(sepset);
+                if (!s2.contains(b)) s2.add(b);
+//
+                if (!sepset.contains(b) && isArrowpointAllowed(a, b, knowledge) && isArrowpointAllowed(c, b, knowledge)) {
+//                    independenceTest.isIndependent(a, c, sepset);
+//                    double p = independenceTest.getPValue();
+//
+//                    independenceTest.isIndependent(a, c, s2);
+//                    double p2 = independenceTest.getPValue();
+//                    if (!(p > independenceTest.getAlpha() && p2 < .15)) continue;
 
-                //I think the null check needs to be here --AJ
-                if (sepset != null && !sepset.contains(b) &&
-                        isArrowpointAllowed(a, b, knowledge) &&
-                        isArrowpointAllowed(c, b, knowledge)) {
+//                    scoredTriples.put(new Triple(a, b, c), p);
+
+                    orientCollider(a, b, c, conflictRule, graph);
+
                     if (verbose) {
                         System.out.println("Collider orientation <" + a + ", " + b + ", " + c + "> sepset = " + sepset);
                     }
 
-                    orientCollider(a, b, c, conflictRule, graph);
                     TetradLogger.getInstance().log("colliderOrientations", SearchLogUtils.colliderOrientedMsg(a, b, c, sepset));
                 }
             }
         }
 
-        TetradLogger.getInstance().log("details", "Finishing Collider Orientation.");
+//        List<Triple> tripleList = new ArrayList<>(scoredTriples.keySet());
+//        tripleList.sort((o1, o2) -> Double.compare(scoredTriples.get(o2), scoredTriples.get(o1)));
+//
+//        for (Triple triple : tripleList) {
+//            final Node x = triple.getX();
+//            final Node y = triple.getY();
+//            final Node z = triple.getZ();
+//            if (!(graph.getEndpoint(y, x) == Endpoint.ARROW || graph.getEndpoint(y, z) == Endpoint.ARROW)) {
+//                graph.removeEdge(x, y);
+//                graph.removeEdge(z, y);
+//                graph.addDirectedEdge(x, y);
+//                graph.addDirectedEdge(z, y);
+//            }
+//        }
     }
 
     /**

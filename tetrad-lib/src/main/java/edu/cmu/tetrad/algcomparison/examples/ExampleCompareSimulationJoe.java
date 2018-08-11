@@ -26,6 +26,7 @@ import edu.cmu.tetrad.algcomparison.algorithm.Algorithms;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.*;
 import edu.cmu.tetrad.algcomparison.graph.RandomForward;
 import edu.cmu.tetrad.algcomparison.independence.*;
+import edu.cmu.tetrad.algcomparison.score.CciScore;
 import edu.cmu.tetrad.algcomparison.simulation.*;
 import edu.cmu.tetrad.algcomparison.statistic.*;
 import edu.cmu.tetrad.util.Parameters;
@@ -38,47 +39,54 @@ import edu.cmu.tetrad.util.Parameters;
 public class ExampleCompareSimulationJoe {
     public static void main(String... args) {
         Parameters parameters = new Parameters();
-        parameters.set("numRuns", 5);
-        parameters.set("numMeasures", 10);
+        parameters.set("numRuns", 3);
+        parameters.set("numMeasures", 20);
         parameters.set("avgDegree", 2);
-        parameters.set("sampleSize", 500);
+        parameters.set("sampleSize", 600);
         parameters.set("differentGraphs", true);
 
-        parameters.set("fasRule", 2);
+        parameters.set("fasRule", 1);
         parameters.set("colliderDiscoveryRule", 3);
         parameters.set("conflictRule", 3);
         parameters.set("depth", -1);
         parameters.set("useMaxPOrientationHeuristic", false);
         parameters.set("maxPOrientationMaxPathLength", 3);
 
-        parameters.set("alpha", 0.01);
-        parameters.set("numBasisFunctions", 8);
-        parameters.set("kernelType", 1);
+        parameters.set("alpha", 0.2);
+        parameters.set("alphaDependentCase", 0.0001);
+        parameters.set("numBasisFunctions", 20);
+        parameters.set("kernelType", 2);
         parameters.set("kernelMultiplier", 1);
         parameters.set("basisType", 2);
 
         parameters.set("penaltyDiscount", 1);
 
         final String function = "TSUM(NEW(B) * $^2)";
-//        final String function = "1 - TSUM(4 * exp(-$)^2 / 2) * $))";
-//        final String function = "1 - 4 * exp(-(TSUM($))^2 / 2) * $ * $ * $";
+//        final String function = "TSUM(1 - 4 * exp(-$^2 / 2) * $))";
+//        final String function = "TSUM(1 - 4 * exp(-$^2 / 2) * $ * $ * $";
         parameters.set("generalSemFunctionTemplateMeasured", function);
         parameters.set("generalSemFunctionTemplateLatent", function);
-        parameters.set("generalSemErrorTemplate", "N(0, 0.5)");
-        parameters.set("generalSemParameterTemplate", "U(.4, .4001)");
+        parameters.set("generalSemErrorTemplate", "N(0, 1)");
+        parameters.set("generalSemParameterTemplate", "U(.2, .7)");
 
         parameters.set("verbose", true);
 
         Statistics statistics = new Statistics();
 
         statistics.add(new ParameterColumn("sampleSize"));
-        statistics.add(new ParameterColumn("kernelType"));
-        statistics.add(new ParameterColumn("kernelMultiplier"));
-        statistics.add(new ParameterColumn("basisType"));
-        statistics.add(new AdjacencyPrecision());
-        statistics.add(new AdjacencyRecall());
-        statistics.add(new ArrowheadPrecision());
-        statistics.add(new ArrowheadRecall());
+//        statistics.add(new ParameterColumn("kernelType"));
+//        statistics.add(new ParameterColumn("kernelMultiplier"));
+//        statistics.add(new ParameterColumn("basisType"));
+//        statistics.add(new AdjacencyPrecision());
+//        statistics.add(new AdjacencyRecall());
+//        statistics.add(new ArrowheadPrecision());
+//        statistics.add(new ArrowheadRecall());
+        statistics.add(new AdjacencyTP());
+        statistics.add(new AdjacencyFP());
+        statistics.add(new AdjacencyFN());
+        statistics.add(new ArrowheadTP());
+        statistics.add(new ArrowheadFP());
+        statistics.add(new ArrowheadFN());
 //        statistics.add(new MathewsCorrAdj());
 //        statistics.add(new MathewsCorrArrow());
 //        statistics.add(new F1Adj());
@@ -86,26 +94,29 @@ public class ExampleCompareSimulationJoe {
         statistics.add(new SHD());
         statistics.add(new ElapsedTime());
 
-        statistics.setWeight("AP", 1.0);
-        statistics.setWeight("AR", 0.5);
-        statistics.setWeight("AHP", 1.0);
-        statistics.setWeight("AHR", 0.5);
+//        statistics.setWeight("AP", 1.0);
+//        statistics.setWeight("AR", 0.5);
+//        statistics.setWeight("AHP", 1.0);
+//        statistics.setWeight("AHR", 0.5);
+//        statistics.setWeight("AHFP", 1.0);
+//        statistics.setWeight("AHFN", 0.5);
 //        statistics.setWeight("SHD", 1.0);
 
         Algorithms algorithms = new Algorithms();
 
 //        algorithms.add(new PcAll(new Kci()));
 //        algorithms.add(new PcAll(new KciMatlab()));
-        algorithms.add(new PcAll(new RcitJRI()));
-        algorithms.add(new PcAll(new CciTest()));
-        algorithms.add(new PcAll(new ConditionalGaussianLRT()));
-        algorithms.add(new PcAll(new FisherZ()));
-        algorithms.add(new PcAll(new SemBicTest()));
+//        algorithms.add(new PcAll(new RcitJRI()));
+//        algorithms.add(new PcAll(new CciTest()));
+        algorithms.add(new Fges(new CciScore()));
+//        algorithms.add(new PcAll(new ConditionalGaussianLRT()));
+//        algorithms.add(new PcAll(new FisherZ()));
+//        algorithms.add(new PcAll(new SemBicTest()));
 
         Simulations simulations = new Simulations();
 
-        final GeneralSemSimulation simulation = new GeneralSemSimulation(new RandomForward());
-        simulations.add(simulation);
+//        simulations.add(new SemSimulation(new RandomForward()));
+        simulations.add(new GeneralSemSimulation(new RandomForward()));
 //        Simulation simulation = new LoadDataAndGraphs("comparison10vars");
 
         Comparison comparison = new Comparison();
@@ -113,9 +124,12 @@ public class ExampleCompareSimulationJoe {
         comparison.setShowAlgorithmIndices(true);
         comparison.setShowSimulationIndices(true);
         comparison.setSortByUtility(false);
-        comparison.setShowUtilities(true);
+        comparison.setShowUtilities(false);
         comparison.setParallelized(false);
         comparison.setComparisonGraph(Comparison.ComparisonGraph.Pattern_of_the_true_DAG);
+
+        comparison.setSaveGraphs(true);
+        comparison.setSavePatterns(true);
 
 //        comparison.saveToFiles("comparison10vars", simulation, parameters);
 //        comparison.compareFromFiles("comparison10vars", "comparison10vars", algorithms, statistics, parameters);

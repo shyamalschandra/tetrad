@@ -22,6 +22,7 @@ import org.apache.commons.math3.random.Well44497b;
 import java.util.*;
 
 import static com.google.common.primitives.Doubles.asList;
+import static edu.cmu.tetrad.util.MathUtils.logChoose;
 import static edu.cmu.tetrad.util.StatUtils.median;
 import static java.lang.Math.*;
 
@@ -383,7 +384,16 @@ public class KCI implements IndependenceTest, ScoreForFact {
                 double p_appr = 1.0 - new GammaDistribution(k_appr, theta_appr).cumulativeProbability(sta);
                 p = p_appr;
                 pValues.put(fact, p);
-                return p_appr > alpha;
+
+
+                final int d1 = 0; // reference
+                final int d2 = 0;
+                final int v = _data.length - 2;
+
+                double alpha2 = (exp(log(alpha) + logChoose(v, d1) - logChoose(v, d2)));
+                boolean independent = p > alpha2;
+
+                return p_appr > alpha2;
             } else {
                 return theorem4(kx, ky, fact);
             }
@@ -455,7 +465,13 @@ public class KCI implements IndependenceTest, ScoreForFact {
         p = sum / (double) getNumBootstraps();
         pValues.put(fact, this.p);
 
-        return p > alpha;
+        final int d1 = 0; // reference
+        final int d2 = fact.getZ().size();
+        final int v = _data.length - 2;
+
+        double alpha2 = (exp(log(alpha) + logChoose(v, d1) - logChoose(v, d2)));
+
+        return p > alpha2;
     }
 
     private boolean proposition5(TetradMatrix kx, TetradMatrix ky, IndependenceFact fact) {
@@ -529,7 +545,13 @@ public class KCI implements IndependenceTest, ScoreForFact {
 //
 //            double alpha2 = (exp(log(alpha) + logChoose(v - 2, d1) - logChoose(v - 2, d2)));
 
-            return this.p > alpha;
+
+            final int d1 = 0; // reference
+            final int d2 = fact.getZ().size();
+            final int v = _data.length - 2;
+
+            double alpha2 = (exp(log(alpha) + logChoose(v, d1) - logChoose(v, d2)));
+            return p > alpha2;
         }
     }
 

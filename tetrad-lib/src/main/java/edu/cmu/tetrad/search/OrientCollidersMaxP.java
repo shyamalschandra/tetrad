@@ -21,6 +21,8 @@
 
 package edu.cmu.tetrad.search;
 
+import edu.cmu.tetrad.data.CovarianceMatrixOnTheFly;
+import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.data.IKnowledge;
 import edu.cmu.tetrad.data.Knowledge2;
 import edu.cmu.tetrad.graph.*;
@@ -40,6 +42,7 @@ import java.util.concurrent.RecursiveTask;
  */
 public final class OrientCollidersMaxP {
     private final IndependenceTest independenceTest;
+    private final IndTestScore score;
     private int depth = -1;
     private long elapsed = 0;
     private IKnowledge knowledge = new Knowledge2();
@@ -50,6 +53,7 @@ public final class OrientCollidersMaxP {
     public OrientCollidersMaxP(IndependenceTest test) {
         if (test == null) throw new NullPointerException();
         this.independenceTest = test;
+        this.score = new IndTestScore(new SemBicScore(new CovarianceMatrixOnTheFly((DataSet) test.getData())));
     }
 
     //======================================== PUBLIC METHODS ====================================//
@@ -142,10 +146,10 @@ public final class OrientCollidersMaxP {
         List<Triple> tripleList = new ArrayList<>(scores.keySet());
 
         // Most independent ones first.
-        tripleList.sort(Comparator.comparingDouble(scores::get));
+        tripleList.sort((o1, o2) -> Double.compare(scores.get(o2), scores.get(o1)));
 
         for (Triple triple : tripleList) {
-           System.out.println(triple + " score = " + scores.get(triple));
+            System.out.println(triple + " score = " + scores.get(triple));
         }
 
         for (Triple triple : tripleList) {
@@ -198,8 +202,14 @@ public final class OrientCollidersMaxP {
         adja.remove(c);
         adjc.remove(a);
 
-        double score = Double.POSITIVE_INFINITY;
+        double p = 0;
         List<Node> S = null;
+
+        double pSum1 = 0.0;
+        double pSum2 = 0.0;
+
+        int count1 = 0;
+        int count2 = 0;
 
         DepthChoiceGenerator cg1 = new DepthChoiceGenerator(adja.size(), -1);
         int[] comb2;
@@ -211,13 +221,22 @@ public final class OrientCollidersMaxP {
 
             List<Node> s = GraphUtils.asList(comb2, adja);
 
-            if (independenceTest.isIndependent(a, c, s)) {
-                double _score = independenceTest.getScore();
+            independenceTest.isIndependent(a, c, s);
+            double _p = independenceTest.getPValue();
 
-                if (_score < score) {
-                    score = _score;
-                    S = s;
-                }
+            if (_p > p) {
+                p = _p;
+                S = s;
+            }
+
+            if (_p < independenceTest.getAlpha()) continue;
+
+            if (s.contains(b)) {
+                pSum1 += p;
+                count1++;
+            } else {
+                pSum2 += p;
+                count2++;
             }
         }
 
@@ -231,18 +250,34 @@ public final class OrientCollidersMaxP {
 
             List<Node> s = GraphUtils.asList(comb3, adjc);
 
-            if (independenceTest.isIndependent(c, a, s)) {
-                double _score = independenceTest.getScore();
+            independenceTest.isIndependent(a, c, s);
+            double _p = independenceTest.getPValue();
 
-                if (_score < score) {
-                    score = _score;
-                    S = s;
-                }
+            if (_p > p) {
+                p = _p;
+                S = s;
+            }
+
+            if (_p < independenceTest.getAlpha()) continue;
+
+            if (s.contains(b)) {
+                pSum1 += p;
+                count1++;
+            } else {
+                pSum2 += p;
+                count2++;
             }
         }
 
+        double avg1 = pSum1 / count1;
+        double avg2 = pSum2 / count2;
+
+//        if (avg2 > avg1) {
+//            scores.put(new Triple(a, b, c), avg2);
+//        }
+
         if (S != null && !S.contains(b)) {
-            scores.put(new Triple(a, b, c), score);
+            scores.put(new Triple(a, b, c), p);
         }
     }
 
@@ -277,17 +312,8 @@ public final class OrientCollidersMaxP {
     }
 
     private void orientCollider(Graph graph, Node a, Node b, Node c, PcAll.ConflictRule conflictRule) {
-//        if (wouldCreateBadCollider(graph, a, b)) return;
-//        if (wouldCreateBadCollider(graph, c, b)) return;
-//        if (graph.getEdges(a, b).size() > 1) return;
-//        if (graph.getEdges(b, c).size() > 1) return;
         if (knowledge.isForbidden(a.getName(), b.getName())) return;
         if (knowledge.isForbidden(c.getName(), b.getName())) return;
-//        graph.removeEdge(a, b);
-//        graph.removeEdge(c, b);
-//        graph.addDirectedEdge(a, b);
-//        graph.addDirectedEdge(c, b);
-
         orientCollider(a, b, c, conflictRule, graph);
     }
 
@@ -335,31 +361,26 @@ public final class OrientCollidersMaxP {
         adj.remove(c);
         adj.remove(a);
 
-        for (int d = 0; d <= Math.min((depth == -1 ? 1000 : depth), Math.max(adj.size(), adj.size())); d++) {
-            if (d <= adj.size()) {
-                ChoiceGenerator gen = new ChoiceGenerator(adj.size(), d);
-                int[] choice;
+        for (int d = 0; d <= Math.min((depth == -1 ? 1000 : depth), adj.size()); d++) {
+            ChoiceGenerator gen = new ChoiceGenerator(adj.size(), d);
+            int[] choice;
 
-                WHILE:
-                while ((choice = gen.next()) != null) {
-                    if (Thread.currentThread().isInterrupted()) {
-                        break;
-                    }
+            while ((choice = gen.next()) != null) {
+                if (Thread.currentThread().isInterrupted()) {
+                    break;
+                }
 
-                    Set<Node> v2 = GraphUtils.asSet(choice, adj);
-                    v2.addAll(containing);
-                    v2.removeAll(notContaining);
-                    v2.remove(a);
-                    v2.remove(c);
+                Set<Node> v2 = GraphUtils.asSet(choice, adj);
+                v2.addAll(containing);
+                v2.removeAll(notContaining);
+                v2.remove(a);
+                v2.remove(c);
 
-//                    if (isForbidden(a, c, new ArrayList<>(v2)))
+                getIndependenceTest().isIndependent(a, c, new ArrayList<>(v2));
+                double p2 = getIndependenceTest().getScore();
 
-                    getIndependenceTest().isIndependent(a, c, new ArrayList<>(v2));
-                    double p2 = getIndependenceTest().getScore();
-
-                    if (p2 < 0) {
-                        return new ArrayList<>(v2);
-                    }
+                if (p2 < 0) {
+                    return new ArrayList<>(v2);
                 }
             }
         }
@@ -403,7 +424,6 @@ public final class OrientCollidersMaxP {
                 Edge edge = graph.getEdge(t, u);
                 Node c = Edges.traverse(t, edge);
                 if (c == null) continue;
-//                if (t == y && c == z && distance > 2) continue;
                 if (c == z && distance > 2) return true;
 
                 if (!V.contains(c)) {
