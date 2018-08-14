@@ -21,6 +21,7 @@
 package edu.cmu.tetrad.graph;
 
 import edu.cmu.tetrad.data.DataSet;
+import edu.cmu.tetrad.graph.Edge.Property;
 import edu.cmu.tetrad.graph.EdgeTypeProbability.EdgeType;
 import edu.cmu.tetrad.util.ChoiceGenerator;
 import edu.cmu.tetrad.util.ForkJoinPoolInstance;
@@ -2183,22 +2184,93 @@ public final class GraphUtils {
         StringBuilder builder = new StringBuilder();
         builder.append("digraph g {\n");
         for (Edge edge : graph.getEdges()) {
-            builder.append(" \"").append(edge.getNode1()).append("\" -> \"").append(edge.getNode2()).append("\" [arrowtail=");
-            if (edge.getEndpoint1() == Endpoint.ARROW) {
+        	String n1 = edge.getNode1().getName();
+        	String n2 = edge.getNode2().getName();
+        	
+        	Endpoint end1 = edge.getEndpoint1();
+        	Endpoint end2 = edge.getEndpoint2();
+        	
+        	if(n1.compareTo(n2) > 0) {
+        		String temp = n1;
+        		n1 = n2;
+        		n2 = temp;
+        		
+        		Endpoint tmp = end1;
+        		end1 = end2;
+        		end2 = tmp;
+        	}
+            builder.append(" \"").append(n1).append("\" -> \"").append(n2).append("\" [");
+            
+            if(end1 != Endpoint.TAIL) {
+            	builder.append("dir=both, ");
+            }
+            
+            builder.append("arrowtail=");
+            if (end1 == Endpoint.ARROW) {
                 builder.append("normal");
-            } else if (edge.getEndpoint1() == Endpoint.TAIL) {
+            } else if (end1 == Endpoint.TAIL) {
                 builder.append("none");
-            } else if (edge.getEndpoint1() == Endpoint.CIRCLE) {
+            } else if (end1 == Endpoint.CIRCLE) {
                 builder.append("odot");
             }
             builder.append(", arrowhead=");
-            if (edge.getEndpoint2() == Endpoint.ARROW) {
+            if (end2 == Endpoint.ARROW) {
                 builder.append("normal");
-            } else if (edge.getEndpoint2() == Endpoint.TAIL) {
+            } else if (end2 == Endpoint.TAIL) {
                 builder.append("none");
-            } else if (edge.getEndpoint2() == Endpoint.CIRCLE) {
+            } else if (end2 == Endpoint.CIRCLE) {
                 builder.append("odot");
             }
+            
+            // Bootstrapping
+            List<EdgeTypeProbability> edgeTypeProbabilities = edge.getEdgeTypeProbabilities();
+            if(edgeTypeProbabilities != null && !edgeTypeProbabilities.isEmpty()) {
+            	String label = n1 + " - " + n2;
+            	for(EdgeTypeProbability edgeTypeProbability : edgeTypeProbabilities) {
+            		EdgeType edgeType = edgeTypeProbability.getEdgeType();
+            		double probability = edgeTypeProbability.getProbability();
+            		if(probability > 0) {
+                		String edgeTypeString = "";
+                		switch(edgeType) {
+                		case nil:
+                			edgeTypeString = "no edge";
+                			break;
+                		case ta:
+                			edgeTypeString = "-->";
+                			break;
+                		case at:
+                			edgeTypeString = "<--";
+                			break;
+                		case ca:
+                			edgeTypeString = "o->";
+                			break;
+                		case ac:
+                			edgeTypeString = "<-o";
+                			break;
+                		case cc:
+                			edgeTypeString = "o-o";
+                			break;
+                		case aa:
+                			edgeTypeString = "<->";
+                			break;
+                		case tt:
+                			edgeTypeString = "---";
+                			break;
+                		}
+                		
+                		List<Property> properties = edgeTypeProbability.getProperties();
+            			if(properties != null && properties.size() > 0) {
+            	        	for(Property property : properties) {
+            	        		edgeTypeString += " " + property.toString();
+            	        	}
+            	        }
+                		
+                		label += "\\n[" + edgeTypeString + "]:" + edgeTypeProbability.getProbability();
+            		}
+            	}
+            	builder.append(", label=\"" + label + "\", fontname=courier");
+            }
+            
             builder.append("]; \n");
         }
         builder.append("}");
@@ -2648,15 +2720,15 @@ public final class GraphUtils {
 
             //Bootstrapping
             if (line.indexOf("[no edge]") > -1 || 
-            		line.indexOf("[-->]") > -1 ||
-            		line.indexOf("[<--]") > -1 ||
-            		line.indexOf("[o->]") > -1 ||
-            		line.indexOf("[<-o]") > -1 ||
-            		line.indexOf("[o-o]") > -1 ||
-            		line.indexOf("[<->]") > -1 ||
-            		line.indexOf("[---]") > -1) {
+            		line.indexOf(" --> ") > -1 ||
+            		line.indexOf(" <-- ") > -1 ||
+            		line.indexOf(" o-> ") > -1 ||
+            		line.indexOf(" <-o ") > -1 ||
+            		line.indexOf(" o-o ") > -1 ||
+            		line.indexOf(" <-> ") > -1 ||
+            		line.indexOf(" --- ") > -1) {
 
-                // String bootstrap_format = "[no edge]:0.0000;[-->]:0.0000;[<--]:0.0000;[o->]:0.0000;[<-o]:0.0000;[o-o]:0.0000;[<->]:0.0000;[---]:0.0000;";
+                // String bootstrap_format = "[no edge]:0.0000;[n1 --> n2]:0.0000;[n1 <-- n2]:0.0000;[n1 o-> n2]:0.0000;[n1 <-o n2]:0.0000;[n1 o-o n2]:0.0000;[n1 <-> n2]:0.0000;[n1 --- n2]:0.0000;";
                 int last_semicolon = line.lastIndexOf(";");
             	String bootstraps = "";
             	if(last_semicolon != -1) {
@@ -2677,20 +2749,31 @@ public final class GraphUtils {
                 	
                 	if(orient.equalsIgnoreCase("[no edge]")) {
                         _edge.addEdgeTypeProbability(new EdgeTypeProbability(EdgeType.nil, prob));
-                	}else if(orient.equalsIgnoreCase("[-->]")) {
-                        _edge.addEdgeTypeProbability(new EdgeTypeProbability(EdgeType.ta, prob));
-                	}else if(orient.equalsIgnoreCase("[<--]")) {
-                        _edge.addEdgeTypeProbability(new EdgeTypeProbability(EdgeType.at, prob));
-                	}else if(orient.equalsIgnoreCase("[o->]")) {
-                        _edge.addEdgeTypeProbability(new EdgeTypeProbability(EdgeType.ca, prob));
-                	}else if(orient.equalsIgnoreCase("[<-o]")) {
-                        _edge.addEdgeTypeProbability(new EdgeTypeProbability(EdgeType.ac, prob));
-                	}else if(orient.equalsIgnoreCase("[o-o]")) {
-                        _edge.addEdgeTypeProbability(new EdgeTypeProbability(EdgeType.cc, prob));
-                	}else if(orient.equalsIgnoreCase("[<->]")) {
-                		_edge.addEdgeTypeProbability(new EdgeTypeProbability(EdgeType.aa, prob));
-                	}else {// [---]
-                		_edge.addEdgeTypeProbability(new EdgeTypeProbability(EdgeType.tt, prob));
+                	}else {
+                		orient = orient.replace("[", "").replace("]", "");
+                		EdgeTypeProbability etp = null;
+                		if(orient.indexOf(" --> ") > -1) {
+                			etp = new EdgeTypeProbability(EdgeType.ta, prob);
+                    	}else if(orient.indexOf(" <-- ") > -1) {
+                    		etp = new EdgeTypeProbability(EdgeType.at, prob);
+                    	}else if(orient.indexOf(" o-> ") > -1) {
+                    		etp = new EdgeTypeProbability(EdgeType.ca, prob);
+                    	}else if(orient.indexOf(" <-o ") > -1) {
+                    		etp = new EdgeTypeProbability(EdgeType.ac, prob);
+                    	}else if(orient.indexOf(" o-o ") > -1) {
+                    		etp = new EdgeTypeProbability(EdgeType.cc, prob);
+                    	}else if(orient.indexOf(" <-> ") > -1) {
+                    		etp = new EdgeTypeProbability(EdgeType.aa, prob);
+                    	}else {// [n1 --- n2]
+                    		etp = new EdgeTypeProbability(EdgeType.tt, prob);
+                    	}
+                		String[] _edge_property = orient.trim().split("\\s+");
+                		if(_edge_property != null && _edge_property.length > 3) {
+                			for(int j=3;j<_edge_property.length;j++) {
+                				etp.addProperty(Edge.Property.valueOf(_edge_property[j]));
+                			}
+                		}
+                		_edge.addEdgeTypeProbability(etp);
                 	}
                     
                 }
