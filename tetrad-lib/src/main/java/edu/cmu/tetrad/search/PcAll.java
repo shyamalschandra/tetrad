@@ -320,6 +320,7 @@ public final class PcAll implements GraphSearch {
             orientCollidersMaxP.setConflictRule(conflictRule);
             orientCollidersMaxP.setUseHeuristic(useHeuristic);
             orientCollidersMaxP.setMaxPathLength(maxPathLength);
+            orientCollidersMaxP.setDepth(depth);
             orientCollidersMaxP.orient(graph);
         } else if (colliderDiscovery == ColliderDiscovery.CONSERVATIVE) {
             if (verbose) {

@@ -485,7 +485,7 @@ public final class SimulationEditor extends JPanel implements KnowledgeEditable,
                 simulationItems = new String[]{
                     "Standardized Structural Equation Model"
                 };
-            } else if (simulation.getSimulation() instanceof GeneralSemSimulation) {
+            } else if (simulation.getSimulation() instanceof GeneralSemSimulationRandomPostnonlinear) {
                 simulationItems = new String[]{
                     "General Structural Equation Model",};
             } else if (simulation.getSimulation() instanceof LoadContinuousDataAndGraphs) {

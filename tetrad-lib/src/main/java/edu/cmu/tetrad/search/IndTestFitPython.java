@@ -21,19 +21,13 @@
 
 package edu.cmu.tetrad.search;
 
-import com.mathworks.toolbox.javabuilder.MWApplication;
-import com.mathworks.toolbox.javabuilder.MWException;
-import com.mathworks.toolbox.javabuilder.MWNumericArray;
 import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.data.ICovarianceMatrix;
-import edu.cmu.tetrad.graph.IndependenceFact;
 import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.util.NumberFormatUtil;
 import edu.cmu.tetrad.util.TetradLogger;
 import edu.cmu.tetrad.util.TetradMatrix;
-import edu.cmu.tetrad.util.TetradVector;
-import org.rosuda.JRI.REXP;
-import org.rosuda.JRI.RVector;
+import org.python.util.PythonInterpreter;
 import org.rosuda.JRI.Rengine;
 
 import java.text.NumberFormat;
@@ -45,7 +39,7 @@ import java.util.*;
  *
  * @author Joseph Ramsey
  */
-public final class IndTestRcitJRI implements IndependenceTest {
+public final class IndTestFitPython implements IndependenceTest {
 
     private final double[][] _data;
     /**
@@ -82,7 +76,7 @@ public final class IndTestRcitJRI implements IndependenceTest {
      * @param dataSet A data set containing only continuous columns.
      * @param alpha   The alpha level of the test.
      */
-    public IndTestRcitJRI(DataSet dataSet, double alpha) {
+    public IndTestFitPython(DataSet dataSet, double alpha) {
         if (!(dataSet.isContinuous())) {
             throw new IllegalArgumentException("Data set must be continuous.");
         }
@@ -105,38 +99,10 @@ public final class IndTestRcitJRI implements IndependenceTest {
 
         numTests = 0;
 
-        System.out.println("Testing R code in Java");
+        PythonInterpreter interpreter = new PythonInterpreter();
 
-        System.out.println(System.getProperty("java.library.path"));
-        System.out.println(System.getProperty("R_HOME"));
+        interpreter.exec("from testpython import fcit");
 
-        // just making sure we have the right version of everything
-        if (!Rengine.versionCheck()) {
-            System.err.println("** Version mismatch - Java files don't match library version.");
-            System.exit(1);
-        }
-        System.out.println("Creating Rengine (with arguments)");
-        // 1) we pass the arguments from the command line
-        // 2) we won't use the main loop at first, we'll start it later
-        //    (that's the "false" as second argument)
-        // 3) the callbacks are implemented by the TextConsole class above
-
-        if (r == null) {
-
-            r = new Rengine(new String[]{"--save"}, false, new TextConsole());
-            System.out.println("Rengine created, waiting for R");
-            // the engine creates R is a new thread, so we should wait until it's ready
-            if (!r.waitForR()) {
-                throw new IllegalStateException("Cannot load R");
-            }
-
-            r.eval("library(MASS)");
-            r.eval("library(momentchi2)");
-            r.eval("library(devtools)");
-//        r.eval("install_github(\"ericstrobl/RCIT\")");
-            r.eval("library(RCIT)");
-
-        }
 
     }
 
@@ -151,22 +117,7 @@ public final class IndTestRcitJRI implements IndependenceTest {
 
     public boolean isIndependent(Node x, Node y, List<Node> z) {
 
-        r.assign("x", _data[nodeMap.get(x)]);
-        r.assign("y", _data[nodeMap.get(y)]);
-
-        r.eval("z<-NULL");
-
-        for (int s = 0; s < z.size(); s++) {
-            double[] col = _data[nodeMap.get(z.get(s))];
-
-            IndTestRcitJRI.r.assign("z0", col);
-            IndTestRcitJRI.r.eval("if (is.null(z)) {z <- rbind(z0)} else {z<-rbind(z, z0)}");
-        }
-
-        r.eval("if (!is.null(z)) z = t(z)");
-
-        double p = r.eval("RCIT(x,y,z,approx=\"lpd4\",num_f=50)$p").asDouble();
-        return p > alpha;
+        return false;
     }
 
     public boolean isIndependent(Node x, Node y, Node... z) {

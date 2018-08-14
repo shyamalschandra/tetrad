@@ -40,7 +40,7 @@ public class ExampleCompareSimulationJoe {
     public static void main(String... args) {
         Parameters parameters = new Parameters();
         parameters.set("numRuns", 3);
-        parameters.set("numMeasures", 20);
+        parameters.set("numMeasures", 10);
         parameters.set("avgDegree", 2);
         parameters.set("sampleSize", 600);
         parameters.set("differentGraphs", true);
@@ -52,7 +52,7 @@ public class ExampleCompareSimulationJoe {
         parameters.set("useMaxPOrientationHeuristic", false);
         parameters.set("maxPOrientationMaxPathLength", 3);
 
-        parameters.set("alpha", 0.0001);
+        parameters.set("alpha", 0.05);
         parameters.set("numBasisFunctions", 20);
         parameters.set("kernelType", 2);
         parameters.set("kernelMultiplier", 1);
@@ -103,14 +103,14 @@ public class ExampleCompareSimulationJoe {
 
         Algorithms algorithms = new Algorithms();
 
-//        algorithms.add(new PcAll(new Kci()));
-//        algorithms.add(new PcAll(new KciMatlab()));
+//        algorithms.add(new Pc(new Kci()));
+//        algorithms.add(new Pc(new KciMatlab()));
         algorithms.add(new PcAll(new RcitJRI()));
         algorithms.add(new PcAll(new CciTest()));
-        algorithms.add(new Fges(new CciScore()));
-//        algorithms.add(new PcAll(new ConditionalGaussianLRT()));
-//        algorithms.add(new PcAll(new FisherZ()));
-//        algorithms.add(new PcAll(new SemBicTest()));
+//        algorithms.add(new Fges(new CciScore()));
+        algorithms.add(new PcAll(new ConditionalGaussianLRT()));
+        algorithms.add(new PcAll(new FisherZ()));
+        algorithms.add(new PcAll(new SemBicTest()));
 
         Simulations simulations = new Simulations();
 
@@ -133,7 +133,7 @@ public class ExampleCompareSimulationJoe {
 //        comparison.saveToFiles("comparison10vars", simulation, parameters);
 //        comparison.compareFromFiles("comparison10vars", "comparison10vars", algorithms, statistics, parameters);
 
-        comparison.compareFromSimulations("comparisonJoe", simulations, algorithms, statistics, parameters);
+        comparison.compareFromSimulations("comparisonJoe2", simulations, algorithms, statistics, parameters);
     }
 }
 

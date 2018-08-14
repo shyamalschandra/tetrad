@@ -211,7 +211,7 @@ public final class OrientCollidersMaxP {
         int count1 = 0;
         int count2 = 0;
 
-        DepthChoiceGenerator cg1 = new DepthChoiceGenerator(adja.size(), -1);
+        DepthChoiceGenerator cg1 = new DepthChoiceGenerator(adja.size(), depth);
         int[] comb2;
 
         while ((comb2 = cg1.next()) != null) {
@@ -240,7 +240,7 @@ public final class OrientCollidersMaxP {
             }
         }
 
-        DepthChoiceGenerator cg2 = new DepthChoiceGenerator(adjc.size(), -1);
+        DepthChoiceGenerator cg2 = new DepthChoiceGenerator(adjc.size(), depth);
         int[] comb3;
 
         while ((comb3 = cg2.next()) != null) {
