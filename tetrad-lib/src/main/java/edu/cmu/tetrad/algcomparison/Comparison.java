@@ -125,19 +125,20 @@ public class Comparison {
 
         this.dirs = new ArrayList<String>();
 
-        int count = 0;
+//        int count = 0;
+//
+//        for (File dir : dirs) {
+//            if (dir.getName().contains("DS_Store")) continue;
+//            count++;
+//        }
 
-        for (File dir : dirs) {
-            if (dir.getName().contains("DS_Store")) continue;
-            count++;
-        }
+//        for (int i = 1; i <= count; i++) {
+        File _dir = new File(dataPath, "save");
+        simulations.add(new LoadDataAndGraphs(_dir.getAbsolutePath()));
+        this.dirs.add(_dir.getAbsolutePath());
+//    }
 
-        for (int i = 1; i <= count; i++) {
-            File _dir = new File(dataPath, "save/" + i);
-            simulations.add(new LoadDataAndGraphs(_dir.getAbsolutePath()));
-            this.dirs.add(_dir.getAbsolutePath());
-        }
-
+        //
         compareFromSimulations(this.resultsPath, simulations, algorithms, statistics, parameters);
     }
 
@@ -1346,7 +1347,6 @@ public class Comparison {
 
             File dir = new File(resultsPath, "results/" + description + "/" + simIndex);
             dir.mkdirs();
-
 
             File dirElapsed = new File(resultsPath, "elapsed/" + description + "/" + simIndex);
             dirElapsed.mkdirs();

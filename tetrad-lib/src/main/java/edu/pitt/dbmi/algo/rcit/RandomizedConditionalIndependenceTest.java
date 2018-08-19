@@ -303,7 +303,7 @@ public final class RandomizedConditionalIndependenceTest implements Independence
 		TetradMatrix cxyMatrix = new TetradMatrix(fxMatrix.columns(), fyMatrix.columns());
 		double sum_cxy_squared = getSum_cxy_squared(fxMatrix, fyMatrix, cxyMatrix);
 
-		// Sta = r*sum(Cxy^2);
+		// Sta = engine*sum(Cxy^2);
 		this.statistic = (double) R * sum_cxy_squared;
 
 		if (approx == RandomIndApproximateMethod.perm) {
@@ -313,8 +313,8 @@ public final class RandomizedConditionalIndependenceTest implements Independence
 
 			// Stas = c();
 			// for (ps in 1:nperm){
-			//    perm = sample(1:r,r);
-			//    Sta_p = Sta_perm(f_x[perm,],f_y,r)
+			//    perm = sample(1:engine,engine);
+			//    Sta_p = Sta_perm(f_x[perm,],f_y,engine)
 			//    Stas = c(Stas, Sta_p);
 			//  }
 			int perm_stat_less_than_stat = 0;
@@ -350,10 +350,10 @@ public final class RandomizedConditionalIndependenceTest implements Independence
 			this.pValue = 1.0 - (double) perm_stat_less_than_stat / nperm;
 		} else {
 
-			// res_x = f_x-repmat(t(matrix(colMeans(f_x))),r,1);
+			// res_x = f_x-repmat(t(matrix(colMeans(f_x))),engine,1);
 			TetradMatrix res_x = getTetradMatrix(R, fxMatrix);
 
-			// res_y = f_y-repmat(t(matrix(colMeans(f_y))),r,1);
+			// res_y = f_y-repmat(t(matrix(colMeans(f_y))),engine,1);
 			TetradMatrix res_y = getTetradMatrix(R, fyMatrix);
 
 			// d =expand.grid(1:ncol(f_x),1:ncol(f_y));
@@ -362,7 +362,7 @@ public final class RandomizedConditionalIndependenceTest implements Independence
 			// res = res_x[,d[,1]]*res_y[,d[,2]];
 			TetradMatrix res = getRes(res_x, res_y, d);
 
-			// Cov = 1/r * (t(res)%*%res);
+			// Cov = 1/engine * (t(res)%*%res);
 			TetradMatrix covMatrix = res.transpose().times(res).scalarMult(1 / (double) R);
 
 //            if (approx == RandomIndApproximateMethod.chi2) {
@@ -373,7 +373,7 @@ public final class RandomizedConditionalIndependenceTest implements Independence
 //                // Flatten Cxy
 //                TetradMatrix flattened = c(cxyMatrix);
 //
-//                // Sta = r * (c(Cxy)%*%  i_Cov %*% c(Cxy) );
+//                // Sta = engine * (c(Cxy)%*%  i_Cov %*% c(Cxy) );
 //                this.statistic = ((double) R) * flattened.transpose().times(iCovMatrix).times(flattened).get(0, 0);
 //                //System.out.println("statistic: " + statistic);
 //
@@ -454,10 +454,10 @@ public final class RandomizedConditionalIndependenceTest implements Independence
 			return this.pValue > alpha;
 		}
 
-		// r=nrow(x);
-		// if (r>500){
+		// engine=nrow(x);
+		// if (engine>500){
 		//    r1=500
-		// } else {r1=r;}
+		// } else {r1=engine;}
 //        int r1 = 500;
 //        int row = varX.getNumRows();
 //        if (row < 500) {
@@ -593,15 +593,15 @@ public final class RandomizedConditionalIndependenceTest implements Independence
 				}
 			}
 
-			// Sta = r*sum(Cxy_z^2);
+			// Sta = engine*sum(Cxy_z^2);
 			this.statistic = ((double) R) * sum_cxy_z_squared;
 
 			int nperm = 1000;
 
 			// Stas = c();
 			// for (ps in 1:nperm){
-			//    perm = sample(1:r,r);
-			//    Sta_p = Sta_perm(res_x[perm,],res_y,r)
+			//    perm = sample(1:engine,engine);
+			//    Sta_p = Sta_perm(res_x[perm,],res_y,engine)
 			//    Stas = c(Stas, Sta_p);
 			//  }
 			int perm_stat_less_than_stat = 0;
@@ -640,7 +640,7 @@ public final class RandomizedConditionalIndependenceTest implements Independence
 			TetradMatrix cxy_zMatrix = cxyMatrix.minus(cxzMatrix.times(i_czzMatrix.times(czyMatrix)));
 			double sum_cxy_z_squared = getSum_cxy_z_squared(cxy_zMatrix);
 
-			// Sta = r*sum(Cxy_z^2);
+			// Sta = engine*sum(Cxy_z^2);
 			this.statistic = ((double) R * R) * sum_cxy_z_squared;
 
 			// d =expand.grid(1:ncol(f_x),1:ncol(f_y));
@@ -651,7 +651,7 @@ public final class RandomizedConditionalIndependenceTest implements Independence
 			// res = res_x[,d[,1]]*res_y[,d[,2]];
 			TetradMatrix res = getRes(res_x, res_y, d);
 
-			// Cov = 1/r * (t(res)%*%res);
+			// Cov = 1/engine * (t(res)%*%res);
 			TetradMatrix covMatrix = res.transpose().times(res).scalarMult(1.0 / (double) R);
 
 //            if (approx == RandomIndApproximateMethod.chi2) {
@@ -659,7 +659,7 @@ public final class RandomizedConditionalIndependenceTest implements Independence
 //                // i_Cov = ginv(Cov)
 //                TetradMatrix iCovMatrix = covMatrix.ginverse();
 //
-//                // Sta = r * (c(Cxy_z)%*% i_Cov %*% c(Cxy_z) );
+//                // Sta = engine * (c(Cxy_z)%*% i_Cov %*% c(Cxy_z) );
 //                // Flatten Cxy_z
 //                TetradMatrix c = c(cxy_zMatrix);
 //

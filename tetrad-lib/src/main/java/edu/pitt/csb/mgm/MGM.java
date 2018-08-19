@@ -465,10 +465,10 @@ public class MGM extends ConvexProximal implements GraphSearch{
         // categorical loss
         /*catloss=0;
         wxprod=X*(theta')+D*phi+e*alpha2'; %this is n by Ltot
-        for r=1:q
-            wxtemp=wxprod(:,Lsum(r)+1:Lsum(r)+L(r));
+        for engine=1:q
+            wxtemp=wxprod(:,Lsum(engine)+1:Lsum(engine)+L(engine));
             denom= logsumexp(wxtemp,2); %this is n by 1
-            catloss=catloss-sum(wxtemp(sub2ind([n L(r)],(1:n)',Y(:,r))));
+            catloss=catloss-sum(wxtemp(sub2ind([n L(engine)],(1:n)',Y(:,engine))));
             catloss=catloss+sum(denom);
         end
         */
@@ -508,8 +508,8 @@ public class MGM extends ConvexProximal implements GraphSearch{
         }
 
         //beta=beta-diag(diag(beta));
-        //for r=1:q
-        //  phi(Lsum(r)+1:Lsum(r+1),Lsum(r)+1:Lsum(r+1))=0;
+        //for engine=1:q
+        //  phi(Lsum(engine)+1:Lsum(engine+1),Lsum(engine)+1:Lsum(engine+1))=0;
         //end
         //beta=triu(beta); phi=triu(phi);
         //beta=beta+beta';
@@ -576,10 +576,10 @@ public class MGM extends ConvexProximal implements GraphSearch{
         // categorical loss
         /*catloss=0;
         wxprod=X*(theta')+D*phi+e*alpha2'; %this is n by Ltot
-        for r=1:q
-            wxtemp=wxprod(:,Lsum(r)+1:Lsum(r)+L(r));
+        for engine=1:q
+            wxtemp=wxprod(:,Lsum(engine)+1:Lsum(engine)+L(engine));
             denom= logsumexp(wxtemp,2); %this is n by 1
-            catloss=catloss-sum(wxtemp(sub2ind([n L(r)],(1:n)',Y(:,r))));
+            catloss=catloss-sum(wxtemp(sub2ind([n L(engine)],(1:n)',Y(:,engine))));
             catloss=catloss+sum(denom);
         end
         */
@@ -610,7 +610,7 @@ public class MGM extends ConvexProximal implements GraphSearch{
                 catloss += logsumexp(curRow0);
 
 
-                //wxtemp(sub2ind(size(wxtemp),(1:n)',Y(:,r)))=wxtemp(sub2ind(size(wxtemp),(1:n)',Y(:,r)))-1;
+                //wxtemp(sub2ind(size(wxtemp),(1:n)',Y(:,engine)))=wxtemp(sub2ind(size(wxtemp),(1:n)',Y(:,engine)))-1;
                 curRow.set((int) yDat.get(k,i)-1, curRow.get((int) yDat.get(k,i)-1) - 1);
             }
         }
@@ -628,8 +628,8 @@ public class MGM extends ConvexProximal implements GraphSearch{
         gradOut.phi = alg.mult(alg.transpose(dDat), wxProd);
 
         //zero out gradphi diagonal
-        //for r=1:q
-        //gradphi(Lsum(r)+1:Lsum(r+1),Lsum(r)+1:Lsum(r+1))=0;
+        //for engine=1:q
+        //gradphi(Lsum(engine)+1:Lsum(engine+1),Lsum(engine)+1:Lsum(engine+1))=0;
         //end
         for(int i = 0; i < q; i++){
             gradOut.phi.viewPart(lcumsum[i], lcumsum[i], l[i], l[i]).assign(0);
@@ -715,13 +715,13 @@ public class MGM extends ConvexProximal implements GraphSearch{
         }
 
         /*
-        for r=1:q
+        for engine=1:q
             for j=1:q
-                if r<j
-                    tempmat=phi(Lsums(r)+1:Lsums(r+1),Lsums(j)+1:Lsums(j+1));
-                    tempmat=max(0,1-t(3)*(wv(p+r)*wv(p+j))/norm(tempmat))*tempmat; % Lj by 2*Lr
-                    phinorms=phinorms+(wv(p+r)*wv(p+j))*norm(tempmat,'fro');
-                    phi( Lsums(r)+1:Lsums(r+1),Lsums(j)+1:Lsums(j+1) )=tempmat;
+                if engine<j
+                    tempmat=phi(Lsums(engine)+1:Lsums(engine+1),Lsums(j)+1:Lsums(j+1));
+                    tempmat=max(0,1-t(3)*(wv(p+engine)*wv(p+j))/norm(tempmat))*tempmat; % Lj by 2*Lr
+                    phinorms=phinorms+(wv(p+engine)*wv(p+j))*norm(tempmat,'fro');
+                    phi( Lsums(engine)+1:Lsums(engine+1),Lsums(j)+1:Lsums(j+1) )=tempmat;
                 end
             end
         end
@@ -818,12 +818,12 @@ public class MGM extends ConvexProximal implements GraphSearch{
         /*
         wxprod=X*(theta')+D*phi+e*alpha2'; %this is n by Ltot
         Lsum=[0;cumsum(L)];
-        for r=1:q
-            idx=Lsum(r)+1:Lsum(r)+L(r);
-            wxtemp=wxprod(:,idx); %n by L(r)
+        for engine=1:q
+            idx=Lsum(engine)+1:Lsum(engine)+L(engine);
+            wxtemp=wxprod(:,idx); %n by L(engine)
             denom=sum(exp(wxtemp),2); % this is n by 1
             wxtemp=diag(sparse(1./denom))*exp(wxtemp);
-            wxtemp(sub2ind(size(wxtemp),(1:n)',Y(:,r)))=wxtemp(sub2ind(size(wxtemp),(1:n)',Y(:,r)))-1;
+            wxtemp(sub2ind(size(wxtemp),(1:n)',Y(:,engine)))=wxtemp(sub2ind(size(wxtemp),(1:n)',Y(:,engine)))-1;
             wxprod(:,idx)=wxtemp;
         end
         */
@@ -838,7 +838,7 @@ public class MGM extends ConvexProximal implements GraphSearch{
             for(int k = 0; k < n; k++){
                 DoubleMatrix1D curRow = wxTemp.viewRow(k);
 
-                //wxtemp(sub2ind(size(wxtemp),(1:n)',Y(:,r)))=wxtemp(sub2ind(size(wxtemp),(1:n)',Y(:,r)))-1;
+                //wxtemp(sub2ind(size(wxtemp),(1:n)',Y(:,engine)))=wxtemp(sub2ind(size(wxtemp),(1:n)',Y(:,engine)))-1;
                 curRow.set((int) yDat.get(k,i)-1, curRow.get((int) yDat.get(k,i)-1) - 1);
             }
         }
@@ -856,8 +856,8 @@ public class MGM extends ConvexProximal implements GraphSearch{
         grad.phi = alg.mult(alg.transpose(dDat), wxProd);
 
         //zero out gradphi diagonal
-        //for r=1:q
-        //gradphi(Lsum(r)+1:Lsum(r+1),Lsum(r)+1:Lsum(r+1))=0;
+        //for engine=1:q
+        //gradphi(Lsum(engine)+1:Lsum(engine+1),Lsum(engine)+1:Lsum(engine+1))=0;
         //end
         for(int i = 0; i < q; i++){
             if (Thread.currentThread().isInterrupted()) {
@@ -980,13 +980,13 @@ public class MGM extends ConvexProximal implements GraphSearch{
         }
 
         /*
-        for r=1:q
+        for engine=1:q
             for j=1:q
-                if r<j
-                    tempmat=phi(Lsums(r)+1:Lsums(r+1),Lsums(j)+1:Lsums(j+1));
-                    tempmat=max(0,1-t(3)*(wv(p+r)*wv(p+j))/norm(tempmat))*tempmat; % Lj by 2*Lr
-                    phinorms=phinorms+(wv(p+r)*wv(p+j))*norm(tempmat,'fro');
-                    phi( Lsums(r)+1:Lsums(r+1),Lsums(j)+1:Lsums(j+1) )=tempmat;
+                if engine<j
+                    tempmat=phi(Lsums(engine)+1:Lsums(engine+1),Lsums(j)+1:Lsums(j+1));
+                    tempmat=max(0,1-t(3)*(wv(p+engine)*wv(p+j))/norm(tempmat))*tempmat; % Lj by 2*Lr
+                    phinorms=phinorms+(wv(p+engine)*wv(p+j))*norm(tempmat,'fro');
+                    phi( Lsums(engine)+1:Lsums(engine+1),Lsums(j)+1:Lsums(j+1) )=tempmat;
                 end
             end
         end
@@ -1104,13 +1104,13 @@ public class MGM extends ConvexProximal implements GraphSearch{
         }
 
         /*
-        for r=1:q
+        for engine=1:q
             for j=1:q
-                if r<j
-                    tempmat=phi(Lsums(r)+1:Lsums(r+1),Lsums(j)+1:Lsums(j+1));
-                    tempmat=max(0,1-t(3)*(wv(p+r)*wv(p+j))/norm(tempmat))*tempmat; % Lj by 2*Lr
-                    phinorms=phinorms+(wv(p+r)*wv(p+j))*norm(tempmat,'fro');
-                    phi( Lsums(r)+1:Lsums(r+1),Lsums(j)+1:Lsums(j+1) )=tempmat;
+                if engine<j
+                    tempmat=phi(Lsums(engine)+1:Lsums(engine+1),Lsums(j)+1:Lsums(j+1));
+                    tempmat=max(0,1-t(3)*(wv(p+engine)*wv(p+j))/norm(tempmat))*tempmat; % Lj by 2*Lr
+                    phinorms=phinorms+(wv(p+engine)*wv(p+j))*norm(tempmat,'fro');
+                    phi( Lsums(engine)+1:Lsums(engine+1),Lsums(j)+1:Lsums(j+1) )=tempmat;
                 end
             end
         end

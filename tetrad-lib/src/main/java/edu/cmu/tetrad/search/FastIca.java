@@ -97,7 +97,7 @@ import org.apache.commons.math3.linear.SingularValueDecomposition;
  * <p>
  * The approximation takes the form
  * <p>
- * J(y)=[E{G(y)}-E{G(v)}]^2 where v is a N(0,1) r.v.
+ * J(y)=[E{G(y)}-E{G(v)}]^2 where v is a N(0,1) engine.v.
  * <p>
  * The following choices of G are included as options G(u)=frac{1}{alpha} log
  * cosh (alpha u) and G(u)=-exp(frac{-u^2}{2})
@@ -217,7 +217,7 @@ public class FastIca {
 
     /**
      * Initial un-mixing matrix of dimension (n.comp,n.comp). If null (default)
-     * then a matrix of normal r.v.'s is used.
+     * then a matrix of normal engine.v.'s is used.
      */
     private TetradMatrix wInit = null;
 
@@ -369,7 +369,7 @@ public class FastIca {
 
     /**
      * Initial un-mixing matrix of dimension (n.comp,n.comp). If NULL (default)
-     * then a matrix of normal r.v.'s is used.
+     * then a matrix of normal engine.v.'s is used.
      */
     public TetradMatrix getWInit() {
         return wInit;
@@ -377,7 +377,7 @@ public class FastIca {
 
     /**
      * Initial un-mixing matrix of dimension (n.comp,n.comp). If NULL (default)
-     * then a matrix of normal r.v.'s is used.
+     * then a matrix of normal engine.v.'s is used.
      */
     public void setWInit(TetradMatrix wInit) {
         this.wInit = wInit;

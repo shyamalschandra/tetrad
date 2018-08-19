@@ -977,15 +977,15 @@ public final class MlBayesIm implements BayesIm {
 //
 //                            int rowIndex = getRowIndex(t, parentValues);
 //                            double sum = 0.0;
-//                            double r;
+//                            double engine;
 //
-//                            r = randomGenerator.nextDouble();
+//                            engine = randomGenerator.nextDouble();
 //
 //                            for (int k = 0; k < getNumColumns(t); k++) {
 //                                double probability = getProbability(t, rowIndex, k);
 //                                sum += probability;
 //
-//                                if (sum >= r) {
+//                                if (sum >= engine) {
 //                                    dataSet.setInt(row, map[t], k);
 //                                    break;
 //                                }

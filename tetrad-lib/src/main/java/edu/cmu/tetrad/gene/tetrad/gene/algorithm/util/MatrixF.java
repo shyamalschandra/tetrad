@@ -73,7 +73,7 @@ public class MatrixF extends BasicMatrix {
     }
 
     /**
-     * Casts double value x to float and assigns it to element (r,c)
+     * Casts double value x to float and assigns it to element (engine,c)
      */
     public void setDoubleValue(int r, int c, double x) {
         if ((r >= this.n) || (c >= this.n) || (r < 0) || (c < 0)) {
@@ -87,7 +87,7 @@ public class MatrixF extends BasicMatrix {
     }
 
     /**
-     * Returns the value stored at element (r,c) as a double
+     * Returns the value stored at element (engine,c) as a double
      */
     public double getDoubleValue(int r, int c) {
         if ((r >= this.n) || (c >= this.n) || (r < 0) || (c < 0)) {
@@ -97,7 +97,7 @@ public class MatrixF extends BasicMatrix {
     }
 
     /**
-     * Assigns float x to matrix element at (r, c)
+     * Assigns float x to matrix element at (engine, c)
      */
     public void setValue(int r, int c, float x) {
         if ((r >= this.n) || (c >= this.n) || (r < 0) || (c < 0)) {
@@ -107,7 +107,7 @@ public class MatrixF extends BasicMatrix {
     }
 
     /**
-     * Assigns double x to matrix element at (r, c).  This method checks that
+     * Assigns double x to matrix element at (engine, c).  This method checks that
      * the double x can be converted to a float without causing overflow.
      */
     public void setValue(int r, int c, double x) {
@@ -122,7 +122,7 @@ public class MatrixF extends BasicMatrix {
     }
 
     /**
-     * Returns the value stored at element (r,c)
+     * Returns the value stored at element (engine,c)
      */
     public float getValue(int r, int c) {
         if ((r >= this.n) || (c >= this.n) || (r < 0) || (c < 0)) {

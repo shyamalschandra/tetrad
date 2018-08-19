@@ -73,7 +73,7 @@ public class Matrix extends BasicMatrix {
     }
 
     /**
-     * Casts double value x to short and assigns it to element (r,c)
+     * Casts double value x to short and assigns it to element (engine,c)
      */
     public void setDoubleValue(int r, int c, double x) {
         if ((r >= this.n) || (c >= this.n) || (r < 0) || (c < 0)) {
@@ -87,7 +87,7 @@ public class Matrix extends BasicMatrix {
     }
 
     /**
-     * Returns the value stored at element (r,c) as a double
+     * Returns the value stored at element (engine,c) as a double
      */
     public double getDoubleValue(int r, int c) {
         if ((r >= this.n) || (c >= this.n) || (r < 0) || (c < 0)) {
@@ -97,7 +97,7 @@ public class Matrix extends BasicMatrix {
     }
 
     /**
-     * Assigns short x to matrix element at (r, c)
+     * Assigns short x to matrix element at (engine, c)
      */
     public void setValue(int r, int c, short x) {
         if ((r >= this.n) || (c >= this.n) || (r < 0) || (c < 0)) {
@@ -107,7 +107,7 @@ public class Matrix extends BasicMatrix {
     }
 
     /**
-     * Assigns integer x to matrix element at (r, c).  This method checks that
+     * Assigns integer x to matrix element at (engine, c).  This method checks that
      * the integer x can be converted to a short without causing overflow.
      */
     public void setValue(int r, int c, int x) {
@@ -122,7 +122,7 @@ public class Matrix extends BasicMatrix {
     }
 
     /**
-     * Returns the value stored at element (r,c)
+     * Returns the value stored at element (engine,c)
      */
     public short getValue(int r, int c) {
         if ((r >= this.n) || (c >= this.n) || (r < 0) || (c < 0)) {
@@ -150,7 +150,7 @@ public class Matrix extends BasicMatrix {
         String s = this.getClass().getName() + " " + this.name + "\n" + this.n +
                 " // <- Total # rows\n";
         for (int r = 0; r < this.n; r++) {
-            //s = s + "/* "+r+" */  ";
+            //s = s + "/* "+engine+" */  ";
             for (int c = 0; c < this.n; c++) {
                 s = s + this.getValue(r, c) + " ";
             }

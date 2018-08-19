@@ -21,25 +21,19 @@
 
 package edu.cmu.tetrad.search;
 
-import com.mathworks.toolbox.javabuilder.MWApplication;
-import com.mathworks.toolbox.javabuilder.MWException;
-import com.mathworks.toolbox.javabuilder.MWNumericArray;
 import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.data.ICovarianceMatrix;
-import edu.cmu.tetrad.graph.IndependenceFact;
 import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.util.NumberFormatUtil;
 import edu.cmu.tetrad.util.TetradLogger;
 import edu.cmu.tetrad.util.TetradMatrix;
-import edu.cmu.tetrad.util.TetradVector;
-import org.rosuda.JRI.REXP;
-import org.rosuda.JRI.RVector;
 import org.rosuda.JRI.Rengine;
 
 import java.text.NumberFormat;
 import java.util.*;
 
 import static edu.cmu.tetrad.util.MathUtils.logChoose;
+import static edu.cmu.tetrad.util.StatUtils.getZForAlpha;
 import static java.lang.Math.exp;
 import static java.lang.Math.log;
 
@@ -49,7 +43,7 @@ import static java.lang.Math.log;
  *
  * @author Joseph Ramsey
  */
-public final class IndTestRcitJRI implements IndependenceTest {
+public final class IndTestRcotJRI implements IndependenceTest {
 
     private final double[][] _data;
     /**
@@ -87,7 +81,7 @@ public final class IndTestRcitJRI implements IndependenceTest {
      * @param dataSet A data set containing only continuous columns.
      * @param alpha   The alpha level of the test.
      */
-    public IndTestRcitJRI(DataSet dataSet, double alpha) {
+    public IndTestRcotJRI(DataSet dataSet, double alpha) {
         if (!(dataSet.isContinuous())) {
             throw new IllegalArgumentException("Data set must be continuous.");
         }
@@ -116,6 +110,7 @@ public final class IndTestRcitJRI implements IndependenceTest {
         r.eval("library(devtools)");
 //        engine.eval("install_github(\"ericstrobl/RCIT\")");
         r.eval("library(RCIT)");
+
     }
 
     //==========================PUBLIC METHODS=============================//
@@ -137,14 +132,14 @@ public final class IndTestRcitJRI implements IndependenceTest {
         for (int s = 0; s < z.size(); s++) {
             double[] col = _data[nodeMap.get(z.get(s))];
 
-            IndTestRcitJRI.r.assign("z0", col);
-            IndTestRcitJRI.r.eval("if (is.null(z)) {z <- rbind(z0)} else {z<-rbind(z, z0)}");
+            IndTestRcotJRI.r.assign("z0", col);
+            IndTestRcotJRI.r.eval("if (is.null(z)) {z <- rbind(z0)} else {z<-rbind(z, z0)}");
         }
 
         r.eval("if (!is.null(z)) z = t(z)");
 
-        double p = r.eval("RCIT(x,y,z)$p").asDouble();
-//        double p = r.eval("RCIT(x,y,z,approx=\"lpd4\")$p").asDouble();
+//        double p = r.eval("RCoT(x,y,z,approx=\"lpd4\")$p").asDouble();
+        double p = r.eval("RCoT(x,y,z)$p").asDouble();
 
         if(fastFDR) {
             final int d1 = 0; // reference

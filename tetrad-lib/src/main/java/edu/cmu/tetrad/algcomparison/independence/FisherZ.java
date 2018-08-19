@@ -33,9 +33,13 @@ public class FisherZ implements IndependenceWrapper {
         this.alpha = alpha;
 
         if (dataSet instanceof ICovarianceMatrix) {
-            return new IndTestFisherZ((ICovarianceMatrix) dataSet, alpha);
+            final IndTestFisherZ test = new IndTestFisherZ((ICovarianceMatrix) dataSet, alpha);
+            test.setFastFDR(parameters.getBoolean("fastFDR"));
+            return test;
         } else if (dataSet instanceof DataSet) {
-            return new IndTestFisherZ((DataSet) dataSet, alpha);
+            final IndTestFisherZ test = new IndTestFisherZ((DataSet) dataSet, alpha);
+            test.setFastFDR(parameters.getBoolean("fastFDR"));
+            return test;
         }
 
         throw new IllegalArgumentException("Expecting either a data set or a covariance matrix.");

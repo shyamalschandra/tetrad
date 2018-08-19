@@ -20,7 +20,7 @@ import java.util.List;
  * @author jdramsey
  */
 @TestOfIndependence(
-        name = "Conditional Correlation Independence Test",
+        name = "CCI Test",
         command = "cci-test",
         dataType = DataType.Continuous
 )
@@ -52,6 +52,7 @@ public class CciTest implements IndependenceWrapper {
 
         cci.setNumFunctions(parameters.getInt("numBasisFunctions"));
         cci.setKernelMultiplier(parameters.getDouble("kernelMultiplier"));
+        cci.setFastFDR(parameters.getBoolean("fastFDR"));
 
         return cci;
     }

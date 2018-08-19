@@ -59,7 +59,7 @@ public class LTMatrixF extends BasicLTMatrix {
     }
 
     /**
-     * Casts double value x to float and assigns it to element (r,c) This
+     * Casts double value x to float and assigns it to element (engine,c) This
      * method checks that x can be converted to a float without causing
      * overflow.
      */
@@ -68,7 +68,7 @@ public class LTMatrixF extends BasicLTMatrix {
     }
 
     /**
-     * Assigns double x to matrix element (r, c).  This method checks that x can
+     * Assigns double x to matrix element (engine, c).  This method checks that x can
      * be converted to a float without causing overflow.
      */
     public void setValue(int r, int c, double x) {
@@ -80,7 +80,7 @@ public class LTMatrixF extends BasicLTMatrix {
     }
 
     /**
-     * Assigns float x to matrix element (r, c)
+     * Assigns float x to matrix element (engine, c)
      */
     public void setValue(int r, int c, float x) {
         if (r < c) {
@@ -93,7 +93,7 @@ public class LTMatrixF extends BasicLTMatrix {
     }
 
     /**
-     * Returns element (r,c) as a double
+     * Returns element (engine,c) as a double
      */
     public double getDoubleValue(int r, int c) {
         if ((r >= this.n) || (c >= this.n) || (r < 0) || (c < 0)) {
@@ -103,7 +103,7 @@ public class LTMatrixF extends BasicLTMatrix {
     }
 
     /**
-     * Returns element (r,c)
+     * Returns element (engine,c)
      */
     public float getValue(int r, int c) {
         if ((r >= this.n) || (c >= this.n) || (r < 0) || (c < 0)) {

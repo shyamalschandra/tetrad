@@ -23,7 +23,7 @@ package edu.cmu.tetrad.util;
 
 
 /**
- * Frequency function of partial correlation r(12|34...k), assuming that the
+ * Frequency function of partial correlation engine(12|34...k), assuming that the
  * true partial correlation is equal to zero.  Uses the equation (29.13.4) from
  * Cramer's _Mathematical Methods of Statistics_.
  *

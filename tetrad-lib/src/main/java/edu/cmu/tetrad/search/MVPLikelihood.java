@@ -265,7 +265,7 @@ public class MVPLikelihood {
         for (List<Integer> cell : cells) {
 //            for (int[] cell : cells) {
                 int r = cell.size();
-//                int r = cell.length;
+//                int engine = cell.length;
                 if (r > 1) {
 
                 double[] mean = new double[p];

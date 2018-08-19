@@ -54,7 +54,7 @@ public class DataUtility {
         int count = 0;
 
         byte delim = (byte) delimiter;
-        try (FileChannel fc = new RandomAccessFile(file, "r").getChannel()) {
+        try (FileChannel fc = new RandomAccessFile(file, "engine").getChannel()) {
             MappedByteBuffer buffer = fc.map(FileChannel.MapMode.READ_ONLY, 0, fc.size());
             byte currentChar = -1;
             byte prevChar = NEW_LINE;
@@ -92,7 +92,7 @@ public class DataUtility {
     public static int countLine(File file) throws IOException {
         int count = 0;
 
-        try (FileChannel fc = new RandomAccessFile(file, "r").getChannel()) {
+        try (FileChannel fc = new RandomAccessFile(file, "engine").getChannel()) {
             MappedByteBuffer buffer = fc.map(FileChannel.MapMode.READ_ONLY, 0, fc.size());
             byte prevChar = NEW_LINE;
             while (buffer.hasRemaining()) {

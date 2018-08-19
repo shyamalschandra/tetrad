@@ -146,9 +146,9 @@ public class TestIndTestFisherZ {
             graph.addDirectedEdge(w1, w2);
             graph.addDirectedEdge(w2, y);
             graph.addDirectedEdge(w3, y);
-//            graph.addDirectedEdge(x, r);
+//            graph.addDirectedEdge(x, engine);
 
-//            graph.addDirectedEdge(r, y);
+//            graph.addDirectedEdge(engine, y);
             graph.addDirectedEdge(y, r);
 //
             SemPm pm = new SemPm(graph);

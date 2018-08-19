@@ -2527,7 +2527,7 @@ public class Lofs2 {
 
     private double h(double[] xCol) {
 //        % optimal bandwidth suggested by Bowman and Azzalini (1997) p.31 (rks code Matlab)
-//        h *= median(abs(x-median(x)))/0.6745*(4/3/r.h)^0.2, geometric mean across variables.
+//        h *= median(abs(x-median(x)))/0.6745*(4/3/engine.h)^0.2, geometric mean across variables.
 
         double[] g = new double[xCol.length];
         double median = median(xCol);

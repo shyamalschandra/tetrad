@@ -105,7 +105,7 @@ public final class IndTestFisherZFisherPValue implements IndependenceTest {
             TetradMatrix _ncov = ncov.get(m).getSelection(all, all);
             TetradMatrix inv = _ncov.inverse();
             double r = -inv.get(0, 1) / sqrt(inv.get(0, 0) * inv.get(1, 1));
-//            r *= 0.6;
+//            engine *= 0.6;
             double _z = sqrt(sampleSize - z.size() - 3.0) * 0.5 * (log(1.0 + r) - log(1.0 - r));
             double pvalue = 2.0 * (1.0 - RandomUtil.getInstance().normalCdf(0, 1, Math.abs(_z)));
             pValues.add(pvalue);

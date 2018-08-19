@@ -359,6 +359,10 @@ public class ParamDescriptions {
         map.put("tssigma", new ParamDescription(
                 "ICA threshold",
                 1.0, 0, Double.POSITIVE_INFINITY));
+
+        map.put("fastFDR", new ParamDescription(
+                "Yes if the possible fastFDR adjustment to alpha levels should be done", true));
+
     }
 
     public static ParamDescriptions getInstance() {

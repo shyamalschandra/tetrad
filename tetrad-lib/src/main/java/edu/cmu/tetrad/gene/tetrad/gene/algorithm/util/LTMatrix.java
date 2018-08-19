@@ -59,7 +59,7 @@ public class LTMatrix extends BasicLTMatrix {
     }
 
     /**
-     * Casts double x to short and assigns it to element (r,c) This method
+     * Casts double x to short and assigns it to element (engine,c) This method
      * checks that x can be converted to a short without causing overflow.
      */
     public void setDoubleValue(int r, int c, double x) {
@@ -71,7 +71,7 @@ public class LTMatrix extends BasicLTMatrix {
     }
 
     /**
-     * Assigns integer x to matrix element (r, c).  This method checks that x
+     * Assigns integer x to matrix element (engine, c).  This method checks that x
      * can be converted to a short without causing overflow.
      */
     public void setValue(int r, int c, int x) {
@@ -83,7 +83,7 @@ public class LTMatrix extends BasicLTMatrix {
     }
 
     /**
-     * Assigns short x to matrix element (r, c)
+     * Assigns short x to matrix element (engine, c)
      */
     public void setValue(int r, int c, short x) {
         if (r < c) {
@@ -96,7 +96,7 @@ public class LTMatrix extends BasicLTMatrix {
     }
 
     /**
-     * Returns element (r,c) as a double
+     * Returns element (engine,c) as a double
      */
     public double getDoubleValue(int r, int c) {
         if ((r >= n) || (c >= n) || (r < 0) || (c < 0)) {
@@ -106,7 +106,7 @@ public class LTMatrix extends BasicLTMatrix {
     }
 
     /**
-     * Returns element (r,c)
+     * Returns element (engine,c)
      */
     public short getValue(int r, int c) {
         if ((r >= n) || (c >= n) || (r < 0) || (c < 0)) {
@@ -132,7 +132,7 @@ public class LTMatrix extends BasicLTMatrix {
         String s = this.getClass().getName() + " " + this.name + "\n" + this.n +
                 " // <- Total # rows\n";
         for (int r = 0; r < this.n; r++) {
-            //s = s + "/* "+r+" */  ";
+            //s = s + "/* "+engine+" */  ";
             for (int c = 0; c <= r; c++) {
                 s = s + this.getValue(r, c) + " ";
             }

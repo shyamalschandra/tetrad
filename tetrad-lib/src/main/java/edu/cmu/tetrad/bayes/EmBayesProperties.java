@@ -219,7 +219,7 @@ public final class EmBayesProperties {
 //    public final double logProbDataGivenStructure2() {
 //        DataSetProbs probs = new DataSetProbs(getDataModel());
 //
-//        double r = dataSet.getNumRows();
+//        double engine = dataSet.getNumRows();
 //        double score = 0.0;
 //
 //        List<String> dataVarNames = dataSet.getVariableNames();
@@ -255,7 +255,7 @@ public final class EmBayesProperties {
 //                        continue rows;
 //                    }
 //
-//                    double numCases = r * p1 * p2;
+//                    double numCases = engine * p1 * p2;
 //                    score += numCases * Math.log(p2);
 //                }
 //            }

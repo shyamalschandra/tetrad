@@ -835,7 +835,7 @@ public class GeneralizedSemIm implements IM, Simulator, TetradSerializable {
      *                   integer.
      */
     public synchronized DataSet simulateDataFisher(int sampleSize) {
-        return simulateDataFisher(sampleSize, 50, 1e-5);
+        return simulateDataFisher(sampleSize, 50, 1e-10);
     }
 
     /**
@@ -907,6 +907,7 @@ public class GeneralizedSemIm implements IM, Simulator, TetradSerializable {
 
                 variableValues.put(error.getName(), value);
                 shocks[j] = value;
+                t2[j] += shocks[j];
             }
 
             for (int i = 0; i < intervalBetweenShocks; i++) {

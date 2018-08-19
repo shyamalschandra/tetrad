@@ -49,12 +49,18 @@ import static java.lang.Math.pow;
  * <p>
  * This all follows the original Daudin paper, which is this:
  * <p>
- * Daudin, J. J. (1980). Partial association measures and an application to qualitative regression.
+ * Daudin, J. J. (1980). Partial association measures and a  application to qualitative regression.
  * Biometrika, 67(3), 581-590.
+ * <p>
+ * We use Nadaraya-Watson kernel regression.
  *
  * @author Joseph Ramsey
  */
 public final class ConditionalCorrelationIndependence {
+
+    public void setFastFDR(boolean fastFDR) {
+        this.fastFDR = fastFDR;
+    }
 
     public enum Kernel {Epinechnikov, Gaussian}
 
@@ -111,6 +117,11 @@ public final class ConditionalCorrelationIndependence {
      */
     private Basis basis = Basis.Polynomial;
 
+    /**
+     * Whether the fastFDR adjustment should be made to alpha levels.
+     */
+    private boolean fastFDR = false;
+
     //==================CONSTRUCTORS====================//
 
     /**
@@ -166,12 +177,14 @@ public final class ConditionalCorrelationIndependence {
      * @return true iff x is independent of y conditional on z.
      */
     public boolean isIndependent(String x, String y, List<String> z) {
-        final int d1 = 0; // reference
-        final int d2 = z.size();
-        final int v = data.length - 2;
+        if(fastFDR) {
+            final int d1 = 0; // reference
+            final int d2 = z.size();
+            final int v = data.length - 2;
 
-        double alpha2 = (exp(log(alpha) + logChoose(v, d1) - logChoose(v, d2)));
-        cutoff = getZForAlpha(alpha2);
+            double alpha2 = (exp(log(alpha) + logChoose(v, d1) - logChoose(v, d2)));
+            cutoff = getZForAlpha(alpha2);
+        }
 
         double[] f = residuals(x, z);
         double[] g = residuals(y, z);

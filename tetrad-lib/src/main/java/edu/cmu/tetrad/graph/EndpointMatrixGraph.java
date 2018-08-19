@@ -1625,7 +1625,7 @@ public class EndpointMatrixGraph implements Graph {
 
 
     /**
-     * States whether r-s-r is an underline triple or not.
+     * States whether engine-s-engine is an underline triple or not.
      */
     public boolean isAmbiguousTriple(Node x, Node y, Node z) {
         Triple triple = new Triple(x, y, z);
@@ -1637,7 +1637,7 @@ public class EndpointMatrixGraph implements Graph {
     }
 
     /**
-     * States whether r-s-r is an underline triple or not.
+     * States whether engine-s-engine is an underline triple or not.
      */
     public boolean isUnderlineTriple(Node x, Node y, Node z) {
         removeTriplesNotInGraph();
@@ -1645,7 +1645,7 @@ public class EndpointMatrixGraph implements Graph {
     }
 
     /**
-     * States whether r-s-r is an underline triple or not.
+     * States whether engine-s-engine is an underline triple or not.
      */
     public boolean isDottedUnderlineTriple(Node x, Node y, Node z) {
         Triple triple = new Triple(x, y, z);

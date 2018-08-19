@@ -128,7 +128,7 @@ public class HsimCompareRepeat {
         String paramsLog = "count = "+count+", numVars = "+numVars+", edgesPerNode = "+edgesPerNode+", numCases = "+numCases+", resimSize = "+resimSize+", repeat = "+repeat;
 
         try {
-            PrintWriter writer = new PrintWriter("HsimCR-c"+count+"-v"+numVars+"-s"+numCases+"-rs"+resimSize+"-r"+repeat+".txt", "UTF-8");
+            PrintWriter writer = new PrintWriter("HsimCR-c"+count+"-v"+numVars+"-s"+numCases+"-rs"+resimSize+"-engine"+repeat+".txt", "UTF-8");
             writer.println(paramsLog+nl+nl+resultsLog);
             writer.close();
         }

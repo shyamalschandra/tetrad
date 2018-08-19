@@ -1023,7 +1023,7 @@ public class TestDM {
         String currentLine;
 
         try {
-            FileReader file = new FileReader("src/edu/cmu/tetradproj/amurrayw/final_run/renamed_graph_penalty" + penalty + ".r.txt");
+            FileReader file = new FileReader("src/edu/cmu/tetradproj/amurrayw/final_run/renamed_graph_penalty" + penalty + ".engine.txt");
             BufferedReader br = new BufferedReader(file);
 
             String[] varNames = null;

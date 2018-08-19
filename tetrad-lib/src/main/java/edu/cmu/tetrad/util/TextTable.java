@@ -163,7 +163,7 @@ public class TextTable {
             String f = "c";
 
             if (justification == LEFT_JUSTIFIED) f = "l";
-            else if (justification == RIGHT_JUSTIFIED) f = "r";
+            else if (justification == RIGHT_JUSTIFIED) f = "engine";
 
             buffer.append("\\begin{tabular}{|");
             for (int c = 0; c < getNumColumns(); c++) {

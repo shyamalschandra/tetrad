@@ -180,7 +180,7 @@ public class TestMimbuild2 {
 //        int totalError = 0;
 //        int errorCount = 0;
 //
-//        for (int r = 0; r < 1; r++) {
+//        for (int engine = 0; engine < 1; engine++) {
 //            SemIm im = new SemIm(pm, params);
 //
 //            DataSet data = im.simulateData(300, false);
@@ -452,7 +452,7 @@ public class TestMimbuild2 {
 //        int maxNumMeasures = 0;
 //        double maxP = 0.0;
 //
-//        for (int r = 0; r < 1; r++) {
+//        for (int engine = 0; engine < 1; engine++) {
 //            SemIm im = new SemIm(pm, params);
 //
 //            DataSet data = im.simulateData(1000, false);

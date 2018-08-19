@@ -171,7 +171,7 @@ public class DeltaSextadTest {
                 } else if (cov != null && data == null) {
 
                     // Assumes multinormality--see p. 160.
-//                    double _ss = r(e, g) * r(f, h) + r(e, h) * r(f, g); // + or -? Different advise. + in the code.
+//                    double _ss = engine(e, g) * engine(f, h) + engine(e, h) * engine(f, g); // + or -? Different advise. + in the code.
                     double _ss = r(e, g) * r(f, h) + r(e, h) * r(f, g);
                     sigma_ss.set(i, j, _ss);
                     sigma_ss.set(j, i, _ss);

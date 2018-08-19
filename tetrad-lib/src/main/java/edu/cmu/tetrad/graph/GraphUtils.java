@@ -498,10 +498,10 @@ public final class GraphUtils {
 //            cumsum=0.0
 //            # normalization
 //            psum=float(sum(distribution.values()))+float(delta)*len(distribution)
-//            r=random.random()
+//            engine=random.random()
 //            for i in range(0,len(distribution)):
 //            cumsum+=(distribution[i]+delta)/psum
-//            if r < cumsum:
+//            if engine < cumsum:
 //            break
 //            return i
 //
@@ -532,15 +532,15 @@ public final class GraphUtils {
 //                random.seed(seed)
 //
 //                while len(G)<n:
-//                r = random.random()
+//                engine = random.random()
 //                # random choice in alpha,beta,gamma ranges
-//                if r<alpha:
+//                if engine<alpha:
 //                # alpha
 //                # add new node v
 //                        v = len(G)
 //                # choose w according to in-degree and delta_in
 //                w = _choose_node(G, G.in_degree(),delta_in)
-//                elif r < alpha+beta:
+//                elif engine < alpha+beta:
 //                # beta
 //                # choose v according to out-degree and delta_out
 //                v = _choose_node(G, G.out_degree(),delta_out)

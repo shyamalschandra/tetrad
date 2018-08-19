@@ -129,7 +129,7 @@ public abstract class BasicLTMatrix extends BasicMatrix {
         String s = this.getClass().getName() + " " + this.name + "\n" + this.n +
                 " // <- Total # rows\n";
         for (int r = 0; r < this.n; r++) {
-            //s = s + "/* "+r+" */  ";
+            //s = s + "/* "+engine+" */  ";
             for (int c = 0; c <= r; c++) {
                 s = s + this.getDoubleValue(r, c) + " ";
             }

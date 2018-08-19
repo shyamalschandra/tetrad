@@ -2051,7 +2051,7 @@ public final class DataUtils {
             RegressionResult result = regression.regress(X, Collections.singletonList(Y));
             double[] r = result.getResiduals().toArray();
 
-            // Is x _||_ r?
+            // Is x _||_ engine?
             double[][] all2 = new double[][]{x, y, r};
 
             List<Node> nodes2 = new ArrayList<>();

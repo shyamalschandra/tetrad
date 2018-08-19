@@ -4,8 +4,8 @@ import edu.cmu.tetrad.annotation.TestOfIndependence;
 import edu.cmu.tetrad.data.DataModel;
 import edu.cmu.tetrad.data.DataType;
 import edu.cmu.tetrad.data.DataUtils;
-import edu.cmu.tetrad.search.IndTestKciMatlab;
 import edu.cmu.tetrad.search.IndTestRcitJRI;
+import edu.cmu.tetrad.search.IndTestRcotJRI;
 import edu.cmu.tetrad.search.IndependenceTest;
 import edu.cmu.tetrad.util.Parameters;
 
@@ -18,18 +18,18 @@ import java.util.List;
  * @author jdramsey
  */
 @TestOfIndependence(
-        name = "RCIT (Java-R Interface)",
-        command = "rcit-jri",
+        name = "RCoT (Java-R Interface)",
+        command = "rcot-jri",
         dataType = DataType.Continuous
 )
-public class RcitJRI implements IndependenceWrapper {
+public class RcotJRI implements IndependenceWrapper {
 
     static final long serialVersionUID = 23L;
 
 
     @Override
     public IndependenceTest getTest(DataModel dataSet, Parameters parameters) {
-        final IndTestRcitJRI test = new IndTestRcitJRI(DataUtils.getContinuousDataSet(dataSet),
+        final IndTestRcotJRI test = new IndTestRcotJRI(DataUtils.getContinuousDataSet(dataSet),
                 parameters.getDouble("alpha"));
         test.setFastFDR(parameters.getBoolean("fastFDR"));
         return test;
@@ -37,7 +37,7 @@ public class RcitJRI implements IndependenceWrapper {
 
     @Override
     public String getDescription() {
-        return "RCIT (Java-R Interface)";
+        return "RCoT (Java-R Interface)";
     }
 
     @Override

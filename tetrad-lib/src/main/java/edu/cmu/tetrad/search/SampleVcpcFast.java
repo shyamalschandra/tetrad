@@ -976,8 +976,8 @@ public final class SampleVcpcFast implements GraphSearch {
 //                double[] a = sampleRegress.get(edge);
 //                double c = a[0];
 //                System.out.println("SR Coef for " + x + y + edge + " is " + c);
-//                double r = c;
-//                double d = r - e;
+//                double engine = c;
+//                double d = engine - e;
 //                double sd = d*d;
 //                squaredDifference.add(sd);
 //                System.out.println("Squared Difference for: " + edge + " = " + sd);
@@ -996,8 +996,8 @@ public final class SampleVcpcFast implements GraphSearch {
 //                double[] a = sampleRegress.get(edge);
 //                double c = a[0];
 //                System.out.println("SR Coef for " + x + y + " is " + c);
-//                double r = c;
-//                double d = r - e;
+//                double engine = c;
+//                double d = engine - e;
 //                double sd = d*d;
 //                squaredDifference.add(sd);
 //                System.out.println("Squared Difference for: " + x + y + " = " + sd);
@@ -1485,8 +1485,8 @@ public final class SampleVcpcFast implements GraphSearch {
 //                while ((choice = cg1.next()) != null) {
 //                    List<Node> cond = DataGraphUtils.asList(choice, _nodes);
 //                    TetradMatrix submatrix = DataUtils.subMatrix(covMatrix, indexMap, x, z, cond);
-//                    double r = StatUtils.partialCorrelation(submatrix);
-//                    partialCorrs.put(cond, r);
+//                    double engine = StatUtils.partialCorrelation(submatrix);
+//                    partialCorrs.put(cond, engine);
 //
 //                    if (test.isIndependent(x, z, cond)) {
 //                        if (verbose) {
@@ -1521,8 +1521,8 @@ public final class SampleVcpcFast implements GraphSearch {
 //                while ((choice = cg1.next()) != null) {
 //                    List<Node> cond = DataGraphUtils.asList(choice, _nodes);
 //                    TetradMatrix submatrix = DataUtils.subMatrix(covMatrix, indexMap, x, z, cond);
-//                    double r = StatUtils.partialCorrelation(submatrix);
-//                    partialCorrs.put(cond, r);
+//                    double engine = StatUtils.partialCorrelation(submatrix);
+//                    partialCorrs.put(cond, engine);
 //
 //                    if (test.isIndependent(x, z, cond)) {
 //

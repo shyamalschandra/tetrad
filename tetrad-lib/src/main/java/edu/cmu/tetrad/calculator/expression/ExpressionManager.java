@@ -2436,7 +2436,7 @@ public class ExpressionManager {
 
                     double[] p2 = convert(p);
 
-                    //double r = RandomUtil.getInstance().nextDouble();
+                    //double engine = RandomUtil.getInstance().nextDouble();
 
                     for (int i = 0; i < p2.length; i++) {
                         if (err < p2[i]) return i;

@@ -60,6 +60,10 @@ public class GeneralSemSimulationRandomPostnonlinear implements Simulation {
 
     @Override
     public void createData(Parameters parameters) {
+        errorString = parameters.getString("generalSemErrorTemplate");
+        parametersString = parameters.getString("generalSemParameterTemplate");
+        variablesString = parameters.getString("generalSemFunctionTemplateMeasured");
+
         Graph graph = randomGraph.createGraph(parameters);
 
         dataSets = new ArrayList<>();
@@ -186,6 +190,7 @@ public class GeneralSemSimulationRandomPostnonlinear implements Simulation {
                 String _template = TemplateExpander.getInstance().expandTemplate(
                         variablesString, pm, node);
                 _template = wrapRandom(_template);
+                _template = wrapRandom(_template);
                 pm.setNodeExpression(node, _template);
             }
 
@@ -199,9 +204,9 @@ public class GeneralSemSimulationRandomPostnonlinear implements Simulation {
                 pm.setParameterExpression(parameter, parametersString);
             }
 
-            pm.setVariablesTemplate(parameters.getString("generalSemFunctionTemplateMeasured"));
-            pm.setErrorsTemplate(parameters.getString("generalSemErrorTemplate"));
-            pm.setParametersTemplate(parameters.getString("generalSemParameterTemplate"));
+            pm.setVariablesTemplate(variablesString);
+            pm.setErrorsTemplate(errorString);
+            pm.setParametersTemplate(parametersString);
 
         } catch (ParseException e) {
             System.out.println(e);

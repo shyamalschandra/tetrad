@@ -1598,7 +1598,7 @@ public class EdgeListGraph implements Graph, TripleClassifier {
 
 
     /**
-     * States whether r-s-r is an underline triple or not.
+     * States whether engine-s-engine is an underline triple or not.
      */
     public boolean isAmbiguousTriple(Node x, Node y, Node z) {
 //        Triple triple = new Triple(x, y, z);
@@ -1610,19 +1610,19 @@ public class EdgeListGraph implements Graph, TripleClassifier {
     }
 
     /**
-     * States whether r-s-r is an underline triple or not.
+     * States whether engine-s-engine is an underline triple or not.
      */
     public boolean isUnderlineTriple(Node x, Node y, Node z) {
 //        Triple triple = new Triple(x, y, z);
 //        if (!triple.alongPathIn(this)) {
-//            throw new IllegalArgumentException("<" + r + ", " + s + ", " + t + "> is not along a path.");
+//            throw new IllegalArgumentException("<" + engine + ", " + s + ", " + t + "> is not along a path.");
 //        }
 //        removeTriplesNotInGraph();
         return underLineTriples.contains(new Triple(x, y, z));
     }
 
     /**
-     * States whether r-s-r is an underline triple or not.
+     * States whether engine-s-engine is an underline triple or not.
      */
     public boolean isDottedUnderlineTriple(Node x, Node y, Node z) {
 //        Triple triple = new Triple(x, y, z);

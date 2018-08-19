@@ -95,7 +95,7 @@ public class SaveGraph extends AbstractAction {
             out.close();
         }
         else if (type == Type.r) {
-            File file = EditorUtils.getSaveFile("graph", "r.txt", parent, false, title);
+            File file = EditorUtils.getSaveFile("graph", "engine.txt", parent, false, title);
             try {
                 String text = GraphUtils.graphRMatrixTxt(graph);
 

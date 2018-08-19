@@ -195,7 +195,7 @@ public final class IndTestFisherZGeneralizedInverse implements IndependenceTest 
         DoubleMatrix1D xRes = xPred.copy().assign(x, Functions.minus);
         DoubleMatrix1D yRes = yPred.copy().assign(y, Functions.minus);
 
-        // Note that r will be NaN if either xRes or yRes is constant.
+        // Note that engine will be NaN if either xRes or yRes is constant.
         double r = StatUtils.correlation(xRes.toArray(), yRes.toArray());
 
         if (Double.isNaN(thresh)) {
@@ -216,7 +216,7 @@ public final class IndTestFisherZGeneralizedInverse implements IndependenceTest 
                 0.5 * (Math.log(1.0 + r) - Math.log(1.0 - r));
 
 //        this.fishersZ = 0.5 * Math.sqrt(sampleSize() - z.size() - 3.0) *
-//                Math.log(Math.abs(1.0 + r) / Math.abs(1.0 - r));
+//                Math.log(Math.abs(1.0 + engine) / Math.abs(1.0 - engine));
 
         if (Double.isNaN(this.fishersZ)) {
             throw new IllegalArgumentException("The Fisher's Z " +

@@ -71,6 +71,8 @@ public final class IndTestConditionalCorrelation implements IndependenceTest {
      */
     private Map<Node, Integer> indices;
 
+    private boolean fastFDR = true;
+
 //    /**
 //     * The number of functions to use in the basis.
 //     */
@@ -107,6 +109,7 @@ public final class IndTestConditionalCorrelation implements IndependenceTest {
         for (int i = 0; i < variables.size(); i++) varNames.add(variables.get(i).getName());
 
         this.cci = new ConditionalCorrelationIndependence(dataSet, alpha);
+        this.cci.setFastFDR(fastFDR);
         this.alpha = alpha;
 
         indices = new HashMap<>();
@@ -318,6 +321,10 @@ public final class IndTestConditionalCorrelation implements IndependenceTest {
 
     public void setBasis(ConditionalCorrelationIndependence.Basis basis) {
         cci.setBasis(basis);
+    }
+
+    public void setFastFDR(boolean fastFDR) {
+        this.fastFDR = fastFDR;
     }
 }
 

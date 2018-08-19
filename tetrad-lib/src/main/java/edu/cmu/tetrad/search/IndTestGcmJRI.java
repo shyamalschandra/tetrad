@@ -21,19 +21,13 @@
 
 package edu.cmu.tetrad.search;
 
-import com.mathworks.toolbox.javabuilder.MWApplication;
-import com.mathworks.toolbox.javabuilder.MWException;
-import com.mathworks.toolbox.javabuilder.MWNumericArray;
 import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.data.ICovarianceMatrix;
-import edu.cmu.tetrad.graph.IndependenceFact;
 import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.util.NumberFormatUtil;
 import edu.cmu.tetrad.util.TetradLogger;
 import edu.cmu.tetrad.util.TetradMatrix;
-import edu.cmu.tetrad.util.TetradVector;
 import org.rosuda.JRI.REXP;
-import org.rosuda.JRI.RVector;
 import org.rosuda.JRI.Rengine;
 
 import java.text.NumberFormat;
@@ -49,7 +43,7 @@ import static java.lang.Math.log;
  *
  * @author Joseph Ramsey
  */
-public final class IndTestRcitJRI implements IndependenceTest {
+public final class IndTestGcmJRI implements IndependenceTest {
 
     private final double[][] _data;
     /**
@@ -87,7 +81,7 @@ public final class IndTestRcitJRI implements IndependenceTest {
      * @param dataSet A data set containing only continuous columns.
      * @param alpha   The alpha level of the test.
      */
-    public IndTestRcitJRI(DataSet dataSet, double alpha) {
+    public IndTestGcmJRI(DataSet dataSet, double alpha) {
         if (!(dataSet.isContinuous())) {
             throw new IllegalArgumentException("Data set must be continuous.");
         }
@@ -111,11 +105,11 @@ public final class IndTestRcitJRI implements IndependenceTest {
         numTests = 0;
 
         r = RInstance.getInstance().getEngine();
-        r.eval("library(MASS)");
-        r.eval("library(momentchi2)");
-        r.eval("library(devtools)");
-//        engine.eval("install_github(\"ericstrobl/RCIT\")");
-        r.eval("library(RCIT)");
+        r.eval("library(kernlab)");
+        r.eval("library(CVST)");
+        r.eval("library(xgboost)");
+        r.eval("setwd(\"/Users/user/downloads/gcm-test\")");
+        r.eval("source(\"./gcm.R\")");
     }
 
     //==========================PUBLIC METHODS=============================//
@@ -129,24 +123,24 @@ public final class IndTestRcitJRI implements IndependenceTest {
 
     public boolean isIndependent(Node x, Node y, List<Node> z) {
 
-        r.assign("x", _data[nodeMap.get(x)]);
-        r.assign("y", _data[nodeMap.get(y)]);
+        r.assign("X", _data[nodeMap.get(x)]);
+        r.assign("Y", _data[nodeMap.get(y)]);
 
-        r.eval("z<-NULL");
+        r.eval("Z<-NULL");
 
-        for (int s = 0; s < z.size(); s++) {
-            double[] col = _data[nodeMap.get(z.get(s))];
-
-            IndTestRcitJRI.r.assign("z0", col);
-            IndTestRcitJRI.r.eval("if (is.null(z)) {z <- rbind(z0)} else {z<-rbind(z, z0)}");
+        for (Node aZ : z) {
+            double[] col = _data[nodeMap.get(aZ)];
+            IndTestGcmJRI.r.assign("Z0", col);
+            r.eval("if (!is.null(Z)) Z = Z0");
+            IndTestGcmJRI.r.eval("if (is.null(Z)) {Z <- rbind(Z0)} else {Z<-rbind(Z, Z0)}");
         }
 
-        r.eval("if (!is.null(z)) z = t(z)");
+        r.eval("if (!is.null(Z)) Z <- t(Z)");
 
-        double p = r.eval("RCIT(x,y,z)$p").asDouble();
-//        double p = r.eval("RCIT(x,y,z,approx=\"lpd4\")$p").asDouble();
+        double p = r.eval("gcm.test(X, Y, Z, alpha = 0.05, regr.method = \"kernel.ridge\")$p.value").asDouble();
+        System.out.println(SearchLogUtils.independenceFact(x, y, z) + " p = " + p);
 
-        if(fastFDR) {
+        if (fastFDR) {
             final int d1 = 0; // reference
             final int d2 = z.size();
             final int v = variables.size() - 2;
@@ -192,7 +186,7 @@ public final class IndTestRcitJRI implements IndependenceTest {
 
     /**
      * Sets the significance level at which independence judgments should be made.  Affects the cutoff for partial
-     * correlations to be considered statistically equal to zero.
+     * correlations to be considered statistically eZual to zero.
      */
     public void setAlpha(double alpha) {
         if (alpha < 0.0 || alpha > 1.0) {

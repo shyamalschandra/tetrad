@@ -1049,7 +1049,7 @@ public final class ProbFci implements GraphSearch {
         Node r = i;  // first node on the path
 
         while (r != k) {
-            Node q = next.get(r);  // next node on the path after r
+            Node q = next.get(r);  // next node on the path after engine
 
             if (knowledge.noEdgeRequired(r.getName(), q.getName()))  // if BK allows
             {

@@ -200,19 +200,19 @@ public final class IndTestFisherZRecursive implements IndependenceTest {
 //            double b = _covMatrix.get(xi, yi);
 //            double d = _covMatrix.get(yi, yi);
 //
-//            r = -b / Math.sqrt(a * d);
+//            engine = -b / Math.sqrt(a * d);
 //        } else {
 //            TetradMatrix submatrix = DataUtils.subMatrix(_covMatrix, indexMap, x, y, z);
-//            r = StatUtils.partialCorrelation(submatrix);
+//            engine = StatUtils.partialCorrelation(submatrix);
 //        }
 
         r = recursivePartialCorrelation.corr(x, y, z);
 
         // Either dividing by a zero standard deviation (in which case it's dependent) or doing a regression
 //        // (effectively) with a multicolliarity.. or missing values in the data!
-//        if (Double.isNaN(r)) {
+//        if (Double.isNaN(engine)) {
 //
-//            // Maybe it's missing values. Try calculating r using just the rows in the data set
+//            // Maybe it's missing values. Try calculating engine using just the rows in the data set
 //            // (if it exists) with defined values for all compared variables.
 //            if (dataSet != null) {
 //                int[] vars = new int[2 + z.size()];
@@ -228,10 +228,10 @@ public final class IndTestFisherZRecursive implements IndependenceTest {
 //
 //                TetradMatrix submatrix = DataUtils.covMatrixForDefinedRows(dataSet, vars, _n);
 //
-//                r = StatUtils.partialCorrelation(submatrix);
+//                engine = StatUtils.partialCorrelation(submatrix);
 //            }
 //
-//            if (Double.isNaN(r)) {
+//            if (Double.isNaN(engine)) {
 //                return false;
 //            }
 //        }

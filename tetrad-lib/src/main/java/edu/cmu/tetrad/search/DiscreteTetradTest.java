@@ -379,11 +379,11 @@ public final class DiscreteTetradTest implements TetradTest {
 //            }
 //        }
 //
-//        for (int r = 0; r < numRows; r++) {
+//        for (int engine = 0; engine < numRows; engine++) {
 //            for (int i = 0; i < numColumns; i++) {
 //                for (int j = i; j < numColumns; j++) {
-//                    coefs[i][j][getValuePosition(data[i][r], i)][getValuePosition(
-//                            data[j][r], j)]++;
+//                    coefs[i][j][getValuePosition(data[i][engine], i)][getValuePosition(
+//                            data[j][engine], j)]++;
 //                }
 //            }
 //        }
@@ -418,8 +418,8 @@ public final class DiscreteTetradTest implements TetradTest {
         for (int r = 0; r < numRows; r++) {
             for (int i = 0; i < numColumns; i++) {
                 for (int j = i; j < numColumns; j++) {
-//                    coefs[i][j][getValuePosition(data[i][r], i)][getValuePosition(
-//                            data[j][r], j)]++;
+//                    coefs[i][j][getValuePosition(data[i][engine], i)][getValuePosition(
+//                            data[j][engine], j)]++;
                     counts[i][j][getValuePosition(data.getInt(r, i),
                             i)][getValuePosition(data.getInt(r, j), j)]++;
                 }
@@ -453,10 +453,10 @@ public final class DiscreteTetradTest implements TetradTest {
         }
 
         for (int r = 0; r < numRows; r++) {
-//            newCounts[getValuePosition(this.rawdata[i][r], i)][getValuePosition(
-//                    this.rawdata[j][r], j)][getValuePosition(
-//                            this.rawdata[k][r], k)][getValuePosition(
-//                                    this.rawdata[l][r], l)]++;
+//            newCounts[getValuePosition(this.rawdata[i][engine], i)][getValuePosition(
+//                    this.rawdata[j][engine], j)][getValuePosition(
+//                            this.rawdata[k][engine], k)][getValuePosition(
+//                                    this.rawdata[l][engine], l)]++;
             newCounts[getValuePosition(this.dataSet.getInt(r, i),
                     i)][getValuePosition(this.dataSet.getInt(r, j),
                     j)][getValuePosition(this.dataSet.getInt(r, k),
@@ -485,11 +485,11 @@ public final class DiscreteTetradTest implements TetradTest {
         }
 
         for (int r = 0; r < numRows; r++) {
-//            newCounts[getValuePosition(this.rawdata[i][r], i)][getValuePosition(
-//                    this.rawdata[j][r], j)][getValuePosition(
-//                            this.rawdata[k][r], k)][getValuePosition(
-//                                    this.rawdata[l][r], l)][getValuePosition(
-//                                            this.rawdata[x][r], x)]++;
+//            newCounts[getValuePosition(this.rawdata[i][engine], i)][getValuePosition(
+//                    this.rawdata[j][engine], j)][getValuePosition(
+//                            this.rawdata[k][engine], k)][getValuePosition(
+//                                    this.rawdata[l][engine], l)][getValuePosition(
+//                                            this.rawdata[x][engine], x)]++;
             newCounts[getValuePosition(this.dataSet.getInt(r, i),
                     i)][getValuePosition(this.dataSet.getInt(r, j),
                     j)][getValuePosition(this.dataSet.getInt(r, k),
@@ -523,12 +523,12 @@ public final class DiscreteTetradTest implements TetradTest {
         }
 
         for (int r = 0; r < numRows; r++) {
-//            newCounts[getValuePosition(this.rawdata[i][r], i)][getValuePosition(
-//                    this.rawdata[j][r], j)][getValuePosition(
-//                            this.rawdata[k][r], k)][getValuePosition(
-//                                    this.rawdata[l][r], l)][getValuePosition(
-//                                            this.rawdata[x][r], x)][getValuePosition(
-//                                                    this.rawdata[y][r], y)]++;
+//            newCounts[getValuePosition(this.rawdata[i][engine], i)][getValuePosition(
+//                    this.rawdata[j][engine], j)][getValuePosition(
+//                            this.rawdata[k][engine], k)][getValuePosition(
+//                                    this.rawdata[l][engine], l)][getValuePosition(
+//                                            this.rawdata[x][engine], x)][getValuePosition(
+//                                                    this.rawdata[y][engine], y)]++;
             newCounts[getValuePosition(this.dataSet.getInt(r, i),
                     i)][getValuePosition(this.dataSet.getInt(r, j),
                     j)][getValuePosition(this.dataSet.getInt(r, k),

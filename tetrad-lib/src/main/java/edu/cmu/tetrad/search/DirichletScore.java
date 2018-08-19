@@ -165,11 +165,11 @@ public class DirichletScore implements LocalDiscreteScore, Score {
         }
 
 
-//        double h = Math.log(1.0 / r) * sampleSize;
+//        double h = Math.log(1.0 / engine) * sampleSize;
 
-//        System.out.println("(1/r)^N = " + h + " score = " + score);
+//        System.out.println("(1/engine)^N = " + h + " score = " + score);
 
-        lastBumpThreshold = 0.01;//((r - 1) * q * FastMath.log(getStructurePrior()));
+        lastBumpThreshold = 0.01;//((engine - 1) * q * FastMath.log(getStructurePrior()));
 
         return score;
     }
@@ -203,13 +203,13 @@ public class DirichletScore implements LocalDiscreteScore, Score {
         return localScore(node, new int[]{parent});
 
 //        // Number of categories for node.
-//        int r = numCategories[node];
+//        int engine = numCategories[node];
 //
 //        // Numbers of categories of parents.
 //        int q = numCategories[parent];
 //
 //        // Conditional cell coefs of data for node given parents(node).
-//        int n_jk[][] = new int[q][r];
+//        int n_jk[][] = new int[q][engine];
 //        int n_j[] = new int[q];
 //
 //        int[] parentData = data[parent];
@@ -223,23 +223,23 @@ public class DirichletScore implements LocalDiscreteScore, Score {
 //        }
 //
 //        //Finally, compute the score
-//        double score = r * q * Math.log(getStructurePrior());
+//        double score = engine * q * Math.log(getStructurePrior());
 //
-//        final double cellPrior = getSamplePrior() / (r * q);
+//        final double cellPrior = getSamplePrior() / (engine * q);
 //        final double rowPrior = getSamplePrior() / q;
 //
 //        for (int j = 0; j < q; j++) {
 //            score -= Gamma.logGamma(rowPrior + n_j[j]);
 //
-//            for (int k = 0; k < r; k++) {
+//            for (int k = 0; k < engine; k++) {
 //                score += Gamma.logGamma(cellPrior + n_jk[j][k]);
 //            }
 //        }
 //
 //        score += q * Gamma.logGamma(rowPrior);
-//        score -= r * q * Gamma.logGamma(cellPrior);
+//        score -= engine * q * Gamma.logGamma(cellPrior);
 //
-//        lastBumpThreshold = 0.01;//((r - 1) * q * FastMath.log(getStructurePrior()));
+//        lastBumpThreshold = 0.01;//((engine - 1) * q * FastMath.log(getStructurePrior()));
 //
 //        return score;
     }
@@ -249,7 +249,7 @@ public class DirichletScore implements LocalDiscreteScore, Score {
         return localScore(node, new int[0]);
 
 //        // Number of categories for node.
-//        int r = numCategories[node];
+//        int engine = numCategories[node];
 //
 //        // Conditional cell coefs of data for node given parents(node).
 //        int n_jk[] = new int[numCategories[node]];
@@ -265,21 +265,21 @@ public class DirichletScore implements LocalDiscreteScore, Score {
 //
 //        //Finally, compute the score
 //        int q = 1;
-//        double score = r * q * Math.log(getStructurePrior());
+//        double score = engine * q * Math.log(getStructurePrior());
 //
-//        final double cellPrior = getSamplePrior() / r;
+//        final double cellPrior = getSamplePrior() / engine;
 //        final double rowPrior = getSamplePrior();
 //
 //        score -= Gamma.logGamma(rowPrior + n_j);
 //
-//        for (int k = 0; k < r; k++) {
+//        for (int k = 0; k < engine; k++) {
 //            score += Gamma.logGamma(cellPrior + n_jk[k]);
 //        }
 //
 //        score += Gamma.logGamma(rowPrior);
-//        score -= r * Gamma.logGamma(cellPrior);
+//        score -= engine * Gamma.logGamma(cellPrior);
 //
-//        lastBumpThreshold = 0.01;//((r - 1) * q * FastMath.log(getStructurePrior()));
+//        lastBumpThreshold = 0.01;//((engine - 1) * q * FastMath.log(getStructurePrior()));
 //
 //        return score;
     }

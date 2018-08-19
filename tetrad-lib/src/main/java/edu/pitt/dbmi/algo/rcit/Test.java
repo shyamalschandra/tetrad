@@ -193,10 +193,10 @@ public class Test {
 		// d=ncol(z);
 		int col = varZ.getNumColumns();
 
-		// r=nrow(x);
-		// if (r>500){
+		// engine=nrow(x);
+		// if (engine>500){
 		// r1=500
-		// } else {r1=r;}
+		// } else {r1=engine;}
 		int r1 = 500;
 		int row = varX.getNumRows();
 		if (row < 500) {
@@ -1031,7 +1031,7 @@ public class Test {
 			}
 		}
 
-		// Sta = r*sum(Cxy_z^2);
+		// Sta = engine*sum(Cxy_z^2);
 		double statistic = (double) row * sum_cxy_z_squared;
 		System.out.println("statistic: " + statistic);
 
@@ -1067,7 +1067,7 @@ public class Test {
 			}
 		}
 
-		// Cov = 1/r * (t(res)%*%res);
+		// Cov = 1/engine * (t(res)%*%res);
 		TetradMatrix covMatrix = res.transpose().times(res).scalarMult(1 / (double) row);
 		
 		// eig_d = eigen(Cov,symmetric=TRUE);
@@ -1100,7 +1100,7 @@ public class Test {
 			}
 		}
 
-		// Sta = r*sum(Cxy_z^2);
+		// Sta = engine*sum(Cxy_z^2);
 		double statistic = (double) row * sum_cxy_z_squared;
 		System.out.println("statistic: " + statistic);
 
@@ -1136,7 +1136,7 @@ public class Test {
 			}
 		}
 
-		// Cov = 1/r * (t(res)%*%res);
+		// Cov = 1/engine * (t(res)%*%res);
 		TetradMatrix covMatrix = res.transpose().times(res).scalarMult(1 / (double) row);
 		
 		// eig_d = eigen(Cov,symmetric=TRUE);
@@ -1221,7 +1221,7 @@ public class Test {
 			}
 		}
 
-		// Sta = r*sum(Cxy_z^2);
+		// Sta = engine*sum(Cxy_z^2);
 		double statistic = (double) row * sum_cxy_z_squared;
 		System.out.println("statistic: " + statistic);
 
@@ -1257,7 +1257,7 @@ public class Test {
 			}
 		}
 
-		// Cov = 1/r * (t(res)%*%res);
+		// Cov = 1/engine * (t(res)%*%res);
 		TetradMatrix covMatrix = res.transpose().times(res).scalarMult(1 / (double) row);
 		
 		// eig_d = eigen(Cov,symmetric=TRUE);
@@ -1322,7 +1322,7 @@ public class Test {
 			}
 		}
 
-		// Sta = r*sum(Cxy_z^2);
+		// Sta = engine*sum(Cxy_z^2);
 		double statistic = (double) row * sum_cxy_z_squared;
 		System.out.println("statistic: " + statistic);
 
@@ -1358,7 +1358,7 @@ public class Test {
 		}
 		System.out.println("res [" + res.rows() + ":" + res.columns() + "]");
 
-		// Cov = 1/r * (t(res)%*%res);
+		// Cov = 1/engine * (t(res)%*%res);
 		TetradMatrix covMatrix = res.transpose().times(res).scalarMult(1 / (double) row);
 		System.out.println("covMatrix [" + covMatrix.rows() + ":" + covMatrix.columns() + "]");
 
@@ -1366,7 +1366,7 @@ public class Test {
 		TetradMatrix iCovMatrix = covMatrix.ginverse();
 		System.out.println("iCovMatrix [" + iCovMatrix.rows() + ":" + iCovMatrix.columns() + "]");
 
-		// Sta = r * (c(Cxy_z)%*% i_Cov %*% c(Cxy_z) );
+		// Sta = engine * (c(Cxy_z)%*% i_Cov %*% c(Cxy_z) );
 		// Flatten Cxy_z
 		TetradMatrix flattenCxy_zMatrix = new TetradMatrix(1, cxy_zMatrix.rows() * cxy_zMatrix.columns());
 		int index = 0;
@@ -1389,7 +1389,7 @@ public class Test {
 	private static void testRCIT_perm(TetradMatrix res_x, TetradMatrix res_y, int row) {
 		// Covariance matrix res_x, res_y
 		// Cxy_z = cov(res_x, res_y);
-		// Sta = r*sum(Cxy_z^2);
+		// Sta = engine*sum(Cxy_z^2);
 		TetradMatrix cxy_zMatrix = new TetradMatrix(res_x.columns(), res_y.columns());
 		double sum_cxy_z_squared = 0;
 		for (int i = 0; i < res_x.columns(); i++) {

@@ -691,7 +691,7 @@ public class GeneralizedSemEstimator {
 //                }
 //            }
 //
-////            double[][] r = calcResiduals(dataValues, tierOrdering, this.parameters, parameters, pm, context);
+////            double[][] engine = calcResiduals(dataValues, tierOrdering, this.parameters, parameters, pm, context);
 //
 //            double total = 0.0;
 //
@@ -741,9 +741,9 @@ public class GeneralizedSemEstimator {
 //        private double getLikelihood(List<Double> residuals, RealDistribution dist) {
 //            double sum = 0.0;
 //
-//            for (double r : residuals) {
+//            for (double engine : residuals) {
 //                try {
-//                    double t = dist.density(r);
+//                    double t = dist.density(engine);
 //                    sum += log(t + 1e-15);
 //                } catch (Exception e) {
 //                    //

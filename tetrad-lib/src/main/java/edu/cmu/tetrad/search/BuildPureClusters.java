@@ -486,9 +486,9 @@ public final class BuildPureClusters {
 //                getCovarianceMatrix().getValue(x, z)) *
 //                Math.sqrt(1 - getCovarianceMatrix().getValue(y, z) *
 //                        getCovarianceMatrix().getValue(y, z));
-//        double r = 0.5 * Math.sqrt(getCovarianceMatrix().getSampleSize() - 4) *
+//        double engine = 0.5 * Math.sqrt(getCovarianceMatrix().getSampleSize() - 4) *
 //                Math.log((1. + pc) / (1. - pc));
-//        return Math.abs(r) <= 0.0001;
+//        return Math.abs(engine) <= 0.0001;
 //    }
 
     /**

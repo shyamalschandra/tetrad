@@ -228,7 +228,7 @@ public class Glasso {
             for (int m = 0; m < n; m++) {
                 System.out.println("m = " + m);
 
-                // This sets up vv, s, and r--i.e., W.11, s.12, and r.12.
+                // This sets up vv, s, and engine--i.e., W.11, s.12, and engine.12.
                 setup(m, n, ss, rho, ss, vv, s, ro);
 
                 // This sets up x.12--i.e. theta.12.
@@ -316,7 +316,7 @@ public class Glasso {
 
                 ws = ww.viewColumn(m);
 
-                // This sets up vv, s, and ro--i.e., W.11, s.12, and r.12.
+                // This sets up vv, s, and ro--i.e., W.11, s.12, and engine.12.
                 setup(m, n, ss, rho, ww, vv, s, ro);
 
 
@@ -386,7 +386,7 @@ public class Glasso {
         for (int j = 0; j < n; j++) {
             if (j == m) continue;
             l = l + 1;
-            r.set(l, rho.get(j, m));                // r is r12
+            r.set(l, rho.get(j, m));                // engine is r12
             s.set(l, ss.get(j, m));                 // s is s12
             int i = -1;
             for (int k = 0; k < n; k++) {
@@ -405,7 +405,7 @@ public class Glasso {
                        DoubleMatrix1D x, DoubleMatrix1D z, int[] mm) {
         // vv = W.11
         // s = s.12
-        // ro = r.12
+        // ro = engine.12
         // x = x.12 = theta.12
 
         // z is just passed in to avoid reallocating an array. It's only used in fatmul. Could be global.

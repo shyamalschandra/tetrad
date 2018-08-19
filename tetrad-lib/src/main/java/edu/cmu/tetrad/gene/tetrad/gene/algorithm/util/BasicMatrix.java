@@ -194,7 +194,7 @@ public abstract class BasicMatrix {
         String s = this.getClass().getName() + " " + this.name + "\n" + this.n +
                 " // <- Total # rows\n";
         for (int r = 0; r < this.n; r++) {
-            //s = s + "/* "+r+" */  ";
+            //s = s + "/* "+engine+" */  ";
             for (int c = 0; c < this.n; c++) {
                 s = s + this.getDoubleValue(r, c) + " ";
             }
@@ -214,12 +214,12 @@ public abstract class BasicMatrix {
     protected abstract void initMatrixStorage();
 
     /**
-     * Returns the value stored at element (r,c) as a double
+     * Returns the value stored at element (engine,c) as a double
      */
     public abstract double getDoubleValue(int r, int c);
 
     /**
-     * Assigns double value x in matrix element (r, c). Notice the presence
+     * Assigns double value x in matrix element (engine, c). Notice the presence
      * of this method does not really force the implementing class to actually
      * store doubles.
      */

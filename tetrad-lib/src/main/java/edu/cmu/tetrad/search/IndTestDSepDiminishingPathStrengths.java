@@ -301,7 +301,7 @@ public class IndTestDSepDiminishingPathStrengths implements IndependenceTest {
                 r *= edgeCoef;
             }
 
-            System.out.println("Coef " + i + " = " + edgeCoef + " r = " + r);
+            System.out.println("Coef " + i + " = " + edgeCoef + " engine = " + r);
         }
 
 
@@ -322,7 +322,7 @@ public class IndTestDSepDiminishingPathStrengths implements IndependenceTest {
 
         this.pvalue = pvalue;
 
-//        if (abs(r) < alpha) {
+//        if (abs(engine) < alpha) {
 //            return false;
 //        }
 

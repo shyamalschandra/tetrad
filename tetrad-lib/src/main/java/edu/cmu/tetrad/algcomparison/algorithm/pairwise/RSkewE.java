@@ -26,7 +26,7 @@ import java.util.List;
 @Experimental
 @edu.cmu.tetrad.annotation.Algorithm(
         name = "RSkewE",
-        command = "r-skew-e",
+        command = "engine-skew-e",
         algoType = AlgType.orient_pairwise
 )
 public class RSkewE implements Algorithm, TakesInitialGraph {
