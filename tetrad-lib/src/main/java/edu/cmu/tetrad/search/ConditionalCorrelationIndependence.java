@@ -58,8 +58,13 @@ import static java.lang.Math.pow;
  */
 public final class ConditionalCorrelationIndependence {
 
+
     public void setFastFDR(boolean fastFDR) {
         this.fastFDR = fastFDR;
+    }
+
+    public void setAddZ(boolean addZ) {
+        this.addZ = addZ;
     }
 
     public enum Kernel {Epinechnikov, Gaussian}
@@ -122,6 +127,9 @@ public final class ConditionalCorrelationIndependence {
      */
     private boolean fastFDR = false;
 
+    private boolean addZ = false;
+
+
     //==================CONSTRUCTORS====================//
 
     /**
@@ -177,7 +185,7 @@ public final class ConditionalCorrelationIndependence {
      * @return true iff x is independent of y conditional on z.
      */
     public boolean isIndependent(String x, String y, List<String> z) {
-        if(fastFDR) {
+        if (fastFDR) {
             final int d1 = 0; // reference
             final int d2 = z.size();
             final int v = data.length - 2;
@@ -186,37 +194,26 @@ public final class ConditionalCorrelationIndependence {
             cutoff = getZForAlpha(alpha2);
         }
 
-        double[] rx = residuals(x, z);
-        double[] ry = residuals(y, z);
+        double[] f;
 
-        final boolean independent = independent(rx, ry);
-
-//        return independent;
-
-        if (independent) {
-            return true;
+        if (addZ) {
+            f = residuals(x, z, true);
         } else {
-            final double[] logrx = logCol(data[indices.get(x)]);
-            final double[] logry = logCol(data[indices.get(y)]);
-
-            double[] rlogx = residuals(logrx, z);
-            double[] rlogy = residuals(logry, z);
-
-            return independent(rlogx, rlogy);
+            f = residuals(x, z, false);
         }
-    }
 
-    private boolean positive(double[] rx) {
-        for (double aRx : rx) if (aRx <= 0) return false;
-        return true;
-    }
+        double[] g = residuals(y, z, false);
 
-    private double[] logCol(double[] rx) {
-        double min = StatUtils.min(rx) - 0.1;
+        return independent(f, g);
 
-        double[] log = new double[rx.length];
-        for (int i = 0; i < rx.length; i++) log[i] = Math.log(rx[i] - min);
-        return log;
+////        if (independent) return true;
+////        else {
+//            double[] h = residuals(x, z, true);
+//
+//            final boolean independent2 = independent(h, g);
+//
+//            return independent2;
+////        }
     }
 
     /**
@@ -273,15 +270,25 @@ public final class ConditionalCorrelationIndependence {
      * and the second double[] array contains the resituls for y.
      */
     public double[] residuals(String x, List<String> z) {
-        int _x = indices.get(x);
-        double[] xdata = data[_x];
-        return residuals(xdata, z);
+        return residuals(x, z, false);
     }
 
-    public double[] residuals(double[] xdata, List<String> z) {
+    public double[] residuals(String x, List<String> z, boolean add) {
         int N = data[0].length;
 
+        int _x = indices.get(x);
+
         double[] residualsx = new double[N];
+
+        double[] xdata = Arrays.copyOf(data[_x], data[_x].length);
+
+        if (add) {
+            for (int i = 0; i < xdata.length; i++) {
+                for (String s : z) {
+                    xdata[i] += data[indices.get(s)][i];
+                }
+            }
+        }
 
         double[] sumx = new double[N];
 

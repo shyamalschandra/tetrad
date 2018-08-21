@@ -73,6 +73,7 @@ public class CciScore implements ScoreWrapper {
         parameters.add("kernelType");
         parameters.add("kernelMultiplier");
         parameters.add("basisType");
+        parameters.add("fastFDR");
         return parameters;
     }
 

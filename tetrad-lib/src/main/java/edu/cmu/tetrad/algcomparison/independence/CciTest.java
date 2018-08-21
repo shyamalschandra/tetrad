@@ -53,6 +53,7 @@ public class CciTest implements IndependenceWrapper {
         cci.setNumFunctions(parameters.getInt("numBasisFunctions"));
         cci.setKernelMultiplier(parameters.getDouble("kernelMultiplier"));
         cci.setFastFDR(parameters.getBoolean("fastFDR"));
+        cci.setAddZ(parameters.getBoolean("addZ"));
 
         return cci;
     }
@@ -75,6 +76,8 @@ public class CciTest implements IndependenceWrapper {
         params.add("kernelType");
         params.add("kernelMultiplier");
         params.add("basisType");
+        params.add("fastFDR");
+        params.add("addZ");
         return params;
     }
 }

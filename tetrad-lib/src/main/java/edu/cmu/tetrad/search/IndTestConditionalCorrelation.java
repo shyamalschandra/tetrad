@@ -82,6 +82,7 @@ public final class IndTestConditionalCorrelation implements IndependenceTest {
      * True if verbose output should be printed.
      */
     private boolean verbose = false;
+    private boolean addZ = false;
 
     //==========================CONSTRUCTORS=============================//
 
@@ -109,7 +110,6 @@ public final class IndTestConditionalCorrelation implements IndependenceTest {
         for (int i = 0; i < variables.size(); i++) varNames.add(variables.get(i).getName());
 
         this.cci = new ConditionalCorrelationIndependence(dataSet, alpha);
-        this.cci.setFastFDR(fastFDR);
         this.alpha = alpha;
 
         indices = new HashMap<>();
@@ -325,6 +325,10 @@ public final class IndTestConditionalCorrelation implements IndependenceTest {
 
     public void setFastFDR(boolean fastFDR) {
         this.fastFDR = fastFDR;
+    }
+
+    public void setAddZ(boolean addZ) {
+        this.addZ = addZ;
     }
 }
 

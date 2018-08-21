@@ -49,6 +49,7 @@ public class RcitJRI implements IndependenceWrapper {
     public List<String> getParameters() {
         List<String> params = new ArrayList<>();
         params.add("alpha");
+        params.add("fastFDR");
         return params;
     }
 }

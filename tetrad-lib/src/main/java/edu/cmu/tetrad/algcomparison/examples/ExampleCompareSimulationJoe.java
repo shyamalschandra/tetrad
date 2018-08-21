@@ -40,7 +40,7 @@ import edu.cmu.tetrad.util.Parameters;
 public class ExampleCompareSimulationJoe {
     public static void main(String... args) {
         Parameters parameters = new Parameters();
-        parameters.set("numRuns", 3);
+        parameters.set("numRuns", 1);
         parameters.set("numMeasures", 10);
         parameters.set("avgDegree", 2);
         parameters.set("sampleSize", 1000);
@@ -54,8 +54,8 @@ public class ExampleCompareSimulationJoe {
         parameters.set("maxPOrientationMaxPathLength", 3);
 
         parameters.set("alpha", .01);
-        parameters.set("numBasisFunctions", 20);
-        parameters.set("kernelType", 2);
+        parameters.set("numBasisFunctions", 10);
+        parameters.set("kernelType", 1);
         parameters.set("kernelMultiplier", 1);
         parameters.set("basisType", 2);
 
@@ -69,7 +69,9 @@ public class ExampleCompareSimulationJoe {
 //        final String function = "TSUM(1 - 4 * exp(-$^2 / 2) * $ * $ * $";
         parameters.set("generalSemFunctionTemplateMeasured", function);
         parameters.set("generalSemFunctionTemplateLatent", function);
-        parameters.set("generalSemErrorTemplate", "N(0, .7)^2");
+
+        parameters.set("generalSemErrorTemplate", "N(0, .7)");
+
         parameters.set("generalSemParameterTemplate", "U(.2, .7)");
 
         parameters.set("verbose", true);

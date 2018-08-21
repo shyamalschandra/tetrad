@@ -361,8 +361,10 @@ public class ParamDescriptions {
                 1.0, 0, Double.POSITIVE_INFINITY));
 
         map.put("fastFDR", new ParamDescription(
-                "Yes if the possible fastFDR adjustment to alpha levels should be done", true));
+                "Yes if the possible fastFDR adjustment to alpha levels should be done", false));
 
+        map.put("addZ", new ParamDescription(
+                "Yes if X should be replaced by X + SUM(Z)", false));
     }
 
     public static ParamDescriptions getInstance() {

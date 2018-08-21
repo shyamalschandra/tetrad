@@ -2437,11 +2437,11 @@ public final class SearchGraphUtils {
 //        List<Node> trueLatents = GraphUtils.getLatents(trueGraph);
 //        List<Node> estLatents = GraphUtils.getLatents(graph);
 
-        Graph u = trueGraph.subgraph(trueLatents);
-        Graph t = estGraph.subgraph(estLatents);
+//        Graph u = trueGraph.subgraph(trueLatents);
+//        Graph t = estGraph.subgraph(estLatents);
 
-        Graph G = u; //patternForDag(u);
-        Graph H = t; //patternForDag(t);
+        Graph G = trueGraph; //patternForDag(u);
+        Graph H = estGraph; //patternForDag(t);
 
 //        System.out.println("Pattern of true graph over latents = " + G);
 
