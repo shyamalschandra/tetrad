@@ -69,7 +69,7 @@ public class ExampleCompareSimulationJoe {
 //        final String function = "TSUM(1 - 4 * exp(-$^2 / 2) * $ * $ * $";
         parameters.set("generalSemFunctionTemplateMeasured", function);
         parameters.set("generalSemFunctionTemplateLatent", function);
-        parameters.set("generalSemErrorTemplate", "N(0, 1)");
+        parameters.set("generalSemErrorTemplate", "N(0, .7)^2");
         parameters.set("generalSemParameterTemplate", "U(.2, .7)");
 
         parameters.set("verbose", true);
