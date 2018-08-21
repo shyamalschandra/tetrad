@@ -63,13 +63,13 @@ public class ExampleCompareSimulationJoe {
 
         parameters.set("penaltyDiscount", 1);
 
-        final String function = "(TSUM(NEW(B) * $) + ERROR)";
+        final String function = "TSUM(NEW(B) * $^2)";
 //        final String function = "TPROD($) * ERROR";
 //        final String function = "TSUM(1 - 4 * exp(-$^2 / 2) * $))";
 //        final String function = "TSUM(1 - 4 * exp(-$^2 / 2) * $ * $ * $";
         parameters.set("generalSemFunctionTemplateMeasured", function);
         parameters.set("generalSemFunctionTemplateLatent", function);
-        parameters.set("generalSemErrorTemplate", "N(0, 1)^2");
+        parameters.set("generalSemErrorTemplate", "N(0, 1)");
         parameters.set("generalSemParameterTemplate", "U(.2, .7)");
 
         parameters.set("verbose", true);
@@ -122,8 +122,8 @@ public class ExampleCompareSimulationJoe {
         Simulations simulations = new Simulations();
 
 //        simulations.add(new SemSimulation(new RandomForward()));
-//        simulations.add(new GeneralSemSimulation(new RandomForward()));
-        simulations.add(new GeneralSemSimulationRandomPostnonlinear(new RandomForward()));
+        simulations.add(new GeneralSemSimulation(new RandomForward()));
+//        simulations.add(new GeneralSemSimulationRandomPostnonlinear(new RandomForward()));
 //        Simulation simulation = new LoadDataAndGraphs("comparison10vars");
 
         Comparison comparison = new Comparison();

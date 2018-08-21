@@ -191,19 +191,19 @@ public final class ConditionalCorrelationIndependence {
 
         final boolean independent = independent(rx, ry);
 
-        return independent;
+//        return independent;
 
-//        if (independent) {
-//            return true;
-//        } else {
-//            final double[] logrx = logCol(data[indices.get(x)]);
-//            final double[] logry = logCol(data[indices.get(y)]);
-//
-//            double[] rlogx = residuals(logrx, z);
-//            double[] rlogy = residuals(logry, z);
-//
-//            return independent(rlogx, rlogy);
-//        }
+        if (independent) {
+            return true;
+        } else {
+            final double[] logrx = logCol(data[indices.get(x)]);
+            final double[] logry = logCol(data[indices.get(y)]);
+
+            double[] rlogx = residuals(logrx, z);
+            double[] rlogy = residuals(logry, z);
+
+            return independent(rlogx, rlogy);
+        }
     }
 
     private boolean positive(double[] rx) {
