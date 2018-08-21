@@ -72,6 +72,8 @@ public class GeneralSemSimulation implements Simulation {
 
             DataSet dataSet = simulate(graph, parameters);
 
+//            dataSet = DataUtils.logData(dataSet, 0);
+
             if (parameters.getBoolean("standardize")) {
                 dataSet = DataUtils.standardizeData(dataSet);
             }

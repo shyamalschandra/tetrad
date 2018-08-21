@@ -40,21 +40,21 @@ import edu.cmu.tetrad.util.Parameters;
 public class ExampleCompareSimulationJoe {
     public static void main(String... args) {
         Parameters parameters = new Parameters();
-        parameters.set("numRuns", 1);
+        parameters.set("numRuns", 3);
         parameters.set("numMeasures", 10);
         parameters.set("avgDegree", 2);
-        parameters.set("sampleSize", 400);
+        parameters.set("sampleSize", 1000);
         parameters.set("differentGraphs", true);
 
         parameters.set("fasRule", 1);
         parameters.set("colliderDiscoveryRule", 1);
-        parameters.set("conflictRule", 1);
+        parameters.set("conflictRule", 3);
         parameters.set("depth", -1);
         parameters.set("useMaxPOrientationHeuristic", false);
         parameters.set("maxPOrientationMaxPathLength", 3);
 
-        parameters.set("alpha", .1);
-        parameters.set("numBasisFunctions", 10);
+        parameters.set("alpha", .01);
+        parameters.set("numBasisFunctions", 20);
         parameters.set("kernelType", 2);
         parameters.set("kernelMultiplier", 1);
         parameters.set("basisType", 2);
@@ -63,13 +63,13 @@ public class ExampleCompareSimulationJoe {
 
         parameters.set("penaltyDiscount", 1);
 
-        final String function = "TSUM(NEW(B) * $^2)";
+        final String function = "(TSUM(NEW(B) * $) + ERROR)";
 //        final String function = "TPROD($) * ERROR";
 //        final String function = "TSUM(1 - 4 * exp(-$^2 / 2) * $))";
 //        final String function = "TSUM(1 - 4 * exp(-$^2 / 2) * $ * $ * $";
         parameters.set("generalSemFunctionTemplateMeasured", function);
         parameters.set("generalSemFunctionTemplateLatent", function);
-        parameters.set("generalSemErrorTemplate", "N(0, 0.4)");
+        parameters.set("generalSemErrorTemplate", "N(0, 1)^2");
         parameters.set("generalSemParameterTemplate", "U(.2, .7)");
 
         parameters.set("verbose", true);
@@ -114,7 +114,7 @@ public class ExampleCompareSimulationJoe {
 //        algorithms.add(new PcAll(new GcmJRI()));
 //        algorithms.add(new Fci(new CciTest()));
         algorithms.add(new PcAll(new CciTest()));
-        algorithms.add(new Fges(new CciScore()));
+//        algorithms.add(new Fges(new CciScore()));
         algorithms.add(new PcAll(new ConditionalGaussianLRT()));
         algorithms.add(new PcAll(new FisherZ()));
         algorithms.add(new PcAll(new SemBicTest()));
@@ -122,6 +122,7 @@ public class ExampleCompareSimulationJoe {
         Simulations simulations = new Simulations();
 
 //        simulations.add(new SemSimulation(new RandomForward()));
+//        simulations.add(new GeneralSemSimulation(new RandomForward()));
         simulations.add(new GeneralSemSimulationRandomPostnonlinear(new RandomForward()));
 //        Simulation simulation = new LoadDataAndGraphs("comparison10vars");
 
