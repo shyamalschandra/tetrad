@@ -40,8 +40,8 @@ import edu.cmu.tetrad.util.Parameters;
 public class ExampleCompareSimulationJoe {
     public static void main(String... args) {
         Parameters parameters = new Parameters();
-        parameters.set("numRuns", 3);
-        parameters.set("numMeasures", 50);
+        parameters.set("numRuns", 1);
+        parameters.set("numMeasures", 100);
         parameters.set("avgDegree", 2);
         parameters.set("sampleSize", 500);
         parameters.set("differentGraphs", true);
@@ -112,16 +112,16 @@ public class ExampleCompareSimulationJoe {
 
 //        algorithms.add(new Pc(new Kci()));
 //        algorithms.add(new Pc(new KciMatlab()));
-        algorithms.add(new PcAll(new RcotJRI()));
-        algorithms.add(new PcAll(new RcitJRI()));
+//        algorithms.add(new PcAll(new RcotJRI()));
+//        algorithms.add(new PcAll(new RcitJRI()));
 //        algorithms.add(new PcAll(new FcitJRI()));
 //        algorithms.add(new PcAll(new GcmJRI()));
 //        algorithms.add(new Fci(new CciTest()));
         algorithms.add(new PcAll(new CciTest()));
 //        algorithms.add(new Fges(new CciScore()));
-        algorithms.add(new PcAll(new ConditionalGaussianLRT()));
-        algorithms.add(new PcAll(new FisherZ()));
-        algorithms.add(new PcAll(new SemBicTest()));
+//        algorithms.add(new PcAll(new ConditionalGaussianLRT()));
+//        algorithms.add(new PcAll(new FisherZ()));
+//        algorithms.add(new PcAll(new SemBicTest()));
 
         Simulations simulations = new Simulations();
 
