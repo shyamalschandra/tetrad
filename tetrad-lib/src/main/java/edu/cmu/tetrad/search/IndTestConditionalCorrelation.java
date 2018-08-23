@@ -48,7 +48,6 @@ public final class IndTestConditionalCorrelation implements IndependenceTest {
      * The instance of CCI that is wrapped.
      */
     private final ConditionalCorrelationIndependence cci;
-//    private double weight = 0.8;
 
     /**
      * The variables of the covariance data, in order. (Unmodifiable list.)
@@ -75,12 +74,10 @@ public final class IndTestConditionalCorrelation implements IndependenceTest {
      */
     private Map<Node, Integer> indices;
 
-    private boolean fastFDR = true;
-
-//    /**
-//     * The number of functions to use in the basis.
-//     */
-//    private int numFunctions = 10;
+    /**
+     * True iff the fast FDR adjustment should be made.
+     */
+    private boolean fastFDR = false;
 
     /**
      * True if verbose output should be printed.
@@ -108,9 +105,6 @@ public final class IndTestConditionalCorrelation implements IndependenceTest {
         List<Node> nodes = dataSet.getVariables();
 
         this.variables = Collections.unmodifiableList(nodes);
-
-        List<String> varNames = new ArrayList<>();
-        for (int i = 0; i < variables.size(); i++) varNames.add(variables.get(i).getName());
 
         this.cci = new ConditionalCorrelationIndependence(dataSet, alpha);
         this.alpha = alpha;
