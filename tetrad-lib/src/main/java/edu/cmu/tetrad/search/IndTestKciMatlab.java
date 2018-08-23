@@ -39,6 +39,10 @@ import edu.cmu.tetrad.util.TetradVector;
 import java.text.NumberFormat;
 import java.util.*;
 
+import static edu.cmu.tetrad.util.MathUtils.logChoose;
+import static java.lang.Math.exp;
+import static java.lang.Math.log;
+
 /**
  * Checks conditional independence of variable in a continuous data set using a conditional correlation test
  * for the nonlinear nonGaussian case.
@@ -71,6 +75,7 @@ public final class IndTestKciMatlab implements IndependenceTest {
     private Map<Node, Integer> nodeMap;
     private int numTests;
     private boolean verbose = false;
+    private boolean fastFDR = false;
 
     //==========================CONSTRUCTORS=============================//
 
@@ -332,11 +337,15 @@ public final class IndTestKciMatlab implements IndependenceTest {
 
             double p = _p.getDouble();
 
-            boolean independent = p > alpha;
+            if(fastFDR) {
+                final int d1 = 0; // reference
+                final int d2 = z.size();
+                final int v = variables.size() - 2;
 
-            IndependenceFact fact = new IndependenceFact(x, y, z);
+                double alpha2 = (exp(log(alpha) + logChoose(v, d1) - logChoose(v, d2)));
+                final boolean independent = p > alpha2;
+                IndependenceFact fact = new IndependenceFact(x, y, z);
 
-            if (verbose) {
                 if (independent) {
                     System.out.println(fact + " INDEPENDENT p = " + p);
                     TetradLogger.getInstance().log("info", fact + " Independent");
@@ -345,9 +354,23 @@ public final class IndTestKciMatlab implements IndependenceTest {
                     System.out.println(fact + " dependent p = " + p);
                     TetradLogger.getInstance().log("info", fact.toString());
                 }
-            }
 
-            return independent;
+                return independent;
+            } else {
+                final boolean independent = p > alpha;
+                IndependenceFact fact = new IndependenceFact(x, y, z);
+
+                if (independent) {
+                    System.out.println(fact + " INDEPENDENT p = " + p);
+                    TetradLogger.getInstance().log("info", fact + " Independent");
+
+                } else {
+                    System.out.println(fact + " dependent p = " + p);
+                    TetradLogger.getInstance().log("info", fact.toString());
+                }
+
+                return independent;
+            }
         } catch (MWException e) {
             throw new RuntimeException(e);
         } finally {
@@ -387,6 +410,10 @@ public final class IndTestKciMatlab implements IndependenceTest {
 
     public void setVerbose(boolean verbose) {
         this.verbose = verbose;
+    }
+
+    public void setFastFDR(boolean fastFDR) {
+        this.fastFDR = fastFDR;
     }
 }
 

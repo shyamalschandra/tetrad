@@ -23,6 +23,7 @@ package edu.cmu.tetrad.search;
 
 import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.data.ICovarianceMatrix;
+import edu.cmu.tetrad.graph.IndependenceFact;
 import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.util.NumberFormatUtil;
 import edu.cmu.tetrad.util.TetradLogger;
@@ -139,7 +140,7 @@ public final class IndTestRcotJRI implements IndependenceTest {
         r.eval("if (!is.null(z)) z = t(z)");
 
 //        double p = r.eval("RCoT(x,y,z,approx=\"lpd4\")$p").asDouble();
-        double p = r.eval("RCoT(x,y,z)$p").asDouble();
+        double p = r.eval("RCoT(x,y,z,num_f=50)$p").asDouble();
 
         if(fastFDR) {
             final int d1 = 0; // reference
@@ -147,9 +148,33 @@ public final class IndTestRcotJRI implements IndependenceTest {
             final int v = variables.size() - 2;
 
             double alpha2 = (exp(log(alpha) + logChoose(v, d1) - logChoose(v, d2)));
-            return p > alpha2;
+            final boolean independent = p > alpha2;
+            IndependenceFact fact = new IndependenceFact(x, y, z);
+
+            if (independent) {
+                System.out.println(fact + " INDEPENDENT p = " + p);
+                TetradLogger.getInstance().log("info", fact + " Independent");
+
+            } else {
+                System.out.println(fact + " dependent p = " + p);
+                TetradLogger.getInstance().log("info", fact.toString());
+            }
+
+            return independent;
         } else {
-            return p > alpha;
+            final boolean independent = p > alpha;
+            IndependenceFact fact = new IndependenceFact(x, y, z);
+
+            if (independent) {
+                System.out.println(fact + " INDEPENDENT p = " + p);
+                TetradLogger.getInstance().log("info", fact + " Independent");
+
+            } else {
+                System.out.println(fact + " dependent p = " + p);
+                TetradLogger.getInstance().log("info", fact.toString());
+            }
+
+            return independent;
         }
     }
 

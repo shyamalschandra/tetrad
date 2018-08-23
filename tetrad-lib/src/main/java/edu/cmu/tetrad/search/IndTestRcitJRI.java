@@ -143,7 +143,7 @@ public final class IndTestRcitJRI implements IndependenceTest {
 
         r.eval("if (!is.null(z)) z = t(z)");
 
-        double p = r.eval("RCIT(x,y,z)$p").asDouble();
+        double p = r.eval("RCIT(x,y,z,num_f=50)$p").asDouble();
 //        double p = r.eval("RCIT(x,y,z,approx=\"lpd4\")$p").asDouble();
 
         if(fastFDR) {
@@ -152,9 +152,33 @@ public final class IndTestRcitJRI implements IndependenceTest {
             final int v = variables.size() - 2;
 
             double alpha2 = (exp(log(alpha) + logChoose(v, d1) - logChoose(v, d2)));
-            return p > alpha2;
+            final boolean independent = p > alpha2;
+            IndependenceFact fact = new IndependenceFact(x, y, z);
+
+            if (independent) {
+                System.out.println(fact + " INDEPENDENT p = " + p);
+                TetradLogger.getInstance().log("info", fact + " Independent");
+
+            } else {
+                System.out.println(fact + " dependent p = " + p);
+                TetradLogger.getInstance().log("info", fact.toString());
+            }
+
+            return independent;
         } else {
-            return p > alpha;
+            final boolean independent = p > alpha;
+            IndependenceFact fact = new IndependenceFact(x, y, z);
+
+            if (independent) {
+                System.out.println(fact + " INDEPENDENT p = " + p);
+                TetradLogger.getInstance().log("info", fact + " Independent");
+
+            } else {
+                System.out.println(fact + " dependent p = " + p);
+                TetradLogger.getInstance().log("info", fact.toString());
+            }
+
+            return independent;
         }
     }
 

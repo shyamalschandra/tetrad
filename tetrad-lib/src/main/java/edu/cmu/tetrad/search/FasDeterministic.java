@@ -463,9 +463,9 @@ public class FasDeterministic implements IFas {
                             numIndependenceTests++;
                             independent = test.isIndependent(x, y, condSet);
 
-//                            if (test.determines(condSet, x) || test.determines(condSet, y)) {
-//                                continue;
-//                            }
+                            if (test.determines(condSet, x) || test.determines(condSet, y)) {
+                                continue;
+                            }
                         } catch (Exception e) {
                             independent = false;
                         }

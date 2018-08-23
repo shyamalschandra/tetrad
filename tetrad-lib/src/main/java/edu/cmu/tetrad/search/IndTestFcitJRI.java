@@ -28,6 +28,7 @@ import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.util.NumberFormatUtil;
 import edu.cmu.tetrad.util.TetradLogger;
 import edu.cmu.tetrad.util.TetradMatrix;
+import org.rosuda.JRI.Rengine;
 
 import java.text.NumberFormat;
 import java.util.*;
@@ -42,14 +43,9 @@ import static java.lang.Math.log;
  *
  * @author Joseph Ramsey
  */
-public final class IndTestConditionalCorrelation implements IndependenceTest {
+public final class IndTestFcitJRI implements IndependenceTest {
 
-    /**
-     * The instance of CCI that is wrapped.
-     */
-    private final ConditionalCorrelationIndependence cci;
-//    private double weight = 0.8;
-
+    private final double[][] _data;
     /**
      * The variables of the covariance data, in order. (Unmodifiable list.)
      */
@@ -66,27 +62,15 @@ public final class IndTestConditionalCorrelation implements IndependenceTest {
     private static NumberFormat nf = NumberFormatUtil.getInstance().getNumberFormat();
 
     /**
-     * Stores a reference to the data set passed in through the constructor.
+     * Stores a reference to the dataset being analyzed.
      */
     private DataSet dataSet;
-
-    /**
-     * Map from nodes to the indices.
-     */
-    private Map<Node, Integer> indices;
-
-    private boolean fastFDR = true;
-
-//    /**
-//     * The number of functions to use in the basis.
-//     */
-//    private int numFunctions = 10;
-
-    /**
-     * True if verbose output should be printed.
-     */
+    private TetradMatrix data;
+    private Map<Node, Integer> nodeMap;
+    private int numTests;
     private boolean verbose = false;
-    private boolean addZ = false;
+    private static Rengine r;
+    private boolean fastFDR = false;
 
     //==========================CONSTRUCTORS=============================//
 
@@ -95,35 +79,39 @@ public final class IndTestConditionalCorrelation implements IndependenceTest {
      * given data set (must be continuous). The given significance level is used.
      *
      * @param dataSet A data set containing only continuous columns.
-     * @param alpha   The q level of the test.
+     * @param alpha   The alpha level of the test.
      */
-    public IndTestConditionalCorrelation(DataSet dataSet, double alpha) {
+    public IndTestFcitJRI(DataSet dataSet, double alpha) {
         if (!(dataSet.isContinuous())) {
             throw new IllegalArgumentException("Data set must be continuous.");
-        }
-
-        if (!(alpha >= 0 && alpha <= 1)) {
-            throw new IllegalArgumentException("Q mut be in [0, 1]");
         }
 
         List<Node> nodes = dataSet.getVariables();
 
         this.variables = Collections.unmodifiableList(nodes);
-
-        List<String> varNames = new ArrayList<>();
-        for (int i = 0; i < variables.size(); i++) varNames.add(variables.get(i).getName());
-
-        this.cci = new ConditionalCorrelationIndependence(dataSet, alpha);
-        this.alpha = alpha;
-
-        indices = new HashMap<>();
-
-        for (int i = 0; i < nodes.size(); i++) {
-            indices.put(nodes.get(i), i);
-        }
+        setAlpha(alpha);
 
         this.dataSet = dataSet;
+        data = this.dataSet.getDoubleData();
+
+        _data = data.transpose().toArray();
+
+        nodeMap = new HashMap<>();
+
+        for (int i = 0; i < nodes.size(); i++) {
+            nodeMap.put(nodes.get(i), i);
+        }
+
+        numTests = 0;
+
+        r = RInstance.getInstance().getEngine();
+
+        r.eval("library(reticulate)");
+        r.eval("os<-import(\"os\")");
+        r.eval("os$chdir(\"/Users/user/Downloads/fcit-master/fcit\")");
+        r.eval("fcit<-source_python(\"fcit.py\")");
     }
+
 
     //==========================PUBLIC METHODS=============================//
 
@@ -135,14 +123,26 @@ public final class IndTestConditionalCorrelation implements IndependenceTest {
     }
 
     public boolean isIndependent(Node x, Node y, List<Node> z) {
-        cci.setAddZ(addZ);
 
-        String _x = x.getName();
-        String _y = y.getName();
-        List<String> _z = new ArrayList<>();
-        for (Node node : z) _z.add(node.getName());
-        cci.isIndependent(_x, _y, _z);
-        double p = cci.getPValue();
+        r.assign("x", _data[nodeMap.get(x)]);
+        r.assign("y", _data[nodeMap.get(y)]);
+
+        r.eval("x <- as.matrix(x)");
+        r.eval("y <- as.matrix(y)");
+
+        r.eval("z<-NULL");
+
+        for (int s = 0; s < z.size(); s++) {
+            double[] col = _data[nodeMap.get(z.get(s))];
+
+            IndTestFcitJRI.r.assign("z0", col);
+            IndTestFcitJRI.r.eval("if (is.null(z)) {z <- rbind(z0)} else {z<-rbind(z, z0)}");
+        }
+
+        r.eval("if (!is.null(z)) z = t(z)");
+
+        double p = r.eval("test(x,y,z)").asDouble();
+//        double p = r.eval("RCIT(x,y,z,approx=\"lpd4\")$p").asDouble();
 
         if(fastFDR) {
             final int d1 = 0; // reference
@@ -185,21 +185,8 @@ public final class IndTestConditionalCorrelation implements IndependenceTest {
     }
 
     public boolean isDependent(Node x, Node y, List<Node> z) {
-        String _x = x.getName();
-        String _y = y.getName();
-        List<String> _z = new ArrayList<>();
-        for (Node node : z) _z.add(node.getName());
-        boolean independent = cci.isIndependent(_x, _y, _z);
+        boolean independent = isIndependent(x, y, z);
 
-        if (verbose) {
-            if (independent) {
-                TetradLogger.getInstance().log("independencies",
-                        SearchLogUtils.independenceFactMsg(x, y, z, getPValue()));
-            } else {
-                TetradLogger.getInstance().log("dependencies",
-                        SearchLogUtils.dependenceFactMsg(x, y, z, getPValue()));
-            }
-        }
 
         return !independent;
     }
@@ -213,7 +200,7 @@ public final class IndTestConditionalCorrelation implements IndependenceTest {
      * @return the probability associated with the most recently computed independence test.
      */
     public double getPValue() {
-        return cci.getPValue();
+        return 0.0;
     }
 
     /**
@@ -226,7 +213,6 @@ public final class IndTestConditionalCorrelation implements IndependenceTest {
         }
 
         this.alpha = alpha;
-        cci.setAlpha(alpha);
     }
 
     /**
@@ -249,10 +235,12 @@ public final class IndTestConditionalCorrelation implements IndependenceTest {
      */
     public Node getVariable(String name) {
         for (Node node : variables) {
-            if (node.getName().equals(name)) return node;
+            if (node.getName().equals(name)) {
+                return node;
+            }
         }
 
-        throw new IllegalArgumentException();
+        throw new IllegalArgumentException("Node a node in this test.");
     }
 
     /**
@@ -304,14 +292,40 @@ public final class IndTestConditionalCorrelation implements IndependenceTest {
 
     @Override
     public double getScore() {
-        return cci.getScore();
+        return getPValue();
     }
 
     /**
      * @return a string representation of this test.
      */
     public String toString() {
-        return "Conditional Correlation, q = " + nf.format(getAlpha());
+        return "Conditional Correlation, alpha = " + nf.format(getAlpha());
+    }
+
+    //==================================PRIVATE METHODS================================
+
+    private double[][] columns(double[][] data, List<Node> z) {
+        double[][] cols = new double[z.size()][];
+        for (int i = 0; i < z.size(); i++) {
+            cols[i] = data[nodeMap.get(z.get(i))];
+        }
+        return cols;
+    }
+
+    private Number[][] getNumbers(double[][] d) {
+        final Number[][] d2 = new Number[d.length][d[0].length];
+
+        for (int i = 0; i < d.length; i++) {
+            for (int j = 0; j < d[0].length; j++) {
+                d2[i][j] = d[i][j];
+            }
+        }
+
+        return d2;
+    }
+
+    public int getNumTests() {
+        return numTests;
     }
 
     public boolean isVerbose() {
@@ -322,39 +336,8 @@ public final class IndTestConditionalCorrelation implements IndependenceTest {
         this.verbose = verbose;
     }
 
-    /**
-     * Number of functions to use in (truncated) basis.
-     */
-    public int getNumFunctions() {
-        return this.cci.getNumFunctions();
-    }
-
-    public void setNumFunctions(int numFunctions) {
-        this.cci.setNumFunctions(numFunctions);
-    }
-
-    public double getWeight() {
-        return this.cci.getWidth();
-    }
-
-    public void setKernelMultiplier(double multiplier) {
-        this.cci.setWidth(multiplier);
-    }
-
-    public void setKernel(ConditionalCorrelationIndependence.Kernel kernel) {
-        cci.setKernelMultiplier(kernel);
-    }
-
-    public void setBasis(ConditionalCorrelationIndependence.Basis basis) {
-        cci.setBasis(basis);
-    }
-
     public void setFastFDR(boolean fastFDR) {
         this.fastFDR = fastFDR;
-    }
-
-    public void setAddZ(boolean addZ) {
-        this.addZ = addZ;
     }
 }
 

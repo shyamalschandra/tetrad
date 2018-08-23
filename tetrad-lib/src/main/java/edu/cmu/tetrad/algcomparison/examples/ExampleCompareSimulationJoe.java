@@ -40,26 +40,27 @@ import edu.cmu.tetrad.util.Parameters;
 public class ExampleCompareSimulationJoe {
     public static void main(String... args) {
         Parameters parameters = new Parameters();
-        parameters.set("numRuns", 1);
-        parameters.set("numMeasures", 10);
+        parameters.set("numRuns", 3);
+        parameters.set("numMeasures", 50);
         parameters.set("avgDegree", 2);
-        parameters.set("sampleSize", 1000);
+        parameters.set("sampleSize", 500);
         parameters.set("differentGraphs", true);
 
         parameters.set("fasRule", 1);
         parameters.set("colliderDiscoveryRule", 1);
-        parameters.set("conflictRule", 3);
+        parameters.set("conflictRule", 1);
         parameters.set("depth", -1);
         parameters.set("useMaxPOrientationHeuristic", false);
         parameters.set("maxPOrientationMaxPathLength", 3);
 
         parameters.set("alpha", .01);
-        parameters.set("numBasisFunctions", 10);
+        parameters.set("numBasisFunctions", 20);
         parameters.set("kernelType", 1);
         parameters.set("kernelMultiplier", 1);
         parameters.set("basisType", 2);
 
         parameters.set("fastFDR", true);
+        parameters.set("addZ", false);
 
         parameters.set("penaltyDiscount", 1);
 
@@ -70,7 +71,7 @@ public class ExampleCompareSimulationJoe {
         parameters.set("generalSemFunctionTemplateMeasured", function);
         parameters.set("generalSemFunctionTemplateLatent", function);
 
-        parameters.set("generalSemErrorTemplate", "N(0, .7)");
+        parameters.set("generalSemErrorTemplate", "N(0, 1)");
 
         parameters.set("generalSemParameterTemplate", "U(.2, .7)");
 
@@ -113,6 +114,7 @@ public class ExampleCompareSimulationJoe {
 //        algorithms.add(new Pc(new KciMatlab()));
         algorithms.add(new PcAll(new RcotJRI()));
         algorithms.add(new PcAll(new RcitJRI()));
+//        algorithms.add(new PcAll(new FcitJRI()));
 //        algorithms.add(new PcAll(new GcmJRI()));
 //        algorithms.add(new Fci(new CciTest()));
         algorithms.add(new PcAll(new CciTest()));

@@ -59,10 +59,6 @@ import static java.lang.Math.pow;
 public final class ConditionalCorrelationIndependence {
 
 
-    public void setFastFDR(boolean fastFDR) {
-        this.fastFDR = fastFDR;
-    }
-
     public void setAddZ(boolean addZ) {
         this.addZ = addZ;
     }
@@ -122,11 +118,6 @@ public final class ConditionalCorrelationIndependence {
      */
     private Basis basis = Basis.Polynomial;
 
-    /**
-     * Whether the fastFDR adjustment should be made to alpha levels.
-     */
-    private boolean fastFDR = false;
-
     private boolean addZ = false;
 
 
@@ -185,15 +176,6 @@ public final class ConditionalCorrelationIndependence {
      * @return true iff x is independent of y conditional on z.
      */
     public boolean isIndependent(String x, String y, List<String> z) {
-        if (fastFDR) {
-            final int d1 = 0; // reference
-            final int d2 = z.size();
-            final int v = data.length - 2;
-
-            double alpha2 = (exp(log(alpha) + logChoose(v, d1) - logChoose(v, d2)));
-            cutoff = getZForAlpha(alpha2);
-        }
-
         double[] f;
 
         if (addZ) {
@@ -205,15 +187,6 @@ public final class ConditionalCorrelationIndependence {
         double[] g = residuals(y, z, false);
 
         return independent(f, g);
-
-////        if (independent) return true;
-////        else {
-//            double[] h = residuals(x, z, true);
-//
-//            final boolean independent2 = independent(h, g);
-//
-//            return independent2;
-////        }
     }
 
     /**
@@ -285,7 +258,7 @@ public final class ConditionalCorrelationIndependence {
         if (add) {
             for (int i = 0; i < xdata.length; i++) {
                 for (String s : z) {
-                    xdata[i] += data[indices.get(s)][i];
+                    xdata[i] += tanh(data[indices.get(s)][i]);
                 }
             }
         }

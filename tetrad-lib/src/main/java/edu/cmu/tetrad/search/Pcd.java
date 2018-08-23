@@ -234,7 +234,7 @@ public class Pcd implements GraphSearch {
      * All of the given nodes must be in the domain of the given conditional independence test.
      */
     public Graph search(List<Node> nodes) {
-        return search(new Fas(initialGraph, getIndependenceTest()), nodes);
+        return search(new FasDeterministic(initialGraph, getIndependenceTest()), nodes);
     }
 
     public Graph search(IFas fas, List<Node> nodes) {

@@ -103,6 +103,7 @@ public class KCI implements IndependenceTest, ScoreForFact {
     private double epsilon = 0.001;
 
     private boolean verbose = false;
+    private boolean fastFDR = false;
 
     /**
      * Constructor.
@@ -385,15 +386,38 @@ public class KCI implements IndependenceTest, ScoreForFact {
                 p = p_appr;
                 pValues.put(fact, p);
 
+                if(fastFDR) {
+                    final int d1 = 0; // reference
+                    final int d2 = fact.getZ().size();
+                    final int v = variables.size() - 2;
 
-                final int d1 = 0; // reference
-                final int d2 = 0;
-                final int v = _data.length - 2;
+                    double alpha2 = (exp(log(alpha) + logChoose(v, d1) - logChoose(v, d2)));
+                    final boolean independent = p > alpha2;
 
-                double alpha2 = (exp(log(alpha) + logChoose(v, d1) - logChoose(v, d2)));
-                boolean independent = p > alpha2;
+                    if (independent) {
+                        System.out.println(fact + " INDEPENDENT p = " + p);
+                        TetradLogger.getInstance().log("info", fact + " Independent");
 
-                return p_appr > alpha2;
+                    } else {
+                        System.out.println(fact + " dependent p = " + p);
+                        TetradLogger.getInstance().log("info", fact.toString());
+                    }
+
+                    return independent;
+                } else {
+                    final boolean independent = p > alpha;
+
+                    if (independent) {
+                        System.out.println(fact + " INDEPENDENT p = " + p);
+                        TetradLogger.getInstance().log("info", fact + " Independent");
+
+                    } else {
+                        System.out.println(fact + " dependent p = " + p);
+                        TetradLogger.getInstance().log("info", fact.toString());
+                    }
+
+                    return independent;
+                }
             } else {
                 return theorem4(kx, ky, fact);
             }
@@ -465,13 +489,38 @@ public class KCI implements IndependenceTest, ScoreForFact {
         p = sum / (double) getNumBootstraps();
         pValues.put(fact, this.p);
 
-        final int d1 = 0; // reference
-        final int d2 = fact.getZ().size();
-        final int v = _data.length - 2;
+        if(fastFDR) {
+            final int d1 = 0; // reference
+            final int d2 = fact.getZ().size();
+            final int v = variables.size() - 2;
 
-        double alpha2 = (exp(log(alpha) + logChoose(v, d1) - logChoose(v, d2)));
+            double alpha2 = (exp(log(alpha) + logChoose(v, d1) - logChoose(v, d2)));
+            final boolean independent = p > alpha2;
 
-        return p > alpha2;
+            if (independent) {
+                System.out.println(fact + " INDEPENDENT p = " + p);
+                TetradLogger.getInstance().log("info", fact + " Independent");
+
+            } else {
+                System.out.println(fact + " dependent p = " + p);
+                TetradLogger.getInstance().log("info", fact.toString());
+            }
+
+            return independent;
+        } else {
+            final boolean independent = p > alpha;
+
+            if (independent) {
+                System.out.println(fact + " INDEPENDENT p = " + p);
+                TetradLogger.getInstance().log("info", fact + " Independent");
+
+            } else {
+                System.out.println(fact + " dependent p = " + p);
+                TetradLogger.getInstance().log("info", fact.toString());
+            }
+
+            return independent;
+        }
     }
 
     private boolean proposition5(TetradMatrix kx, TetradMatrix ky, IndependenceFact fact) {
@@ -539,19 +588,38 @@ public class KCI implements IndependenceTest, ScoreForFact {
             this.p = sum / (double) getNumBootstraps();
             pValues.put(fact, this.p);
 
-//            final int d1 = 0; // reference
-//            final int d2 = fact.getZ().size();
-//            final int v = variables.size();
-//
-//            double alpha2 = (exp(log(alpha) + logChoose(v - 2, d1) - logChoose(v - 2, d2)));
+            if(fastFDR) {
+                final int d1 = 0; // reference
+                final int d2 = fact.getZ().size();
+                final int v = variables.size() - 2;
 
+                double alpha2 = (exp(log(alpha) + logChoose(v, d1) - logChoose(v, d2)));
+                final boolean independent = p > alpha2;
 
-            final int d1 = 0; // reference
-            final int d2 = fact.getZ().size();
-            final int v = _data.length - 2;
+                if (independent) {
+                    System.out.println(fact + " INDEPENDENT p = " + p);
+                    TetradLogger.getInstance().log("info", fact + " Independent");
 
-            double alpha2 = (exp(log(alpha) + logChoose(v, d1) - logChoose(v, d2)));
-            return p > alpha2;
+                } else {
+                    System.out.println(fact + " dependent p = " + p);
+                    TetradLogger.getInstance().log("info", fact.toString());
+                }
+
+                return independent;
+            } else {
+                final boolean independent = p > alpha;
+
+                if (independent) {
+                    System.out.println(fact + " INDEPENDENT p = " + p);
+                    TetradLogger.getInstance().log("info", fact + " Independent");
+
+                } else {
+                    System.out.println(fact + " dependent p = " + p);
+                    TetradLogger.getInstance().log("info", fact.toString());
+                }
+
+                return independent;
+            }
         }
     }
 
