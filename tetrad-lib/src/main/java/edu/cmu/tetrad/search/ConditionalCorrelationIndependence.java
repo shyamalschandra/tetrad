@@ -31,7 +31,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static edu.cmu.tetrad.util.MathUtils.logChoose;
 import static edu.cmu.tetrad.util.StatUtils.*;
 import static java.lang.Math.*;
 import static java.lang.Math.pow;
@@ -57,11 +56,6 @@ import static java.lang.Math.pow;
  * @author Joseph Ramsey
  */
 public final class ConditionalCorrelationIndependence {
-
-
-    public void setAddZ(boolean addZ) {
-        this.addZ = addZ;
-    }
 
     public enum Kernel {Epinechnikov, Gaussian}
 
@@ -118,9 +112,6 @@ public final class ConditionalCorrelationIndependence {
      */
     private Basis basis = Basis.Polynomial;
 
-    private boolean addZ = false;
-
-
     //==================CONSTRUCTORS====================//
 
     /**
@@ -176,15 +167,8 @@ public final class ConditionalCorrelationIndependence {
      * @return true iff x is independent of y conditional on z.
      */
     public boolean isIndependent(String x, String y, List<String> z) {
-        double[] f;
-
-        if (addZ) {
-            f = residuals(x, z, true);
-        } else {
-            f = residuals(x, z, false);
-        }
-
-        double[] g = residuals(y, z, false);
+        double[] f = residuals(x, z);
+        double[] g = residuals(y, z);
 
         return independent(f, g);
     }
@@ -243,10 +227,6 @@ public final class ConditionalCorrelationIndependence {
      * and the second double[] array contains the resituls for y.
      */
     public double[] residuals(String x, List<String> z) {
-        return residuals(x, z, false);
-    }
-
-    public double[] residuals(String x, List<String> z, boolean add) {
         int N = data[0].length;
 
         int _x = indices.get(x);
@@ -254,14 +234,6 @@ public final class ConditionalCorrelationIndependence {
         double[] residualsx = new double[N];
 
         double[] xdata = Arrays.copyOf(data[_x], data[_x].length);
-
-        if (add) {
-            for (int i = 0; i < xdata.length; i++) {
-                for (String s : z) {
-                    xdata[i] += tanh(data[indices.get(s)][i]);
-                }
-            }
-        }
 
         double[] sumx = new double[N];
 

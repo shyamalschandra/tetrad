@@ -362,9 +362,6 @@ public class ParamDescriptions {
 
         map.put("fastFDR", new ParamDescription(
                 "Yes if the possible fastFDR adjustment to alpha levels should be done", false));
-
-        map.put("addZ", new ParamDescription(
-                "Yes if X should be replaced by X + a nonlinear function of Z", false));
     }
 
     public static ParamDescriptions getInstance() {
