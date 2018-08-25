@@ -235,6 +235,14 @@ public final class ConditionalCorrelationIndependence {
 
         double[] xdata = Arrays.copyOf(data[_x], data[_x].length);
 
+        if (true) {
+            for (int i = 0; i < xdata.length; i++) {
+                for (String s : z) {
+                    xdata[i] += tanh(data[indices.get(s)][i]);
+                }
+            }
+        }
+
         double[] sumx = new double[N];
 
         double[] totalWeightx = new double[N];

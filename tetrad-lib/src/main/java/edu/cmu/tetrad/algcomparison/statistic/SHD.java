@@ -25,8 +25,8 @@ public class SHD implements Statistic {
 
     @Override
     public double getValue(Graph trueGraph, Graph estGraph) {
-        trueGraph = SearchGraphUtils.patternForDag(trueGraph);
-        estGraph = SearchGraphUtils.patternForDag(estGraph);
+//        trueGraph = SearchGraphUtils.patternForDag(trueGraph);
+//        estGraph = SearchGraphUtils.patternForDag(estGraph);
         return SearchGraphUtils.structuralHammingDistance(trueGraph, estGraph);
     }
 

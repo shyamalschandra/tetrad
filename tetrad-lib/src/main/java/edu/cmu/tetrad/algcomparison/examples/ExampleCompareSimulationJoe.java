@@ -41,21 +41,21 @@ public class ExampleCompareSimulationJoe {
     public static void main(String... args) {
         Parameters parameters = new Parameters();
         parameters.set("numRuns", 1);
-        parameters.set("numMeasures", 20);
+        parameters.set("numMeasures", 10);
         parameters.set("avgDegree", 2);
         parameters.set("sampleSize", 1000);
         parameters.set("differentGraphs", true);
 
-        parameters.set("fasRule", 2);
+        parameters.set("fasRule", 1);
         parameters.set("colliderDiscoveryRule", 1);
         parameters.set("conflictRule", 1);
         parameters.set("depth", -1);
         parameters.set("useMaxPOrientationHeuristic", false);
         parameters.set("maxPOrientationMaxPathLength", 3);
 
-        parameters.set("alpha", .01);
+        parameters.set("alpha", .05);
         parameters.set("numBasisFunctions", 20);
-        parameters.set("kernelType", 1);
+        parameters.set("kernelType", 2);
         parameters.set("kernelMultiplier", 1);
         parameters.set("basisType", 2);
 
@@ -111,7 +111,7 @@ public class ExampleCompareSimulationJoe {
 
 //        algorithms.add(new Pc(new Kci()));
 //        algorithms.add(new Pc(new KciMatlab()));
-        algorithms.add(new PcAll(new RcotJRI()));
+//        algorithms.add(new PcAll(new RcotJRI()));
 //        algorithms.add(new PcAll(new RcitJRI()));
 //        algorithms.add(new PcAll(new FcitJRI()));
 //        algorithms.add(new PcAll(new GcmJRI()));
@@ -136,7 +136,7 @@ public class ExampleCompareSimulationJoe {
         comparison.setSortByUtility(false);
         comparison.setShowUtilities(false);
         comparison.setParallelized(false);
-        comparison.setComparisonGraph(Comparison.ComparisonGraph.Pattern_of_the_true_DAG);
+        comparison.setComparisonGraph(Comparison.ComparisonGraph.true_DAG);
 
 //        comparison.setSaveGraphs(true);
 //        comparison.setSavePatterns(true);
