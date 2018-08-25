@@ -92,7 +92,7 @@ public class SemBicScore implements Score, ISemBicScore {
 
         try {
             double s2 = getCovariances().getValue(i, i);
-//            int p = parents.length;
+            int p = parents.length;
 
             TetradMatrix covxx = getSelection(getCovariances(), parents, parents);
             TetradVector covxy = getSelection(getCovariances(), parents, new int[]{i}).getColumn(0);
@@ -107,7 +107,7 @@ public class SemBicScore implements Score, ISemBicScore {
             }
 
             int n = getSampleSize();
-            return -(n) * log(s2) - getPenaltyDiscount() * log(n);
+            return -(n) * log(s2) - getPenaltyDiscount() * p * log(n);
             // + getStructurePrior(parents.length);// - getStructurePrior(parents.length + 1);
         } catch (Exception e) {
             boolean removedOne = true;

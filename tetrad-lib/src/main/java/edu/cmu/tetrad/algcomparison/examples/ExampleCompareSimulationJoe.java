@@ -43,7 +43,7 @@ public class ExampleCompareSimulationJoe {
         parameters.set("numRuns", 1);
         parameters.set("numMeasures", 20);
         parameters.set("avgDegree", 2);
-        parameters.set("sampleSize", 500);
+        parameters.set("sampleSize", 1000);
         parameters.set("differentGraphs", true);
 
         parameters.set("fasRule", 2);
@@ -53,7 +53,7 @@ public class ExampleCompareSimulationJoe {
         parameters.set("useMaxPOrientationHeuristic", false);
         parameters.set("maxPOrientationMaxPathLength", 3);
 
-        parameters.set("alpha", .05);
+        parameters.set("alpha", .01);
         parameters.set("numBasisFunctions", 20);
         parameters.set("kernelType", 1);
         parameters.set("kernelMultiplier", 1);
@@ -111,7 +111,7 @@ public class ExampleCompareSimulationJoe {
 
 //        algorithms.add(new Pc(new Kci()));
 //        algorithms.add(new Pc(new KciMatlab()));
-//        algorithms.add(new PcAll(new RcotJRI()));
+        algorithms.add(new PcAll(new RcotJRI()));
 //        algorithms.add(new PcAll(new RcitJRI()));
 //        algorithms.add(new PcAll(new FcitJRI()));
 //        algorithms.add(new PcAll(new GcmJRI()));

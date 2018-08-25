@@ -70,6 +70,7 @@ public class RCITTest implements IndependenceWrapper {
         List<String> params = new ArrayList<>();
         params.add("rcitApproxType");
         params.add("alpha");
+        params.add("fastFDR");
         params.add("rcitNumFeatures");
         return params;
     }

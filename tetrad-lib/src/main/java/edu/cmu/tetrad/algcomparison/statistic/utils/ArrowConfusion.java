@@ -76,7 +76,7 @@ public class ArrowConfusion {
 
             if (edges2.size() == 1) {
                 edge2 = edges2.get(0);
-                if (Edges.isUndirectedEdge(edge2)) continue;
+//                if (Edges.isUndirectedEdge(edge2)) continue;
             } else {
                 edge2 = this.truth.getDirectedEdge(edge.getNode1(), edge.getNode2());
             }
@@ -174,7 +174,7 @@ public class ArrowConfusion {
 
             if (edges2.size() == 1) {
                 edge2 = edges2.get(0);
-                if (Edges.isUndirectedEdge(edge2)) continue;
+//                if (Edges.isUndirectedEdge(edge2)) continue;
             } else {
                 edge2 = this.truth.getDirectedEdge(edge.getNode1(), edge.getNode2());
             }

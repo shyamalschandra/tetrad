@@ -206,6 +206,7 @@ public final class FciMax implements GraphSearch {
         fciOrient.setMaxPathLength(maxPathLength);
         fciOrient.setKnowledge(knowledge);
         fciOrient.doFinalOrientation(graph);
+
         graph.setPag(true);
 
         return graph;
