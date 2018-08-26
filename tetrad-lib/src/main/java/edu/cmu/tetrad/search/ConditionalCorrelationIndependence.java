@@ -87,6 +87,11 @@ public final class ConditionalCorrelationIndependence {
     private double[] h;
 
     /**
+     * Looks up the index of a record in the the sorted order for each variable z.
+     */
+    private List<Map<Integer, Integer>> reverseLookup;
+
+    /**
      * The q value of the most recent test.
      */
     private double score;
@@ -183,6 +188,18 @@ public final class ConditionalCorrelationIndependence {
 
         for (int r = 0; r < data.length; r++) {
             means[r] = mean(data[r]);
+        }
+
+        reverseLookup = new ArrayList<>();
+
+        for (int z2 = 0; z2 < data.length; z2++) {
+            Map<Integer, Integer> m = new HashMap<>();
+
+            for (int j = 0; j < data[z2].length; j++) {
+                m.put(sortedIndices.get(z2).get(j), j);
+            }
+
+            reverseLookup.add(m);
         }
     }
 
@@ -326,70 +343,6 @@ public final class ConditionalCorrelationIndependence {
         }
 
         return residualsx;
-    }
-
-    private Set<Integer> getCloseGuys(double[][] data, int[] _z, int i, int radius) {
-        Set<Integer> js = new HashSet<>();
-
-        for (int z1 : _z) {
-            int q = index(z1, i);
-
-            for (int t = q - radius; t <= q + radius; t++) {
-                if (t >= 0 && t < data[z1].length) {
-                    final int r2 = sortedIndices.get(z1).get(t);
-                    js.add(r2);
-                }
-            }
-        }
-
-        return js;
-    }
-
-    private List<Map<Integer, Integer>> reverseLookup;
-
-    private int index(int z1, int i) {
-        if (reverseLookup == null) {
-            reverseLookup = new ArrayList<>();
-
-            for (int z2 = 0; z2 < data.length; z2++) {
-                Map<Integer, Integer> m = new HashMap<>();
-
-                for (int j = 0; j < data[z2].length; j++) {
-                    m.put(sortedIndices.get(z2).get(j), j);
-                }
-
-                reverseLookup.add(m);
-            }
-        }
-
-        return reverseLookup.get(z1).get(i);
-    }
-
-    private void printCloseGuys(Set<Integer> js, int z1) {
-        List<Integer> js2 = new ArrayList<>(js);
-        Collections.sort(js2);
-        NumberFormat nf = new DecimalFormat("0.0000");
-
-        for (int w = 0; w < js2.size(); w++) {
-            final int s1 = sortedIndices.get(z1).get(w);
-            System.out.print(nf.format(data[z1][s1]) + "\t");
-        }
-
-        System.out.println();
-    }
-
-    private double getH(int[] _z) {
-        double h = 0.0;
-
-        for (int c : _z) {
-            if (this.h[c] > h) {
-                h = this.h[c];
-            }
-        }
-
-        h *= sqrt(_z.length);
-        if (h == 0) h = 1;
-        return h;
     }
 
     /**
@@ -558,6 +511,37 @@ public final class ConditionalCorrelationIndependence {
         }
 
         return data;
+    }
+
+    private Set<Integer> getCloseGuys(double[][] data, int[] _z, int i, int radius) {
+        Set<Integer> js = new HashSet<>();
+
+        for (int z1 : _z) {
+            int q = reverseLookup.get(z1).get(i);
+
+            for (int t = q - radius; t <= q + radius; t++) {
+                if (t >= 0 && t < data[z1].length) {
+                    final int r2 = sortedIndices.get(z1).get(t);
+                    js.add(r2);
+                }
+            }
+        }
+
+        return js;
+    }
+
+    private double getH(int[] _z) {
+        double h = 0.0;
+
+        for (int c : _z) {
+            if (this.h[c] > h) {
+                h = this.h[c];
+            }
+        }
+
+        h *= sqrt(_z.length);
+        if (h == 0) h = 1;
+        return h;
     }
 }
 
