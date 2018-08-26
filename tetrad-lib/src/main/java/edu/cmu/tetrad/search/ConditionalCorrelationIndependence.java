@@ -48,7 +48,7 @@ import static java.lang.Math.pow;
  * Daudin, J. J. (1980). Partial association measures and a  application to qualitative regression.
  * Biometrika, 67(3), 581-590.
  * <p>
- * We use Nadaraya-Watson kernel regression.
+ * We use Nadaraya-Watson kernel regression, though we further restrict the sample size to nearby points.
  *
  * @author Joseph Ramsey
  */
@@ -319,8 +319,8 @@ public final class ConditionalCorrelationIndependence {
         }
 
         for (int i = 0; i < N; i++) {
-            int radius = (int) ceil(minimumSamplesize / ((double) 2 * z.size()));
-            Set<Integer> js = getCloseZs(data, _z, i, radius);
+//            int radius = (int) ceil(minimumSamplesize / ((double) 2 * z.size()));
+            Set<Integer> js = getCloseZs(data, _z, i, minimumSamplesize);
 
             for (int j : js) {
                 double xj = xdata[j];
@@ -520,18 +520,27 @@ public final class ConditionalCorrelationIndependence {
         return data;
     }
 
-    private Set<Integer> getCloseZs(double[][] data, int[] _z, int i, int radius) {
+    private Set<Integer> getCloseZs(double[][] data, int[] _z, int i, int minimumSamplesize) {
         Set<Integer> js = new HashSet<>();
 
-        for (int z1 : _z) {
-            int q = reverseLookup.get(z1).get(i);
+        int radius = 0;
 
-            for (int t = q - radius; t <= q + radius; t++) {
-                if (t >= 0 && t < data[z1].length) {
-                    final int r2 = sortedIndices.get(z1).get(t);
+        while (js.size() < minimumSamplesize) {
+            for (int z1 : _z) {
+                int q = reverseLookup.get(z1).get(i);
+
+                if (q - radius >= 0 && q - radius < data[z1].length) {
+                    final int r2 = sortedIndices.get(z1).get(q - radius);
+                    js.add(r2);
+                }
+
+                if (q + radius >= 0 && q + radius < data[z1].length) {
+                    final int r2 = sortedIndices.get(z1).get(q + radius);
                     js.add(r2);
                 }
             }
+
+            radius++;
         }
 
         return js;

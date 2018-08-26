@@ -41,9 +41,9 @@ public class ExampleCompareSimulationJoe {
     public static void main(String... args) {
         Parameters parameters = new Parameters();
         parameters.set("numRuns", 1);
-        parameters.set("numMeasures", 20);
+        parameters.set("numMeasures", 10);
         parameters.set("avgDegree", 2);
-        parameters.set("sampleSize", 2000);
+        parameters.set("sampleSize", 1000);
         parameters.set("differentGraphs", true);
 
         parameters.set("fasRule", 1);
@@ -110,14 +110,15 @@ public class ExampleCompareSimulationJoe {
         Algorithms algorithms = new Algorithms();
 
 //        algorithms.add(new Pc(new Kci()));
-//        algorithms.add(new Pc(new KciMatlab()));
+        algorithms.add(new Pc(new KciMatlab()));
+
 //        algorithms.add(new PcAll(new RcotJRI()));
 //        algorithms.add(new PcAll(new RcitJRI()));
-//        algorithms.add(new PcAll(new FcitJRI()));
-//        algorithms.add(new PcAll(new GcmJRI()));
-//        algorithms.add(new Fci(new CciTest()));
-        algorithms.add(new PcAll(new CciTest()));
-//        algorithms.add(new Fges(new CciScore()));
+////        algorithms.add(new PcAll(new FcitJRI()));
+////        algorithms.add(new PcAll(new GcmJRI()));
+////        algorithms.add(new Fci(new CciTest()));
+//        algorithms.add(new PcAll(new CciTest()));
+////        algorithms.add(new Fges(new CciScore()));
 //        algorithms.add(new PcAll(new ConditionalGaussianLRT()));
 //        algorithms.add(new PcAll(new FisherZ()));
 //        algorithms.add(new PcAll(new SemBicTest()));
@@ -141,10 +142,10 @@ public class ExampleCompareSimulationJoe {
 //        comparison.setSaveGraphs(true);
 //        comparison.setSavePatterns(true);
 
-//        comparison.saveToFiles("comparison10vars", simulations.getSimulations().get(0), parameters);
-//        comparison.compareFromFiles("comparison10vars", "comparison10vars", algorithms, statistics, parameters);
+//        comparison.saveToFiles("comparisonJoe5", simulations.getSimulations().get(0), parameters);
+        comparison.compareFromFiles("comparisonJoe5", "comparisonJoe5KCI", algorithms, statistics, parameters);
 
-        comparison.compareFromSimulations("comparisonJoe5", simulations, algorithms, statistics, parameters);
+//        comparison.compareFromSimulations("comparisonJoe5", simulations, algorithms, statistics, parameters);
     }
 }
 
