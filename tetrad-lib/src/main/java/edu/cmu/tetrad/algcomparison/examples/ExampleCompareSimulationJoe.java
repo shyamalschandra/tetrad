@@ -40,10 +40,10 @@ import edu.cmu.tetrad.util.Parameters;
 public class ExampleCompareSimulationJoe {
     public static void main(String... args) {
         Parameters parameters = new Parameters();
-        parameters.set("numRuns", 1);
+        parameters.set("numRuns", 5);
         parameters.set("numMeasures", 20);
         parameters.set("avgDegree", 2);
-        parameters.set("sampleSize", 1000);
+        parameters.set("sampleSize", 5000);
         parameters.set("differentGraphs", true);
 
         parameters.set("fasRule", 1);
@@ -53,7 +53,7 @@ public class ExampleCompareSimulationJoe {
         parameters.set("useMaxPOrientationHeuristic", false);
         parameters.set("maxPOrientationMaxPathLength", 3);
 
-        parameters.set("alpha", .01);
+        parameters.set("alpha", .001);
         parameters.set("numBasisFunctions", 20);
         parameters.set("kernelType", 2);
         parameters.set("kernelMultiplier", 1);

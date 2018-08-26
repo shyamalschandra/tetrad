@@ -328,28 +328,12 @@ public final class ConditionalCorrelationIndependence {
         return residualsx;
     }
 
-//    private Map<Integer, List<Set<Integer>>> closeGuys = new HashMap<>();
-
     private Set<Integer> getCloseGuys(double[][] data, int[] _z, int i, int radius) {
-//        if (!closeGuys.containsKey(radius)) {
-//            closeGuys.put(radius, new ArrayList<>());
-//            final int N = data[0].length;
-//
-//            for (int j = 0; j < N; j++) {
         Set<Integer> js = new HashSet<>();
 
         for (int z1 : _z) {
+            int q = index(z1, i);
 
-            int q = 0;
-
-            for (int s = 0; s < data[z1].length; s++) {
-                if (data[z1][sortedIndices.get(z1).get(s)] == data[z1][i]) {
-                    q = s;
-                    break;
-                }
-            }
-
-            // index in z1 of the ith record
             for (int t = q - radius; t <= q + radius; t++) {
                 if (t >= 0 && t < data[z1].length) {
                     final int r2 = sortedIndices.get(z1).get(t);
@@ -359,12 +343,26 @@ public final class ConditionalCorrelationIndependence {
         }
 
         return js;
+    }
 
-//                closeGuys.get(radius).add(js);
-//            }
-//        }
-//
-//        return closeGuys.get(radius).get(i);
+    private List<Map<Integer, Integer>> reverseLookup;
+
+    private int index(int z1, int i) {
+        if (reverseLookup == null) {
+            reverseLookup = new ArrayList<>();
+
+            for (int z2 = 0; z2 < data.length; z2++) {
+                Map<Integer, Integer> m = new HashMap<>();
+
+                for (int j = 0; j < data[z2].length; j++) {
+                    m.put(sortedIndices.get(z2).get(j), j);
+                }
+
+                reverseLookup.add(m);
+            }
+        }
+
+        return reverseLookup.get(z1).get(i);
     }
 
     private void printCloseGuys(Set<Integer> js, int z1) {
