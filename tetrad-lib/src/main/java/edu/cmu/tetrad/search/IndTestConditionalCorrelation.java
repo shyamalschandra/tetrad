@@ -132,8 +132,6 @@ public final class IndTestConditionalCorrelation implements IndependenceTest {
         String _y = y.getName();
         List<String> _z = new ArrayList<>();
         for (Node node : z) _z.add(node.getName());
-        cci.isIndependent(_x, _y, _z);
-        double p = cci.getPValue();
 
         if(fastFDR) {
             final int d1 = 0; // reference
@@ -141,7 +139,9 @@ public final class IndTestConditionalCorrelation implements IndependenceTest {
             final int v = variables.size() - 2;
 
             double alpha2 = (exp(log(alpha) + logChoose(v, d1) - logChoose(v, d2)));
-            final boolean independent = p > alpha2;
+            cci.setAlpha(alpha2);
+            boolean independent = cci.isIndependent(_x, _y, _z);
+            double p = cci.getPValue();
             IndependenceFact fact = new IndependenceFact(x, y, z);
 
             if (independent) {
@@ -155,7 +155,9 @@ public final class IndTestConditionalCorrelation implements IndependenceTest {
 
             return independent;
         } else {
-            final boolean independent = p > alpha;
+            cci.setAlpha(alpha);
+            boolean independent = cci.isIndependent(_x, _y, _z);
+            double p = cci.getPValue();
             IndependenceFact fact = new IndependenceFact(x, y, z);
 
             if (independent) {

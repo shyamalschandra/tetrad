@@ -26,10 +26,9 @@ import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.util.StatUtils;
 import org.apache.commons.math3.distribution.NormalDistribution;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
+import java.util.*;
 
 import static edu.cmu.tetrad.util.StatUtils.*;
 import static java.lang.Math.*;
@@ -66,6 +65,16 @@ public final class ConditionalCorrelationIndependence {
      * of variables, gotten from dataSet.
      */
     private double[][] data;
+
+    /**
+     * Means of the columns.
+     */
+    private double[] means;
+
+    /**
+     * The ith array gives indices into the ith variables in sorted order.
+     */
+    private final ArrayList<List<Integer>> sortedIndices;
 
     /**
      * The significance level of the independence tests.
@@ -159,6 +168,22 @@ public final class ConditionalCorrelationIndependence {
         }
 
         this.cutoff = getZForAlpha(alpha);
+
+        sortedIndices = new ArrayList<>();
+
+        for (double[] x : data) {
+            List<Integer> sorted = new ArrayList<>();
+            for (int t = 0; t < x.length; t++) sorted.add(t);
+
+            sorted.sort(Comparator.comparingDouble(o -> x[o]));
+            sortedIndices.add(sorted);
+        }
+
+        means = new double[data.length];
+
+        for (int r = 0; r < data.length; r++) {
+            means[r] = mean(data[r]);
+        }
     }
 
     //=================PUBLIC METHODS====================//
@@ -211,7 +236,15 @@ public final class ConditionalCorrelationIndependence {
 
                 final double score = abs(nonparametricFisherZ(_x, _y));
                 if (Double.isInfinite(score) || Double.isNaN(score)) continue;
-                if (score > maxScore) maxScore = score;
+
+                if (maxScore >= cutoff) {
+                    this.score = maxScore;
+                    return false;
+                }
+
+                if (score > maxScore) {
+                    maxScore = score;
+                }
             }
         }
 
@@ -235,14 +268,6 @@ public final class ConditionalCorrelationIndependence {
 
         double[] xdata = Arrays.copyOf(data[_x], data[_x].length);
 
-        if (true) {
-            for (int i = 0; i < xdata.length; i++) {
-                for (String s : z) {
-                    xdata[i] += tanh(data[indices.get(s)][i]);
-                }
-            }
-        }
-
         double[] sumx = new double[N];
 
         double[] totalWeightx = new double[N];
@@ -255,15 +280,26 @@ public final class ConditionalCorrelationIndependence {
 
         double h = getH(_z);
 
+        if (z.isEmpty()) {
+            for (int i = 0; i < N; i++) {
+                residualsx[i] = xdata[i] - means[_x];
+            }
+
+            return residualsx;
+        }
+
         for (int i = 0; i < N; i++) {
-            double xi = xdata[i];
+            int n = 20;
+            int q = z.size();
+            int r = (int) ceil(n / ((double) 2 * q));
 
-            for (int j = i + 1; j < N; j++) {
+            Set<Integer> js = getCloseGuys(data, _z, i, r);
 
+            for (int j : js) {
                 double xj = xdata[j];
 
-                // Skips NaN values.
                 double d = distance(data, _z, i, j);
+
                 double k;
 
                 if (getKernelMultiplier() == Kernel.Epinechnikov) {
@@ -275,30 +311,13 @@ public final class ConditionalCorrelationIndependence {
                 }
 
                 sumx[i] += k * xj;
-                sumx[j] += k * xi;
-
                 totalWeightx[i] += k;
-                totalWeightx[j] += k;
             }
         }
 
-        double k;
-
-        if (getKernelMultiplier() == Kernel.Epinechnikov) {
-            k = kernelEpinechnikov(0, h);
-        } else if (getKernelMultiplier() == Kernel.Gaussian) {
-            k = kernelGaussian(0, h);
-        } else {
-            throw new IllegalStateException("Unsupported kernel type: " + kernelMultiplier);
-        }
-
         for (int i = 0; i < N; i++) {
-            double xi = xdata[i];
-            sumx[i] += k * xi;
-            totalWeightx[i] += k;
-        }
+            if (totalWeightx[i] == 0) totalWeightx[i] = 1;
 
-        for (int i = 0; i < N; i++) {
             residualsx[i] = xdata[i] - sumx[i] / totalWeightx[i];
 
             if (Double.isNaN(residualsx[i])) {
@@ -307,6 +326,58 @@ public final class ConditionalCorrelationIndependence {
         }
 
         return residualsx;
+    }
+
+//    private Map<Integer, List<Set<Integer>>> closeGuys = new HashMap<>();
+
+    private Set<Integer> getCloseGuys(double[][] data, int[] _z, int i, int radius) {
+//        if (!closeGuys.containsKey(radius)) {
+//            closeGuys.put(radius, new ArrayList<>());
+//            final int N = data[0].length;
+//
+//            for (int j = 0; j < N; j++) {
+        Set<Integer> js = new HashSet<>();
+
+        for (int z1 : _z) {
+
+            int q = 0;
+
+            for (int s = 0; s < data[z1].length; s++) {
+                if (data[z1][sortedIndices.get(z1).get(s)] == data[z1][i]) {
+                    q = s;
+                    break;
+                }
+            }
+
+            // index in z1 of the ith record
+            for (int t = q - radius; t <= q + radius; t++) {
+                if (t >= 0 && t < data[z1].length) {
+                    final int r2 = sortedIndices.get(z1).get(t);
+                    js.add(r2);
+                }
+            }
+        }
+
+        return js;
+
+//                closeGuys.get(radius).add(js);
+//            }
+//        }
+//
+//        return closeGuys.get(radius).get(i);
+    }
+
+    private void printCloseGuys(Set<Integer> js, int z1) {
+        List<Integer> js2 = new ArrayList<>(js);
+        Collections.sort(js2);
+        NumberFormat nf = new DecimalFormat("0.0000");
+
+        for (int w = 0; w < js2.size(); w++) {
+            final int s1 = sortedIndices.get(z1).get(w);
+            System.out.print(nf.format(data[z1][s1]) + "\t");
+        }
+
+        System.out.println();
     }
 
     private double getH(int[] _z) {
