@@ -40,10 +40,10 @@ import edu.cmu.tetrad.util.Parameters;
 public class ExampleCompareSimulationJoe {
     public static void main(String... args) {
         Parameters parameters = new Parameters();
-        parameters.set("numRuns", 5);
+        parameters.set("numRuns", 1);
         parameters.set("numMeasures", 20);
         parameters.set("avgDegree", 2);
-        parameters.set("sampleSize", 5000);
+        parameters.set("sampleSize", 2000);
         parameters.set("differentGraphs", true);
 
         parameters.set("fasRule", 1);

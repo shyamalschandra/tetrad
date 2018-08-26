@@ -65,11 +65,6 @@ public final class ConditionalCorrelationIndependence {
     private double[][] data;
 
     /**
-     * Means of the columns.
-     */
-    private double[] means;
-
-    /**
      * The ith array gives indices into the ith variables in sorted order.
      */
     private final ArrayList<List<Integer>> sortedIndices;
@@ -88,6 +83,11 @@ public final class ConditionalCorrelationIndependence {
      * Looks up the index of a record in the the sorted order for each variable z.
      */
     private List<Map<Integer, Integer>> reverseLookup;
+
+    /**
+     * Depth 0 residuals for reuse.
+     */
+    private double[][] depth0Residuals;
 
     /**
      * The q value of the most recent test.
@@ -113,6 +113,11 @@ public final class ConditionalCorrelationIndependence {
      * Azzalini kernel widths are multiplied by this.
      */
     private double width = 1.0;
+
+    /**
+     * Minimum saples size for the kernel regressions.
+     */
+    private int minimumSamplesize = 10;
 
     /**
      * Kernel
@@ -182,10 +187,20 @@ public final class ConditionalCorrelationIndependence {
             sortedIndices.add(sorted);
         }
 
-        means = new double[data.length];
+        double[] means = new double[data.length];
 
         for (int r = 0; r < data.length; r++) {
             means[r] = mean(data[r]);
+        }
+
+        depth0Residuals = new double[data.length][];
+
+        for (int z = 0; z < data.length; z++) {
+            depth0Residuals[z] = new double[data[0].length];
+
+            for (int i = 0; i < data[0].length; i++) {
+                depth0Residuals[z][i] = data[z][i] - means[z];
+            }
         }
 
         reverseLookup = new ArrayList<>();
@@ -227,6 +242,10 @@ public final class ConditionalCorrelationIndependence {
 
     public double getAlpha() {
         return alpha;
+    }
+
+    public void setMinimumSamplesize(int minimumSamplesize) {
+        this.minimumSamplesize = minimumSamplesize;
     }
 
     /**
@@ -296,23 +315,15 @@ public final class ConditionalCorrelationIndependence {
         double h = getH(_z);
 
         if (z.isEmpty()) {
-            for (int i = 0; i < N; i++) {
-                residualsx[i] = xdata[i] - means[_x];
-            }
-
-            return residualsx;
+            return depth0Residuals[indices.get(x)];
         }
 
         for (int i = 0; i < N; i++) {
-            int n = 20;
-            int q = z.size();
-            int r = (int) ceil(n / ((double) 2 * q));
-
-            Set<Integer> js = getCloseGuys(data, _z, i, r);
+            int radius = (int) ceil(minimumSamplesize / ((double) 2 * z.size()));
+            Set<Integer> js = getCloseZs(data, _z, i, radius);
 
             for (int j : js) {
                 double xj = xdata[j];
-
                 double d = distance(data, _z, i, j);
 
                 double k;
@@ -509,7 +520,7 @@ public final class ConditionalCorrelationIndependence {
         return data;
     }
 
-    private Set<Integer> getCloseGuys(double[][] data, int[] _z, int i, int radius) {
+    private Set<Integer> getCloseZs(double[][] data, int[] _z, int i, int radius) {
         Set<Integer> js = new HashSet<>();
 
         for (int z1 : _z) {
