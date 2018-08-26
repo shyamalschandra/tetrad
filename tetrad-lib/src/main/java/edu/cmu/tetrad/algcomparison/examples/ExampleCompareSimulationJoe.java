@@ -43,7 +43,7 @@ public class ExampleCompareSimulationJoe {
         parameters.set("numRuns", 1);
         parameters.set("numMeasures", 10);
         parameters.set("avgDegree", 2);
-        parameters.set("sampleSize", 1000);
+        parameters.set("sampleSize", 500);
         parameters.set("differentGraphs", true);
 
         parameters.set("fasRule", 1);
@@ -53,7 +53,7 @@ public class ExampleCompareSimulationJoe {
         parameters.set("useMaxPOrientationHeuristic", false);
         parameters.set("maxPOrientationMaxPathLength", 3);
 
-        parameters.set("alpha", .001);
+        parameters.set("alpha", .01);
         parameters.set("numBasisFunctions", 20);
         parameters.set("kernelType", 2);
         parameters.set("kernelMultiplier", 1);
@@ -143,7 +143,7 @@ public class ExampleCompareSimulationJoe {
 //        comparison.setSavePatterns(true);
 
 //        comparison.saveToFiles("comparisonJoe5", simulations.getSimulations().get(0), parameters);
-        comparison.compareFromFiles("comparisonJoe5", "comparisonJoe5KCI", algorithms, statistics, parameters);
+        comparison.compareFromFiles("comparisonJoe5", "comparisonJoe6A", algorithms, statistics, parameters);
 
 //        comparison.compareFromSimulations("comparisonJoe5", simulations, algorithms, statistics, parameters);
     }
