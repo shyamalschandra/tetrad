@@ -26,8 +26,6 @@ import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.util.StatUtils;
 import org.apache.commons.math3.distribution.NormalDistribution;
 
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
 import java.util.*;
 
 import static edu.cmu.tetrad.util.StatUtils.*;
@@ -447,7 +445,6 @@ public final class ConditionalCorrelationIndependence {
     // Optimal bandwidth qsuggested by Bowman and Bowman and Azzalini (1997) q.31,
     // using MAD.
     private double h(String x) {
-
         double[] xCol = data[indices.get(x)];
         double[] g = new double[xCol.length];
         double median = median(xCol);
@@ -461,7 +458,6 @@ public final class ConditionalCorrelationIndependence {
         if (abs(z) > 1) return 0.0;
         else return (/*0.75 **/ (1.0 - z * z));
     }
-
 
     private double kernelGaussian(double z, double h) {
         z /= getWidth() * h;
