@@ -327,11 +327,11 @@ public final class IndTestResidualCITMatlab implements IndependenceTest {
 
             MWNumericArray _z = new MWNumericArray(new TetradMatrix(___z).transpose().toArray());
 
-            Object[] out = test.RCI_test(2, _x, _y, _z);
+            Object[] out = test.RCI_test(1, _x, _y, _z);
 
             MWNumericArray _p = (MWNumericArray) out[0];
 
-            double p = _p.getDouble();
+            double p = 1 - _p.getDouble();
 
             if(fastFDR) {
                 final int d1 = 0; // reference

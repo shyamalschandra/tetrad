@@ -111,6 +111,7 @@ public class ExampleCompareSimulationJoe {
 
 //        algorithms.add(new Pc(new Kci()));
         algorithms.add(new Pc(new KciMatlab()));
+        algorithms.add(new Pc(new ResidualCITMatlab()));
 
 //        algorithms.add(new PcAll(new RcotJRI()));
 //        algorithms.add(new PcAll(new RcitJRI()));

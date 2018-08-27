@@ -5,6 +5,7 @@ import edu.cmu.tetrad.data.DataModel;
 import edu.cmu.tetrad.data.DataType;
 import edu.cmu.tetrad.data.DataUtils;
 import edu.cmu.tetrad.search.IndTestKciMatlab;
+import edu.cmu.tetrad.search.IndTestResidualCITMatlab;
 import edu.cmu.tetrad.search.IndependenceTest;
 import edu.cmu.tetrad.util.Parameters;
 
@@ -28,7 +29,7 @@ public class ResidualCITMatlab implements IndependenceWrapper {
 
     @Override
     public IndependenceTest getTest(DataModel dataSet, Parameters parameters) {
-        final IndTestKciMatlab kci = new IndTestKciMatlab(DataUtils.getContinuousDataSet(dataSet),
+        final IndTestResidualCITMatlab kci = new IndTestResidualCITMatlab(DataUtils.getContinuousDataSet(dataSet),
                 parameters.getDouble("alpha"));
         kci.setFastFDR(parameters.getBoolean("fastFDR"));
         return kci;
