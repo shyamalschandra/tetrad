@@ -331,7 +331,7 @@ public final class IndTestResidualCITMatlab implements IndependenceTest {
 
             MWNumericArray _p = (MWNumericArray) out[0];
 
-            double p = 1 - _p.getDouble();
+            double p = _p.getDouble();
 
             if(fastFDR) {
                 final int d1 = 0; // reference
