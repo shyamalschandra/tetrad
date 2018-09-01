@@ -46,7 +46,7 @@ public class ExampleCompareSimulationJoe {
         parameters.set("numMeasures", 20);
         parameters.set("numLatents", 0);
         parameters.set("avgDegree", 2);
-        parameters.set("sampleSize", 1000);
+        parameters.set("sampleSize", 2000);
         parameters.set("differentGraphs", true);
 
         parameters.set("fasRule", 1);
@@ -58,13 +58,14 @@ public class ExampleCompareSimulationJoe {
 
         parameters.set("maxDegree", 4);
 
-        parameters.set("alpha", .001);//0.01, 0.001, 0.0001);
+        parameters.set("alpha", .01);//0.01, 0.001, 0.0001);
         parameters.set("cciScoreAlpha", 1e-4);//0.01, 0.001, 0.0001, 0.00001, 0.000001);
         parameters.set("numBasisFunctions", 10);
-        parameters.set("kernelType", 2);
+        parameters.set("kernelType", 1);
         parameters.set("kernelMultiplier", 1);
         parameters.set("basisType", 2);
-        parameters.set("minimumSampleSize", 100);
+        parameters.set("minimumSamplesKernelRegression", 100);
+        parameters.set("numDependenceSpotChecks", 2);
 
         parameters.set("penaltyDiscount", 1);
 
@@ -132,13 +133,13 @@ public class ExampleCompareSimulationJoe {
 //        algorithms.add(new PcAll(new ResidualCITMatlab()));
 //        algorithms.add(new PcAll(new FcitJRI()));
 ////
-//        algorithms.add(new PcAll(new RcotJRI()));
-//        algorithms.add(new PcAll(new RcitJRI()));
+        algorithms.add(new PcAll(new RcotJRI()));
+        algorithms.add(new PcAll(new RcitJRI()));
         algorithms.add(new PcAll(new CciTest()));
         algorithms.add(new Fges(new CciScore()));
-//        algorithms.add(new PcAll(new ConditionalGaussianLRT()));
-//        algorithms.add(new PcAll(new FisherZ()));
-//        algorithms.add(new PcAll(new SemBicTest()));
+        algorithms.add(new PcAll(new ConditionalGaussianLRT()));
+        algorithms.add(new PcAll(new FisherZ()));
+        algorithms.add(new PcAll(new SemBicTest()));
 
 //        algorithms.add(new Fci(new CciTest()));
 

@@ -83,6 +83,7 @@ public final class IndTestConditionalCorrelation implements IndependenceTest {
      * True if verbose output should be printed.
      */
     private boolean verbose = false;
+    private double score = Double.NaN;
 
     //==========================CONSTRUCTORS=============================//
 
@@ -142,6 +143,7 @@ public final class IndTestConditionalCorrelation implements IndependenceTest {
 
             cci.setAlpha(alpha2);
             double p = cci.isIndependent(_x, _y, _z);
+            this.score = cci.getScore();
             IndependenceFact fact = new IndependenceFact(x, y, z);
 
             if (p > alpha2) {
@@ -159,6 +161,7 @@ public final class IndTestConditionalCorrelation implements IndependenceTest {
         } else {
             cci.setAlpha(alpha);
             double p = cci.isIndependent(_x, _y, _z);
+            this.score = cci.getScore();
             IndependenceFact fact = new IndependenceFact(x, y, z);
 
             if (p > alpha) {
@@ -297,7 +300,7 @@ public final class IndTestConditionalCorrelation implements IndependenceTest {
 
     @Override
     public double getScore() {
-        return cci.getScore();
+        return score;
     }
 
     /**
@@ -352,6 +355,10 @@ public final class IndTestConditionalCorrelation implements IndependenceTest {
 
     public void setEarlyReturn(boolean b) {
         cci.setEarlyReturn(b);
+    }
+
+    public void setNumDependenceSpotChecks(int numDependenceSpotChecks) {
+        cci.setNumDependenceSpotChecks(numDependenceSpotChecks);
     }
 }
 

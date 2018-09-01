@@ -134,7 +134,12 @@ public final class ConditionalCorrelationIndependence {
     /**
      * The minimum sample size to use for the kernel regression.
      */
-    private int minimumSamplesize = 20;
+    private int minimumSamplesize = 100;
+
+    /**
+     * If rx ~_||_ ry, spot check dependence for this many points.
+     */
+    private double numDependenceSpotChecks = 10;
 
     //==================CONSTRUCTORS====================//
 
@@ -249,7 +254,7 @@ public final class ConditionalCorrelationIndependence {
             }
 
             // X _||_ Y ?
-            if (z.isEmpty()) {
+            if (z.isEmpty() || numDependenceSpotChecks == 0) {
                 return getPValue(score);
             } else {
 
@@ -257,9 +262,9 @@ public final class ConditionalCorrelationIndependence {
                 int count = 0;
 
                 // X _||_ Y | Z ? Look for a dependence rx ~_||_ ry | Z = _z
-                for (int i = 0; i < 20; i++) {
+                for (int i = 0; i < numDependenceSpotChecks; i++) {
                     List<Integer> js = new ArrayList<>(getCloseZs(data, _z,
-                            RandomUtil.getInstance().nextInt(N), 150));
+                            RandomUtil.getInstance().nextInt(N), 2 * minimumSamplesize));
 
                     double[] rx2 = new double[js.size()];
                     double[] ry2 = new double[js.size()];
@@ -420,6 +425,10 @@ public final class ConditionalCorrelationIndependence {
 
     public void setEarlyReturn(boolean earlyReturn) {
         this.earlyReturn = earlyReturn;
+    }
+
+    public void setNumDependenceSpotChecks(int numDependenceSpotChecks) {
+        this.numDependenceSpotChecks = numDependenceSpotChecks;
     }
 
     //=====================PRIVATE METHODS====================//
@@ -592,8 +601,7 @@ public final class ConditionalCorrelationIndependence {
     private Set<Integer> getCloseZs(double[][] data, int[] _z, int i, int minimumSamplesize) {
         Set<Integer> js = new HashSet<>();
 
-        if (minimumSamplesize > data[0].length) throw new IllegalArgumentException("Minimum sample size exceeds the " +
-                "smaple size: " + minimumSamplesize);
+        if (minimumSamplesize > data[0].length) minimumSamplesize = (int) ceil(0.8 * data.length);
         if (_z.length == 0) return new HashSet<>();
 
         int radius = 0;
@@ -615,6 +623,7 @@ public final class ConditionalCorrelationIndependence {
 
             radius++;
         }
+        
         return js;
     }
 
