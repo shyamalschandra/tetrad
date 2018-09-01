@@ -59,7 +59,7 @@ public class ExampleCompareSimulationJoe {
         parameters.set("maxDegree", 4);
 
         parameters.set("alpha", .0001);//0.01, 0.001, 0.0001);
-        parameters.set("cciScoreAlpha", 1e-5);//0.01, 0.001, 0.0001, 0.00001, 0.000001);
+        parameters.set("cciScoreAlpha", 1e-4);//0.01, 0.001, 0.0001, 0.00001, 0.000001);
         parameters.set("numBasisFunctions", 10);
         parameters.set("kernelType", 2);
         parameters.set("kernelMultiplier", 1);
