@@ -223,8 +223,6 @@ public final class ConditionalCorrelationIndependence {
         }
     }
 
-    private double p;
-
     //=================PUBLIC METHODS====================//
 
     /**
@@ -234,67 +232,13 @@ public final class ConditionalCorrelationIndependence {
         double[] rx = residuals(x, z);
         double[] ry = residuals(y, z);
 
-//        double[] logrx = logColumn(rx);
-//        double[] logry = logColumn(ry);
+        double score = independent(rx, ry);
 
-        this.score = Double.NEGATIVE_INFINITY;
-
-        double p1 = independent(rx, ry);
-        double p = p1;
-
-        if (p1 > alpha) {
-            return p1;
+        // rx _||_ ry
+        if (score < cutoff) {
+            this.score = score;
+            return getPValue(score);
         }
-
-//        final double p2 = independent(rx, logry);
-//        p = max(p, p2);
-//
-//        if (p2 > alpha) {
-//            return p2;
-//        }
-//
-//        final double p3 = independent(logrx, ry);
-//        p = max(p, p3);
-//
-//        if (p3 > alpha) {
-//            return p3;
-//        }
-//
-//        final double p4 = independent(logrx, logry);
-//        p = max(p, p3);
-//
-//        if (p4 > alpha) {
-//            return p4;
-//        }
-//
-//        p = max(p, p4);
-
-
-        this.p = p;
-
-//        final boolean independent = independent(rx, ry) > cutoff || independent(rx, logry) > cutoff
-//                || independent(logrx, ry) > cutoff || independent(logrx, logry) > cutoff;
-
-//        boolean okx = false;
-//
-//        for (String _z : z) {
-//            if (independent(rx, data[indices.get(_z)]) > alpha || independent(logrx, data[indices.get(_z)]) > alpha) {
-//                okx = true;
-//                break;
-//            }
-//        }
-//
-//        boolean oky = false;
-//
-//        for (String _z : z) {
-//            if (independent(ry, data[indices.get(_z)]) > alpha || independent(logry, data[indices.get(_z)]) > alpha) {
-//                oky = true;
-//                break;
-//            }
-//        }
-//
-//
-//
 
         final int N = data[0].length;
 
@@ -304,42 +248,42 @@ public final class ConditionalCorrelationIndependence {
             _z[m] = indices.get(z.get(m));
         }
 
+        // X _||_ Y ?
         if (z.isEmpty()) {
-            return p;
+            this.score = score;
+            return getPValue(score);
         } else {
-            double _p = 1.0;
 
+            double __score = Double.POSITIVE_INFINITY;
+
+            // X _||_ Y | Z ? Look for a dependence rx ~_||_ ry | Z = _z
             for (int i = 0; i < 20; i++) {
-                List<Integer> js = new ArrayList<>(getCloseZs(data, _z, RandomUtil.getInstance().nextInt(N), 100));
+                List<Integer> js = new ArrayList<>(getCloseZs(data, _z,
+                        RandomUtil.getInstance().nextInt(N), 100));
 
                 double[] rx2 = new double[js.size()];
                 double[] ry2 = new double[js.size()];
-
 
                 for (int k = 0; k < js.size(); k++) {
                     rx2[k] = rx[js.get(k)];
                     ry2[k] = ry[js.get(k)];
                 }
 
-                double pj = independent(rx2, ry2);
+                double _score = independent(rx2, ry2);
 
-                if (pj < alpha) {
-                    return pj;
+                // dependent case
+                if (_score >= cutoff) {
+                    this.score = _score;
+                    return getPValue(_score);
                 } else {
-                    _p = pj;
+                    __score = min(_score, __score);
                 }
             }
 
-            return _p;
+            // independent case
+            this.score = __score;
+            return getPValue(__score);
         }
-    }
-
-    private double[] logColumn(double[] f) {
-        double[] ret = new double[f.length];
-        double min = min(f) - 0.0001;
-        if (min > 0) min = 0;
-        for (int i = 0; i < f.length; i++) ret[i] = log(f[i] - min);
-        return ret;
     }
 
     /**
@@ -441,7 +385,11 @@ public final class ConditionalCorrelationIndependence {
     }
 
     public double getPValue() {
-        return this.p;
+        return getPValue(score);
+    }
+
+    public double getPValue(double score) {
+        return 2.0 * (1.0 - new NormalDistribution(0, 1).cumulativeProbability(score));
     }
 
     /**
@@ -494,9 +442,8 @@ public final class ConditionalCorrelationIndependence {
                 final double score = abs(nonparametricFisherZ(_x, _y));
                 if (Double.isInfinite(score) || Double.isNaN(score)) continue;
 
-                if (earlyReturn && maxScore >= cutoff) {
-                    this.score = maxScore;
-                    return 2.0 * (1.0 - new NormalDistribution(0, 1).cumulativeProbability(maxScore));
+                if (earlyReturn && score >= cutoff) {
+                    return score;
                 }
 
                 if (score > maxScore) {
@@ -505,11 +452,7 @@ public final class ConditionalCorrelationIndependence {
             }
         }
 
-        if (maxScore > this.score) {
-            this.score = maxScore;
-        }
-
-        return 2.0 * (1.0 - new NormalDistribution(0, 1).cumulativeProbability(maxScore));
+        return maxScore;
     }
 
     private double[] scale(double[] x) {

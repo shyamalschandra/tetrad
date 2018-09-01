@@ -205,9 +205,6 @@ public final class IndTestConditionalCorrelation implements IndependenceTest {
         return isDependent(x, y, zList);
     }
 
-    /**
-     * @return the probability associated with the most recently computed independence test.
-     */
     public double getPValue() {
         return cci.getPValue();
     }
