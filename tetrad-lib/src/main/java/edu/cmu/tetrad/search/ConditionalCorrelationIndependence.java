@@ -271,10 +271,13 @@ public final class ConditionalCorrelationIndependence {
 
                 double _score = independent(rx2, ry2);
 
-                // dependent case
                 if (_score >= cutoff) {
+
+                    // found a dependent case--just go ahead and use the score.
                     return getPValue(_score);
                 } else {
+
+                    // Keep a running sum of the scores for the dependent case.
                     sum += _score;
                     count++;
                 }
@@ -282,17 +285,9 @@ public final class ConditionalCorrelationIndependence {
 
             this.score = sum / count;
 
-            // If all _||_, return the value for the average score.
+            // If all _||_, return the value for the average independent score.
             return getPValue(sum / count);
         }
-    }
-
-    private double[] logColumn(double[] f) {
-        double[] ret = new double[f.length];
-        double min = min(f) - 0.0001;
-        if (min > 0) min = 0;
-        for (int i = 0; i < f.length; i++) ret[i] = log(f[i] - min);
-        return ret;
     }
 
     /**
