@@ -259,7 +259,7 @@ public final class ConditionalCorrelationIndependence {
                 // X _||_ Y | Z ? Look for a dependence rx ~_||_ ry | Z = _z
                 for (int i = 0; i < 20; i++) {
                     List<Integer> js = new ArrayList<>(getCloseZs(data, _z,
-                            RandomUtil.getInstance().nextInt(N), 100));
+                            RandomUtil.getInstance().nextInt(N), 150));
 
                     double[] rx2 = new double[js.size()];
                     double[] ry2 = new double[js.size()];
