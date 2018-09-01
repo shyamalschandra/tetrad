@@ -280,6 +280,8 @@ public final class ConditionalCorrelationIndependence {
                 }
             }
 
+            this.score = sum / count;
+
             // If all _||_, return the value for the average score.
             return getPValue(sum / count);
         }
