@@ -23,6 +23,7 @@ package edu.cmu.tetrad.search;
 
 import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.graph.Node;
+import edu.cmu.tetrad.util.RandomUtil;
 import edu.cmu.tetrad.util.StatUtils;
 import org.apache.commons.math3.distribution.NormalDistribution;
 
@@ -115,11 +116,6 @@ public final class ConditionalCorrelationIndependence {
     private double width = 1.0;
 
     /**
-     * Minimum saples size for the kernel regressions.
-     */
-    private int minimumSamplesize = 10;
-
-    /**
      * Kernel
      */
     private Kernel kernelMultiplier = Kernel.Gaussian;
@@ -128,6 +124,17 @@ public final class ConditionalCorrelationIndependence {
      * Basis
      */
     private Basis basis = Basis.Polynomial;
+
+    /**
+     * True if the test should return false as soon as a dependency is found. Should not be used if CCI is to
+     * be used as a score.
+     */
+    private boolean earlyReturn = true;
+
+    /**
+     * The minimum sample size to use for the kernel regression.
+     */
+    private int minimumSamplesize = 20;
 
     //==================CONSTRUCTORS====================//
 
@@ -216,74 +223,123 @@ public final class ConditionalCorrelationIndependence {
         }
     }
 
+    private double p;
+
     //=================PUBLIC METHODS====================//
 
     /**
      * @return true iff x is independent of y conditional on z.
      */
-    public boolean isIndependent(String x, String y, List<String> z) {
-        double[] f = residuals(x, z);
-        double[] g = residuals(y, z);
+    public double isIndependent(String x, String y, List<String> z) {
+        double[] rx = residuals(x, z);
+        double[] ry = residuals(y, z);
 
-        return independent(f, g);
-    }
+//        double[] logrx = logColumn(rx);
+//        double[] logry = logColumn(ry);
 
-    /**
-     * @return the minimal scores value calculated by the method for the most
-     * recent independence check.
-     */
-    public double getScore() {
-        return score - cutoff;
-    }
+        this.score = Double.NEGATIVE_INFINITY;
 
-    public void setAlpha(double alpha) {
-        this.alpha = alpha;
-    }
+        double p1 = independent(rx, ry);
+        double p = p1;
 
-    public double getAlpha() {
-        return alpha;
-    }
-
-    public void setMinimumSamplesize(int minimumSamplesize) {
-        this.minimumSamplesize = minimumSamplesize;
-    }
-
-    /**
-     * @return true just in the case the x and y vectors are independent,
-     * once undefined values have been removed. Left public so it can be
-     * accessed separately.
-     */
-    private boolean independent(double[] x, double[] y) {
-
-        // Can't reuse these--parallelization
-        double[] _x = new double[x.length];
-        double[] _y = new double[y.length];
-
-        double maxScore = Double.NEGATIVE_INFINITY;
-
-        for (int m = 1; m <= getNumFunctions(); m++) {
-            for (int n = 1; n <= getNumFunctions(); n++) {
-                for (int i = 0; i < x.length; i++) {
-                    _x[i] = function(m, x[i]);
-                    _y[i] = function(n, y[i]);
-                }
-
-                final double score = abs(nonparametricFisherZ(_x, _y));
-                if (Double.isInfinite(score) || Double.isNaN(score)) continue;
-
-                if (maxScore >= cutoff) {
-                    this.score = maxScore;
-                    return false;
-                }
-
-                if (score > maxScore) {
-                    maxScore = score;
-                }
-            }
+        if (p1 > alpha) {
+            return p1;
         }
 
-        this.score = maxScore;
-        return maxScore < cutoff;
+//        final double p2 = independent(rx, logry);
+//        p = max(p, p2);
+//
+//        if (p2 > alpha) {
+//            return p2;
+//        }
+//
+//        final double p3 = independent(logrx, ry);
+//        p = max(p, p3);
+//
+//        if (p3 > alpha) {
+//            return p3;
+//        }
+//
+//        final double p4 = independent(logrx, logry);
+//        p = max(p, p3);
+//
+//        if (p4 > alpha) {
+//            return p4;
+//        }
+//
+//        p = max(p, p4);
+
+
+        this.p = p;
+
+//        final boolean independent = independent(rx, ry) > cutoff || independent(rx, logry) > cutoff
+//                || independent(logrx, ry) > cutoff || independent(logrx, logry) > cutoff;
+
+//        boolean okx = false;
+//
+//        for (String _z : z) {
+//            if (independent(rx, data[indices.get(_z)]) > alpha || independent(logrx, data[indices.get(_z)]) > alpha) {
+//                okx = true;
+//                break;
+//            }
+//        }
+//
+//        boolean oky = false;
+//
+//        for (String _z : z) {
+//            if (independent(ry, data[indices.get(_z)]) > alpha || independent(logry, data[indices.get(_z)]) > alpha) {
+//                oky = true;
+//                break;
+//            }
+//        }
+//
+//
+//
+
+        final int N = data[0].length;
+
+        int[] _z = new int[z.size()];
+
+        for (int m = 0; m < z.size(); m++) {
+            _z[m] = indices.get(z.get(m));
+        }
+
+        if (z.isEmpty()) {
+            return p;
+        } else {
+            double _p = 1.0;
+
+            for (int i = 0; i < 20; i++) {
+                List<Integer> js = new ArrayList<>(getCloseZs(data, _z, RandomUtil.getInstance().nextInt(N), 100));
+
+                double[] rx2 = new double[js.size()];
+                double[] ry2 = new double[js.size()];
+
+
+                for (int k = 0; k < js.size(); k++) {
+                    rx2[k] = rx[js.get(k)];
+                    ry2[k] = ry[js.get(k)];
+                }
+
+                double pj = independent(rx2, ry2);
+
+                if (pj < alpha) {
+                    return pj;
+                } else {
+                    _p = pj;
+                }
+            }
+
+            return _p;
+        }
+    }
+
+    private double[] logColumn(double[] f) {
+        double[] ret = new double[f.length];
+        double min = min(f) - 0.0001;
+        if (min > 0) min = 0;
+        for (int i = 0; i < f.length; i++) ret[i] = log(f[i] - min);
+        return ret;
     }
 
     /**
@@ -319,7 +375,6 @@ public final class ConditionalCorrelationIndependence {
         }
 
         for (int i = 0; i < N; i++) {
-//            int radius = (int) ceil(minimumSamplesize / ((double) 2 * z.size()));
             Set<Integer> js = getCloseZs(data, _z, i, minimumSamplesize);
 
             for (int j : js) {
@@ -386,10 +441,76 @@ public final class ConditionalCorrelationIndependence {
     }
 
     public double getPValue() {
-        return 2.0 * (1.0 - new NormalDistribution(0, 1).cumulativeProbability(score));
+        return this.p;
+    }
+
+    /**
+     * @return the minimal scores value calculated by the method for the most
+     * recent independence check.
+     */
+    public double getScore() {
+        return score - cutoff;
+    }
+
+    public void setAlpha(double alpha) {
+        this.alpha = alpha;
+        this.cutoff = getZForAlpha(alpha);
+    }
+
+    public double getAlpha() {
+        return alpha;
+    }
+
+    public void setMinimumSamplesize(int minimumSamplesize) {
+        this.minimumSamplesize = minimumSamplesize;
+    }
+
+    public void setEarlyReturn(boolean earlyReturn) {
+        this.earlyReturn = earlyReturn;
     }
 
     //=====================PRIVATE METHODS====================//
+
+    /**
+     * @return true just in the case the x and y vectors are independent,
+     * once undefined values have been removed. Left public so it can be
+     * accessed separately.
+     */
+    private double independent(double[] x, double[] y) {
+
+        // Can't reuse these--parallelization
+        double[] _x = new double[x.length];
+        double[] _y = new double[y.length];
+
+        double maxScore = Double.NEGATIVE_INFINITY;
+
+        for (int m = 1; m <= getNumFunctions(); m++) {
+            for (int n = 1; n <= getNumFunctions(); n++) {
+                for (int i = 0; i < x.length; i++) {
+                    _x[i] = function(m, x[i]);
+                    _y[i] = function(n, y[i]);
+                }
+
+                final double score = abs(nonparametricFisherZ(_x, _y));
+                if (Double.isInfinite(score) || Double.isNaN(score)) continue;
+
+                if (earlyReturn && maxScore >= cutoff) {
+                    this.score = maxScore;
+                    return 2.0 * (1.0 - new NormalDistribution(0, 1).cumulativeProbability(maxScore));
+                }
+
+                if (score > maxScore) {
+                    maxScore = score;
+                }
+            }
+        }
+
+        if (maxScore > this.score) {
+            this.score = maxScore;
+        }
+
+        return 2.0 * (1.0 - new NormalDistribution(0, 1).cumulativeProbability(maxScore));
+    }
 
     private double[] scale(double[] x) {
         double max = StatUtils.max(x);
@@ -523,6 +644,10 @@ public final class ConditionalCorrelationIndependence {
     private Set<Integer> getCloseZs(double[][] data, int[] _z, int i, int minimumSamplesize) {
         Set<Integer> js = new HashSet<>();
 
+        if (minimumSamplesize > data[0].length) throw new IllegalArgumentException("Minimum sample size exceeds the " +
+                "smaple size: " + minimumSamplesize);
+        if (_z.length == 0) return new HashSet<>();
+
         int radius = 0;
 
         while (js.size() < minimumSamplesize) {
@@ -542,7 +667,6 @@ public final class ConditionalCorrelationIndependence {
 
             radius++;
         }
-
         return js;
     }
 

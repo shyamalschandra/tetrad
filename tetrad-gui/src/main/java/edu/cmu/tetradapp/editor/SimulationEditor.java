@@ -41,6 +41,7 @@ import edu.cmu.tetradapp.model.KnowledgeEditable;
 import edu.cmu.tetradapp.model.Simulation;
 import edu.cmu.tetradapp.ui.PaddingPanel;
 import edu.cmu.tetradapp.util.WatchedProcess;
+
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
@@ -86,20 +87,21 @@ public final class SimulationEditor extends JPanel implements KnowledgeEditable,
     private final JComboBox<String> simulationsDropdown = new JComboBox<>();
 
     private final String[] GRAPH_ITEMS = new String[]{
-        "Random Foward DAG",
-        "Scale Free DAG",
-        "Cyclic, constructed from small loops",
-        "Random One Factor MIM",
-        "Random Two Factor MIM"
+            "Random Foward DAG",
+            "Scale Free DAG",
+            "Cyclic, constructed from small loops",
+            "Random One Factor MIM",
+            "Random Two Factor MIM"
     };
 
     private final String[] SOURCE_GRAPH_ITEMS = {
-        "Bayes net",
-        "Structural Equation Model",
-        "Linear Fisher Model",
-        "Lee & Hastie",
-        "Conditional Gaussian",
-        "Time Series"
+            "Bayes net",
+            "Structural Equation Model",
+            "Linear Fisher Model",
+            "Lee & Hastie",
+            "Conditional Gaussian",
+            "Time Series",
+            "General Structural Equation Model",
     };
 
     /**
@@ -264,15 +266,15 @@ public final class SimulationEditor extends JPanel implements KnowledgeEditable,
                     if (thisOne == null) {
                         JOptionPane.showMessageDialog((SimulationEditor.this),
                                 "That file was not a simulation, and none of its subdirectories was either. "
-                                + "\nNeed a directory with a 'data' subdirectory, a 'graph' subdirectory, "
-                                + "\nand a 'parameters.txt' file.");
+                                        + "\nNeed a directory with a 'data' subdirectory, a 'graph' subdirectory, "
+                                        + "\nand a 'parameters.txt' file.");
                         return;
                     }
 
                     if (count > 1) {
                         JOptionPane.showMessageDialog((SimulationEditor.this),
                                 "More than one subdirectory of that directory was a simulation; please select "
-                                + "\none of the subdirectories.");
+                                        + "\none of the subdirectories.");
                         return;
                     }
 
@@ -420,10 +422,11 @@ public final class SimulationEditor extends JPanel implements KnowledgeEditable,
                     simulation.setSimulation(new LeeHastieSimulation(randomGraph), simulation.getParams());
                 } else if (simulationItem.equals(simulationItems[4])) {
                     simulation.setSimulation(new TimeSeriesSemSimulation(randomGraph), simulation.getParams());
+                } else if (simulationItem.equals(simulationItems[5])) {
+                    simulation.setSimulation(new GeneralSemSimulation(randomGraph), simulation.getParams());
                 } else {
                     throw new IllegalArgumentException("Unrecognized simulation type: " + simulationItem);
                 }
-
 
             } else {
                 String simulationItem = (String) simulationsDropdown.getSelectedItem();
@@ -450,7 +453,9 @@ public final class SimulationEditor extends JPanel implements KnowledgeEditable,
                 else if (simulationItem.equals(simulationItems[4])) {
                     simulation.setSimulation(new ConditionalGaussianSimulation(randomGraph), simulation.getParams());
                 } else if (simulationItem.equals(simulationItems[5])) {
-                        simulation.setSimulation(new TimeSeriesSemSimulation(randomGraph), simulation.getParams());
+                    simulation.setSimulation(new TimeSeriesSemSimulation(randomGraph), simulation.getParams());
+                } else if (simulationItem.equals(simulationItems[6])) {
+                    simulation.setSimulation(new GeneralSemSimulation(randomGraph), simulation.getParams());
                 }
 //                else if (simulationItem.equals(simulationItems[6])) {
 //                    simulation.setSimulation(new BooleanGlassSimulation(randomGraph), simulation.getParams());
@@ -471,26 +476,26 @@ public final class SimulationEditor extends JPanel implements KnowledgeEditable,
         if (simulation.isFixedSimulation()) {
             if (simulation.getSimulation() instanceof BayesNetSimulation) {
                 simulationItems = new String[]{
-                    "Bayes net"
+                        "Bayes net"
                 };
             } else if (simulation.getSimulation() instanceof SemSimulation) {
                 simulationItems = new String[]{
-                    "Structural Equation Model"
+                        "Structural Equation Model"
                 };
             } else if (simulation.getSimulation() instanceof LinearFisherModel) {
                 simulationItems = new String[]{
-                    "Linear Fisher Model"
+                        "Linear Fisher Model"
                 };
             } else if (simulation.getSimulation() instanceof StandardizedSemSimulation) {
                 simulationItems = new String[]{
-                    "Standardized Structural Equation Model"
+                        "Standardized Structural Equation Model"
                 };
-            } else if (simulation.getSimulation() instanceof GeneralSemSimulationRandomPostnonlinear) {
+            } else if (simulation.getSimulation() instanceof GeneralSemSimulation) {
                 simulationItems = new String[]{
-                    "General Structural Equation Model",};
+                        "General Structural Equation Model",};
             } else if (simulation.getSimulation() instanceof LoadContinuousDataAndGraphs) {
                 simulationItems = new String[]{
-                    "Loaded From Files",};
+                        "Loaded From Files",};
             } else {
                 throw new IllegalStateException("Not expecting that model type: "
                         + simulation.getSimulation().getClass());

@@ -362,6 +362,14 @@ public class ParamDescriptions {
 
         map.put("fastFDR", new ParamDescription(
                 "Yes if the possible fastFDR adjustment to alpha levels should be done", false));
+
+        map.put("minimumSampleSize", new ParamDescription(
+                "Minimum sample size to use per conditioning for kernel regression",
+                10, 1, Double.POSITIVE_INFINITY));
+
+        map.put("cciScoreAlpha", new ParamDescription("Cutoff for p values (alpha) (min = 0.0)", 0.01, 0.0, 1.0));
+
+
     }
 
     public static ParamDescriptions getInstance() {

@@ -139,37 +139,40 @@ public final class IndTestConditionalCorrelation implements IndependenceTest {
             final int v = variables.size() - 2;
 
             double alpha2 = (exp(log(alpha) + logChoose(v, d1) - logChoose(v, d2)));
+
             cci.setAlpha(alpha2);
-            boolean independent = cci.isIndependent(_x, _y, _z);
-            double p = cci.getPValue();
+            double p = cci.isIndependent(_x, _y, _z);
             IndependenceFact fact = new IndependenceFact(x, y, z);
 
-            if (independent) {
-                System.out.println(fact + " INDEPENDENT p = " + p);
-                TetradLogger.getInstance().log("info", fact + " Independent");
+            if (p > alpha2) {
+                final String s = fact + " INDEPENDENT p = " + p;
+                System.out.println(s);
+                TetradLogger.getInstance().log("info", s);
 
             } else {
-                System.out.println(fact + " dependent p = " + p);
-                TetradLogger.getInstance().log("info", fact.toString());
+                final String s = fact + " dependent p = " + p;
+                System.out.println(s);
+                TetradLogger.getInstance().log("info", s);
             }
 
-            return independent;
+            return p > alpha2;
         } else {
             cci.setAlpha(alpha);
-            boolean independent = cci.isIndependent(_x, _y, _z);
-            double p = cci.getPValue();
+            double p = cci.isIndependent(_x, _y, _z);
             IndependenceFact fact = new IndependenceFact(x, y, z);
 
-            if (independent) {
-                System.out.println(fact + " INDEPENDENT p = " + p);
-                TetradLogger.getInstance().log("info", fact + " Independent");
+            if (p > alpha) {
+                final String s = fact + " INDEPENDENT p = " + p;
+                System.out.println(s);
+                TetradLogger.getInstance().log("info", s);
 
             } else {
-                System.out.println(fact + " dependent p = " + p);
-                TetradLogger.getInstance().log("info", fact.toString());
+                final String s = fact + " dependent p = " + p;
+                System.out.println(s);
+                TetradLogger.getInstance().log("info", s);
             }
 
-            return independent;
+            return p > alpha;
         }
     }
 
@@ -182,19 +185,19 @@ public final class IndTestConditionalCorrelation implements IndependenceTest {
         String _y = y.getName();
         List<String> _z = new ArrayList<>();
         for (Node node : z) _z.add(node.getName());
-        boolean independent = cci.isIndependent(_x, _y, _z);
+        double p = cci.isIndependent(_x, _y, _z);
 
-        if (verbose) {
-            if (independent) {
-                TetradLogger.getInstance().log("independencies",
-                        SearchLogUtils.independenceFactMsg(x, y, z, getPValue()));
-            } else {
-                TetradLogger.getInstance().log("dependencies",
-                        SearchLogUtils.dependenceFactMsg(x, y, z, getPValue()));
-            }
-        }
+//        if (verbose) {
+//            if (independent) {
+//                TetradLogger.getInstance().log("independencies",
+//                        SearchLogUtils.independenceFactMsg(x, y, z, getPValue()));
+//            } else {
+//                TetradLogger.getInstance().log("dependencies",
+//                        SearchLogUtils.dependenceFactMsg(x, y, z, getPValue()));
+//            }
+//        }
 
-        return !independent;
+        return p < alpha;
     }
 
     public boolean isDependent(Node x, Node y, Node... z) {
@@ -344,6 +347,14 @@ public final class IndTestConditionalCorrelation implements IndependenceTest {
 
     public void setFastFDR(boolean fastFDR) {
         this.fastFDR = fastFDR;
+    }
+
+    public void setMinimumSampleSize(int i) {
+        cci.setMinimumSamplesize(i);
+    }
+
+    public void setEarlyReturn(boolean b) {
+        cci.setEarlyReturn(b);
     }
 }
 

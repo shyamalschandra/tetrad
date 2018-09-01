@@ -53,6 +53,8 @@ public class CciTest implements IndependenceWrapper {
         cci.setNumFunctions(parameters.getInt("numBasisFunctions"));
         cci.setKernelMultiplier(parameters.getDouble("kernelMultiplier"));
         cci.setFastFDR(parameters.getBoolean("fastFDR"));
+        cci.setMinimumSampleSize(parameters.getInt("minimumSampleSize"));
+        cci.setEarlyReturn(true);
 
         return cci;
     }
@@ -76,6 +78,7 @@ public class CciTest implements IndependenceWrapper {
         params.add("kernelMultiplier");
         params.add("basisType");
         params.add("fastFDR");
+        params.add("minimumSampleSize");
         return params;
     }
 }

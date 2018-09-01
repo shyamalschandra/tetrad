@@ -40,10 +40,13 @@ import edu.cmu.tetrad.util.Parameters;
 public class ExampleCompareSimulationJoe {
     public static void main(String... args) {
         Parameters parameters = new Parameters();
+        parameters.set("fastFDR", false);
+
         parameters.set("numRuns", 1);
-        parameters.set("numMeasures", 10);
+        parameters.set("numMeasures", 20);
+        parameters.set("numLatents", 0);
         parameters.set("avgDegree", 2);
-        parameters.set("sampleSize", 500);
+        parameters.set("sampleSize", 1000);
         parameters.set("differentGraphs", true);
 
         parameters.set("fasRule", 1);
@@ -53,13 +56,15 @@ public class ExampleCompareSimulationJoe {
         parameters.set("useMaxPOrientationHeuristic", false);
         parameters.set("maxPOrientationMaxPathLength", 3);
 
-        parameters.set("alpha", .01);
-        parameters.set("numBasisFunctions", 20);
+        parameters.set("maxDegree", 4);
+
+        parameters.set("alpha", 1e-2);//0.01, 0.001, 0.0001);
+        parameters.set("cciScoreAlpha", 1e-4);//0.01, 0.001, 0.0001, 0.00001, 0.000001);
+        parameters.set("numBasisFunctions", 10);
         parameters.set("kernelType", 2);
         parameters.set("kernelMultiplier", 1);
         parameters.set("basisType", 2);
-
-        parameters.set("fastFDR", true);
+        parameters.set("minimumSampleSize", 100);
 
         parameters.set("penaltyDiscount", 1);
 
@@ -73,15 +78,27 @@ public class ExampleCompareSimulationJoe {
         parameters.set("generalSemErrorTemplate", "N(0, 1)");
 
         parameters.set("generalSemParameterTemplate", "U(.2, .7)");
+//        parameters.set("generalSemParameterTemplate", "1");
+
+//        parameters.set("percentDiscrete", 50);
 
         parameters.set("verbose", true);
 
         Statistics statistics = new Statistics();
 
+//        statistics.add(new ParameterColumn("fasRule"));
+//        statistics.add(new ParameterColumn("colliderDiscoveryRule"));
+//        statistics.add(new ParameterColumn("conflictRule"));
+//
         statistics.add(new ParameterColumn("alpha"));
+        statistics.add(new ParameterColumn("cciScoreAlpha"));
+        statistics.add(new ParameterColumn("fastFDR"));
+//        statistics.add(new ParameterColumn("numBasisFunctions"));
 //        statistics.add(new ParameterColumn("kernelType"));
 //        statistics.add(new ParameterColumn("kernelMultiplier"));
 //        statistics.add(new ParameterColumn("basisType"));
+        statistics.add(new ParameterColumn("minimumSampleSize"));
+
 //        statistics.add(new AdjacencyPrecision());
 //        statistics.add(new AdjacencyRecall());
 //        statistics.add(new ArrowheadPrecision());
@@ -105,24 +122,25 @@ public class ExampleCompareSimulationJoe {
 //        statistics.setWeight("AHR", 0.5);
 //        statistics.setWeight("AHFP", 1.0);
 //        statistics.setWeight("AHFN", 0.5);
-//        statistics.setWeight("SHD", 1.0);
+        statistics.setWeight("SHD", 1.0);
 
         Algorithms algorithms = new Algorithms();
 
-//        algorithms.add(new Pc(new Kci()));
-        algorithms.add(new Pc(new KciMatlab()));
-        algorithms.add(new Pc(new ResidualCITMatlab()));
+//        algorithms.add(new PcAll(new Kci()));
+//        algorithms.add(new PcAll(new KciMatlab()));
 
+//        algorithms.add(new PcAll(new ResidualCITMatlab()));
+//        algorithms.add(new PcAll(new FcitJRI()));
+////
 //        algorithms.add(new PcAll(new RcotJRI()));
 //        algorithms.add(new PcAll(new RcitJRI()));
-////        algorithms.add(new PcAll(new FcitJRI()));
-////        algorithms.add(new PcAll(new GcmJRI()));
-////        algorithms.add(new Fci(new CciTest()));
-//        algorithms.add(new PcAll(new CciTest()));
-////        algorithms.add(new Fges(new CciScore()));
+        algorithms.add(new PcAll(new CciTest()));
+        algorithms.add(new Fges(new CciScore()));
 //        algorithms.add(new PcAll(new ConditionalGaussianLRT()));
 //        algorithms.add(new PcAll(new FisherZ()));
 //        algorithms.add(new PcAll(new SemBicTest()));
+
+//        algorithms.add(new Fci(new CciTest()));
 
         Simulations simulations = new Simulations();
 
@@ -130,23 +148,25 @@ public class ExampleCompareSimulationJoe {
         simulations.add(new GeneralSemSimulation(new RandomForward()));
 //        simulations.add(new GeneralSemSimulationRandomPostnonlinear(new RandomForward()));
 //        Simulation simulation = new LoadDataAndGraphs("comparison10vars");
+//        simulations.add(new LeeHastieSimulation(new RandomForward()));
 
         Comparison comparison = new Comparison();
 
         comparison.setShowAlgorithmIndices(true);
-        comparison.setShowSimulationIndices(true);
+        comparison.setShowSimulationIndices(false);
         comparison.setSortByUtility(false);
         comparison.setShowUtilities(false);
         comparison.setParallelized(false);
-        comparison.setComparisonGraph(Comparison.ComparisonGraph.true_DAG);
+        comparison.setComparisonGraph(Comparison.ComparisonGraph.Pattern_of_the_true_DAG);
 
-//        comparison.setSaveGraphs(true);
+        comparison.setSaveGraphs(true);
 //        comparison.setSavePatterns(true);
+        comparison.setSavePags(true);
 
-//        comparison.saveToFiles("comparisonJoe5", simulations.getSimulations().get(0), parameters);
-        comparison.compareFromFiles("comparisonJoe5", "comparisonJoe6A", algorithms, statistics, parameters);
-
-//        comparison.compareFromSimulations("comparisonJoe5", simulations, algorithms, statistics, parameters);
+//        comparison.saveToFiles("Q", simulations.getSimulations().get(0), parameters);
+//        comparison.compareFromFiles("comparison10x10", "Q", algorithms, statistics, parameters);
+//
+        comparison.compareFromSimulations("Q", simulations, algorithms, statistics, parameters);
     }
 }
 

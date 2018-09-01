@@ -32,7 +32,7 @@ public class CciScore implements ScoreWrapper {
     public Score getScore(DataModel dataSet, Parameters parameters) {
         this.dataSet = dataSet;
         final IndTestConditionalCorrelation cci = new IndTestConditionalCorrelation(DataUtils.getContinuousDataSet(dataSet),
-                parameters.getDouble("alpha"));
+                parameters.getDouble("cciScoreAlpha"));
         if (parameters.getInt("kernelType") == 1) {
             cci.setKernel(ConditionalCorrelationIndependence.Kernel.Gaussian);
         } else if (parameters.getInt("kernelType") == 2) {
@@ -43,6 +43,8 @@ public class CciScore implements ScoreWrapper {
         cci.setNumFunctions(parameters.getInt("numBasisFunctions"));
         cci.setKernelMultiplier(parameters.getDouble("kernelMultiplier"));
         cci.setFastFDR(parameters.getBoolean("fastFDR"));
+        cci.setMinimumSampleSize(parameters.getInt("minimumSampleSize"));
+        cci.setEarlyReturn(false);
 
         if (parameters.getInt("basisType") == 1) {
             cci.setBasis(ConditionalCorrelationIndependence.Basis.Polynomial);
@@ -68,12 +70,13 @@ public class CciScore implements ScoreWrapper {
     @Override
     public List<String> getParameters() {
         List<String> parameters = new ArrayList<>();
-        parameters.add("alpha");
+        parameters.add("cciScoreAlpha");
         parameters.add("numBasisFunctions");
         parameters.add("kernelType");
         parameters.add("kernelMultiplier");
         parameters.add("basisType");
         parameters.add("fastFDR");
+        parameters.add("minimumSampleSize");
         return parameters;
     }
 

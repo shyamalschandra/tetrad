@@ -1258,7 +1258,7 @@ public class Comparison {
         } else if (this.comparisonGraph == ComparisonGraph.Pattern_of_the_true_DAG) {
             comparisonGraph = SearchGraphUtils.patternForDag(new EdgeListGraph(trueGraph));
         } else if (this.comparisonGraph == ComparisonGraph.PAG_of_the_true_DAG) {
-            comparisonGraph = new DagToPag(new EdgeListGraph(trueGraph)).convert();
+            comparisonGraph = new DagToPag2(new EdgeListGraph(trueGraph)).convert();
         } else {
             throw new IllegalArgumentException("Unrecognized graph type.");
         }
