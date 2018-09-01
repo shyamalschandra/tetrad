@@ -238,55 +238,56 @@ public final class ConditionalCorrelationIndependence {
         // rx _||_ ry ?
         if (score < cutoff) {
             return getPValue(score);
-        }
-
-        final int N = data[0].length;
-
-        int[] _z = new int[z.size()];
-
-        for (int m = 0; m < z.size(); m++) {
-            _z[m] = indices.get(z.get(m));
-        }
-
-        // X _||_ Y ?
-        if (z.isEmpty()) {
-            return getPValue(score);
         } else {
 
-            double sum = 0.0;
-            int count = 0;
+            final int N = data[0].length;
 
-            // X _||_ Y | Z ? Look for a dependence rx ~_||_ ry | Z = _z
-            for (int i = 0; i < 20; i++) {
-                List<Integer> js = new ArrayList<>(getCloseZs(data, _z,
-                        RandomUtil.getInstance().nextInt(N), 100));
+            int[] _z = new int[z.size()];
 
-                double[] rx2 = new double[js.size()];
-                double[] ry2 = new double[js.size()];
-
-                for (int k = 0; k < js.size(); k++) {
-                    rx2[k] = rx[js.get(k)];
-                    ry2[k] = ry[js.get(k)];
-                }
-
-                double _score = independent(rx2, ry2);
-
-                if (_score >= cutoff) {
-
-                    // found a dependent case--just go ahead and use the score.
-                    return getPValue(_score);
-                } else {
-
-                    // Keep a running sum of the scores for the dependent case.
-                    sum += _score;
-                    count++;
-                }
+            for (int m = 0; m < z.size(); m++) {
+                _z[m] = indices.get(z.get(m));
             }
 
-            this.score = sum / count;
+            // X _||_ Y ?
+            if (z.isEmpty()) {
+                return getPValue(score);
+            } else {
 
-            // If all _||_, return the value for the average independent score.
-            return getPValue(sum / count);
+                double sum = 0.0;
+                int count = 0;
+
+                // X _||_ Y | Z ? Look for a dependence rx ~_||_ ry | Z = _z
+                for (int i = 0; i < 20; i++) {
+                    List<Integer> js = new ArrayList<>(getCloseZs(data, _z,
+                            RandomUtil.getInstance().nextInt(N), 100));
+
+                    double[] rx2 = new double[js.size()];
+                    double[] ry2 = new double[js.size()];
+
+                    for (int k = 0; k < js.size(); k++) {
+                        rx2[k] = rx[js.get(k)];
+                        ry2[k] = ry[js.get(k)];
+                    }
+
+                    double _score = independent(rx2, ry2);
+
+                    if (_score >= cutoff) {
+
+                        // found a dependent case
+                        return getPValue(_score);
+                    } else {
+
+                        // Keep a running sum of the scores for the dependent case.
+                        sum += _score;
+                        count++;
+                    }
+                }
+
+                this.score = sum / count;
+
+                // If all _||_, return the value for the average independent score.
+                return getPValue(sum / count);
+            }
         }
     }
 
