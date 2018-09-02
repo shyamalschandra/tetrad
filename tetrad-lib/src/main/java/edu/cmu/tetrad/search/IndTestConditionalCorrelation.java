@@ -349,8 +349,8 @@ public final class IndTestConditionalCorrelation implements IndependenceTest {
         this.fastFDR = fastFDR;
     }
 
-    public void setMinimumSampleSize(int i) {
-        cci.setMinimumSamplesize(i);
+    public void setKernelRegressionSampleSize(int i) {
+        cci.setKernelRegressionSampleSize(i);
     }
 
     public void setEarlyReturn(boolean b) {

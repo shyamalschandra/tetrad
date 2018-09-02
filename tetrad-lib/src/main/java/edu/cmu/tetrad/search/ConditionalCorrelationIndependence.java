@@ -25,6 +25,7 @@ import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.util.RandomUtil;
 import edu.cmu.tetrad.util.StatUtils;
+import org.apache.commons.math3.distribution.ChiSquaredDistribution;
 import org.apache.commons.math3.distribution.NormalDistribution;
 
 import java.util.*;
@@ -134,12 +135,12 @@ public final class ConditionalCorrelationIndependence {
     /**
      * The minimum sample size to use for the kernel regression.
      */
-    private int minimumSamplesize = 100;
+    private int kernelRegressionSapleSize = 100;
 
     /**
      * If rx ~_||_ ry, spot check dependence for this many points.
      */
-    private double numDependenceSpotChecks = 10;
+    private int numDependenceSpotChecks = 10;
 
     //==================CONSTRUCTORS====================//
 
@@ -257,14 +258,13 @@ public final class ConditionalCorrelationIndependence {
             if (z.isEmpty() || numDependenceSpotChecks == 0) {
                 return getPValue(score);
             } else {
-
-                double sum = 0.0;
-                int count = 0;
+                double min = Double.POSITIVE_INFINITY;
+                double max = Double.NEGATIVE_INFINITY;
 
                 // X _||_ Y | Z ? Look for a dependence rx ~_||_ ry | Z = _z
                 for (int i = 0; i < numDependenceSpotChecks; i++) {
                     List<Integer> js = new ArrayList<>(getCloseZs(data, _z,
-                            RandomUtil.getInstance().nextInt(N), 2 * minimumSamplesize));
+                            RandomUtil.getInstance().nextInt(N), 2 * kernelRegressionSapleSize));
 
                     double[] rx2 = new double[js.size()];
                     double[] ry2 = new double[js.size()];
@@ -276,22 +276,18 @@ public final class ConditionalCorrelationIndependence {
 
                     double _score = independent(rx2, ry2);
 
-                    if (_score >= cutoff) {
-
-                        // found a dependent case
-                        return getPValue(_score);
+                    if (_score > cutoff) {
+                        this.score = score;
+                        return getPValue(score);
                     } else {
-
-                        // Keep a running sum of the scores for the dependent case.
-                        sum += _score;
-                        count++;
+                        if (_score < min) {
+                            min = _score;
+                        }
                     }
                 }
 
-                this.score = sum / count;
-
-                // If all _||_, return the value for the average independent score.
-                return getPValue(sum / count);
+                this.score = min;
+                return getPValue(min);
             }
         }
     }
@@ -329,7 +325,7 @@ public final class ConditionalCorrelationIndependence {
         }
 
         for (int i = 0; i < N; i++) {
-            Set<Integer> js = getCloseZs(data, _z, i, minimumSamplesize);
+            Set<Integer> js = getCloseZs(data, _z, i, kernelRegressionSapleSize);
 
             for (int j : js) {
                 double xj = xdata[j];
@@ -419,8 +415,8 @@ public final class ConditionalCorrelationIndependence {
         return alpha;
     }
 
-    public void setMinimumSamplesize(int minimumSamplesize) {
-        this.minimumSamplesize = minimumSamplesize;
+    public void setKernelRegressionSampleSize(int kernelRegressionSapleSize) {
+        this.kernelRegressionSapleSize = kernelRegressionSapleSize;
     }
 
     public void setEarlyReturn(boolean earlyReturn) {
@@ -598,32 +594,34 @@ public final class ConditionalCorrelationIndependence {
         return data;
     }
 
-    private Set<Integer> getCloseZs(double[][] data, int[] _z, int i, int minimumSamplesize) {
+    private Set<Integer> getCloseZs(double[][] data, int[] _z, int i, int sampleSize) {
         Set<Integer> js = new HashSet<>();
 
-        if (minimumSamplesize > data[0].length) minimumSamplesize = (int) ceil(0.8 * data.length);
+        if (sampleSize > data[0].length) sampleSize = (int) ceil(0.8 * data.length);
         if (_z.length == 0) return new HashSet<>();
 
         int radius = 0;
 
-        while (js.size() < minimumSamplesize) {
+        while (radius < 100000) {
             for (int z1 : _z) {
                 int q = reverseLookup.get(z1).get(i);
 
                 if (q - radius >= 0 && q - radius < data[z1].length) {
                     final int r2 = sortedIndices.get(z1).get(q - radius);
                     js.add(r2);
+                    if (js.size() >= sampleSize) return js;
                 }
 
                 if (q + radius >= 0 && q + radius < data[z1].length) {
                     final int r2 = sortedIndices.get(z1).get(q + radius);
                     js.add(r2);
+                    if (js.size() >= sampleSize) return js;
                 }
             }
 
             radius++;
         }
-        
+
         return js;
     }
 

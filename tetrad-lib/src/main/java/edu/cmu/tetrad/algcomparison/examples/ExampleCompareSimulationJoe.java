@@ -43,7 +43,7 @@ public class ExampleCompareSimulationJoe {
         parameters.set("fastFDR", false);
 
         parameters.set("numRuns", 1);
-        parameters.set("numMeasures", 20);
+        parameters.set("numMeasures", 40);
         parameters.set("numLatents", 0);
         parameters.set("avgDegree", 2);
         parameters.set("sampleSize", 2000);
@@ -58,14 +58,14 @@ public class ExampleCompareSimulationJoe {
 
         parameters.set("maxDegree", 4);
 
-        parameters.set("alpha", .01);//0.01, 0.001, 0.0001);
-        parameters.set("cciScoreAlpha", 1e-4);//0.01, 0.001, 0.0001, 0.00001, 0.000001);
+        parameters.set("alpha", .001);
+        parameters.set("cciScoreAlpha", 1e-4);
         parameters.set("numBasisFunctions", 10);
         parameters.set("kernelType", 1);
         parameters.set("kernelMultiplier", 1);
         parameters.set("basisType", 2);
-        parameters.set("minimumSamplesKernelRegression", 100);
-        parameters.set("numDependenceSpotChecks", 2);
+        parameters.set("kernelRegressionSampleSize", 100);
+        parameters.set("numDependenceSpotChecks", 20);
 
         parameters.set("penaltyDiscount", 1);
 
@@ -93,12 +93,11 @@ public class ExampleCompareSimulationJoe {
 //
         statistics.add(new ParameterColumn("alpha"));
         statistics.add(new ParameterColumn("cciScoreAlpha"));
-        statistics.add(new ParameterColumn("fastFDR"));
+        statistics.add(new ParameterColumn("conflictRule"));
 //        statistics.add(new ParameterColumn("numBasisFunctions"));
 //        statistics.add(new ParameterColumn("kernelType"));
 //        statistics.add(new ParameterColumn("kernelMultiplier"));
 //        statistics.add(new ParameterColumn("basisType"));
-        statistics.add(new ParameterColumn("minimumSampleSize"));
 
 //        statistics.add(new AdjacencyPrecision());
 //        statistics.add(new AdjacencyRecall());
@@ -133,13 +132,13 @@ public class ExampleCompareSimulationJoe {
 //        algorithms.add(new PcAll(new ResidualCITMatlab()));
 //        algorithms.add(new PcAll(new FcitJRI()));
 ////
-        algorithms.add(new PcAll(new RcotJRI()));
-        algorithms.add(new PcAll(new RcitJRI()));
+//        algorithms.add(new PcAll(new RcotJRI()));
+//        algorithms.add(new PcAll(new RcitJRI()));
         algorithms.add(new PcAll(new CciTest()));
         algorithms.add(new Fges(new CciScore()));
-        algorithms.add(new PcAll(new ConditionalGaussianLRT()));
-        algorithms.add(new PcAll(new FisherZ()));
-        algorithms.add(new PcAll(new SemBicTest()));
+//        algorithms.add(new PcAll(new ConditionalGaussianLRT()));
+//        algorithms.add(new PcAll(new FisherZ()));
+//        algorithms.add(new PcAll(new SemBicTest()));
 
 //        algorithms.add(new Fci(new CciTest()));
 
