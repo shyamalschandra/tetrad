@@ -259,7 +259,6 @@ public final class ConditionalCorrelationIndependence {
                 return getPValue(score);
             } else {
                 double min = Double.POSITIVE_INFINITY;
-                double max = Double.NEGATIVE_INFINITY;
 
                 // X _||_ Y | Z ? Look for a dependence rx ~_||_ ry | Z = _z
                 for (int i = 0; i < numDependenceSpotChecks; i++) {
@@ -594,6 +593,57 @@ public final class ConditionalCorrelationIndependence {
         return data;
     }
 
+//    private Set<Integer> getCloseZs(double[][] data, int[] _z, int i, int sampleSize) {
+//        try {
+//            Set<Integer> js = new HashSet<>();
+//
+//            if (sampleSize > data[0].length) sampleSize = (int) ceil(0.8 * data.length);
+//            if (_z.length == 0) return new HashSet<>();
+//
+//            int[] left = new int[_z.length];
+//            int[] right = new int[_z.length];
+//
+//            while (true) {
+//                for (int k = 0; k < _z.length; k++) {
+//                    int z1 = _z[k];
+//                    int l = -1, r = -1;
+//
+//                    int q = reverseLookup.get(z1).get(k);
+//                    int qq = sortedIndices.get(z1).get(q);
+//
+//                    if (q - left[k] >= 0 && q - left[k] < data[z1].length) {
+//                        l = sortedIndices.get(z1).get(q - left[k]);
+//                    }
+//
+//                    if (q + right[k] >= 0 && q + right[k] < data[z1].length) {
+//                        r = sortedIndices.get(z1).get(q + right[k]);
+//                    }
+//
+//                    final double L = l == -1 ? 0 : data[z1][qq] - data[z1][l];
+//                    final double R = r == -1 ? 0 : data[z1][r] - data[z1][qq];
+//
+//                    if (L == 0 && R == 0) {
+//                        js.add(qq);
+//                        if (js.size() >= sampleSize) return js;
+//                        left[k]++;
+//                        right[k]++;
+//                    } else if (L > R) {
+//                        js.add(l);
+//                        if (js.size() >= sampleSize) return js;
+//                        left[k]++;
+//                    } else {
+//                        js.add(r);
+//                        if (js.size() >= sampleSize) return js;
+//                        right[k]++;
+//                    }
+//                }
+//            }
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            throw new RuntimeException(e);
+//        }
+//    }
+
     private Set<Integer> getCloseZs(double[][] data, int[] _z, int i, int sampleSize) {
         Set<Integer> js = new HashSet<>();
 
@@ -602,27 +652,26 @@ public final class ConditionalCorrelationIndependence {
 
         int radius = 0;
 
-        while (radius < 100000) {
+        while (true) {
             for (int z1 : _z) {
                 int q = reverseLookup.get(z1).get(i);
 
                 if (q - radius >= 0 && q - radius < data[z1].length) {
                     final int r2 = sortedIndices.get(z1).get(q - radius);
                     js.add(r2);
-                    if (js.size() >= sampleSize) return js;
                 }
 
                 if (q + radius >= 0 && q + radius < data[z1].length) {
                     final int r2 = sortedIndices.get(z1).get(q + radius);
                     js.add(r2);
-                    if (js.size() >= sampleSize) return js;
                 }
+
             }
+
+            if (js.size() >= sampleSize) return js;
 
             radius++;
         }
-
-        return js;
     }
 
     private double getH(int[] _z) {

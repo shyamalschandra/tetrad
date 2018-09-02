@@ -43,10 +43,10 @@ public class ExampleCompareSimulationJoe {
         parameters.set("fastFDR", false);
 
         parameters.set("numRuns", 1);
-        parameters.set("numMeasures", 40);
+        parameters.set("numMeasures", 100);
         parameters.set("numLatents", 0);
         parameters.set("avgDegree", 2);
-        parameters.set("sampleSize", 2000);
+        parameters.set("sampleSize", 1000);
         parameters.set("differentGraphs", true);
 
         parameters.set("fasRule", 1);
@@ -65,7 +65,7 @@ public class ExampleCompareSimulationJoe {
         parameters.set("kernelMultiplier", 1);
         parameters.set("basisType", 2);
         parameters.set("kernelRegressionSampleSize", 100);
-        parameters.set("numDependenceSpotChecks", 20);
+        parameters.set("numDependenceSpotChecks", 10);
 
         parameters.set("penaltyDiscount", 1);
 
