@@ -175,10 +175,6 @@ public class ParamDescriptions {
         map.put("bootstrapEnsemble", new ParamDescription("Ensemble method: Preserved (0), Highest (1), Majority (2)", 1, 0, 2));
         //~Bootstrapping
 
-        map.put("fasRule", new ParamDescription(
-                "Adjacency search: 1 = PC, 2 = PC-Stable, 3 = Concurrent PC-Stable",
-                1, 1, 3));
-
         map.put("colliderDiscoveryRule", new ParamDescription(
                 "Collider discovery: 1 = Lookup from adjacency sepsets, 2 = Conservative (CPC), 3 = Max-P",
                 1, 1, 3));
@@ -372,6 +368,13 @@ public class ParamDescriptions {
         map.put("numDependenceSpotChecks", new ParamDescription(
                 "The percentage of specific <z1,...,zn> values for which to check X _||_ Y | Z = <z1,...,zn>",
                 0.05, 0.0, 1.0));
+
+        map.put("stableFAS", new ParamDescription(
+                "Yes if the 'stable' FAS should be done", false));
+
+        map.put("concurrentFAS", new ParamDescription(
+                "Yes if a concurrent FAS should be done", false));
+
 
     }
 

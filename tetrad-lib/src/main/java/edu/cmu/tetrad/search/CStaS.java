@@ -704,7 +704,7 @@ public class CStaS {
     private Graph getPatternPcStable(DataSet sample) {
         IndependenceTest test = getIndependenceTest(sample, this.test);
         PcAll pc = new PcAll(test, null);
-        pc.setFasRule(PcAll.FasRule.FAS_STABLE);
+        pc.setFasType(PcAll.FasType.STABLE);
         pc.setConflictRule(PcAll.ConflictRule.OVERWRITE);
         pc.setColliderDiscovery(PcAll.ColliderDiscovery.FAS_SEPSETS);
         return pc.search();

@@ -40,16 +40,16 @@ import edu.cmu.tetrad.util.Parameters;
 public class ExampleCompareSimulationJoe {
     public static void main(String... args) {
         Parameters parameters = new Parameters();
-
-        parameters.set("numRuns", 20);
-        parameters.set("numMeasures", 4);
+        parameters.set("numRuns", 1);
+        parameters.set("numMeasures", 50);
         parameters.set("numLatents", 0);
-        parameters.set("avgDegree", 3);
-        parameters.set("sampleSize", 400);
-        parameters.set("differentGraphs", false);
+        parameters.set("avgDegree", 2);
+        parameters.set("sampleSize", 1000);
+        parameters.set("differentGraphs", true);
 
-        parameters.set("fasRule", 1);
         parameters.set("colliderDiscoveryRule", 1);
+        parameters.set("stableFAS", false);
+        parameters.set("concurrentFAS", true);
         parameters.set("conflictRule", 1);
         parameters.set("depth", -1);
         parameters.set("useMaxPOrientationHeuristic", false);
@@ -57,38 +57,51 @@ public class ExampleCompareSimulationJoe {
 
 //        parameters.set("maxDegree", 6);
 
-        parameters.set("alpha", .05);
+        parameters.set("alpha", 0.001);
         parameters.set("cciScoreAlpha", .01);
         parameters.set("numBasisFunctions", 30);
         parameters.set("kernelType", 1);
-        parameters.set("kernelMultiplier", 1);
+        parameters.set("kernelMultiplier", 1.5);
         parameters.set("basisType", 2);
-        parameters.set("kernelRegressionSampleSize", 30);
+        parameters.set("kernelRegressionSampleSize", 10);
         parameters.set("numDependenceSpotChecks", 0);
 
         parameters.set("penaltyDiscount", 1);
 
-        parameters.set("fastFDR", true);
+        parameters.set("fastFDR", false);
 
-        final String function = "TSUM(NEW(B) * $)";
+        final String function = "TSUM(NEW(B) * $^2)";
 //        final String function = "TPROD($) * ERROR";
 //        final String function = "TSUM(1 - 4 * exp(-$^2 / 2) * $))";
 //        final String function = "TSUM(1 - 4 * exp(-$^2 / 2) * $ * $ * $";
         parameters.set("generalSemFunctionTemplateMeasured", function);
         parameters.set("generalSemFunctionTemplateLatent", function);
 
-        parameters.set("generalSemErrorTemplate", "U(-.2, .2)");
+//        parameters.set("generalSemErrorTemplate", "U(-.2, .2)");
+        parameters.set("generalSemErrorTemplate", "N(0, 1)");
 
-        parameters.set("generalSemParameterTemplate", "1");//U(.2, .7)");
+        parameters.set("generalSemParameterTemplate", "U(.2, .7)");
 //        parameters.set("generalSemParameterTemplate", "1");
+
+//        parameters.set("numRuns", 5);
+//        parameters.set("numMeasures", 4);
+//        parameters.set("avgDegree", 3);
+//        parameters.set("sampleSize", 400);
+//        parameters.set("fastFDR", true);
+//
+//        final String function = "TSUM($)";
+//        parameters.set("generalSemFunctionTemplateMeasured", function);
+//        parameters.set("generalSemFunctionTemplateLatent", function);
+//        parameters.set("generalSemErrorTemplate", "U(-.2, .2)");
+////        parameters.set("generalSemParameterTemplate", "1");
+
+
+
 
 //        parameters.set("percentDiscrete", 50);
 
-        parameters.set("verbose", false);
-
         Statistics statistics = new Statistics();
 
-//        statistics.add(new ParameterColumn("fasRule"));
 //        statistics.add(new ParameterColumn("colliderDiscoveryRule"));
 //        statistics.add(new ParameterColumn("conflictRule"));
 //
@@ -105,12 +118,12 @@ public class ExampleCompareSimulationJoe {
         statistics.add(new ArrowheadPrecision());
         statistics.add(new ArrowheadRecall());
 
-//        statistics.add(new AdjacencyTP());
-//        statistics.add(new AdjacencyFP());
-//        statistics.add(new AdjacencyFN());
-//        statistics.add(new ArrowheadTP());
-//        statistics.add(new ArrowheadFP());
-//        statistics.add(new ArrowheadFN());
+        statistics.add(new AdjacencyTP());
+        statistics.add(new AdjacencyFP());
+        statistics.add(new AdjacencyFN());
+        statistics.add(new ArrowheadTP());
+        statistics.add(new ArrowheadFP());
+        statistics.add(new ArrowheadFN());
 
 //        statistics.add(new MathewsCorrAdj());
 //        statistics.add(new MathewsCorrArrow());
@@ -135,21 +148,21 @@ public class ExampleCompareSimulationJoe {
 //        algorithms.add(new PcAll(new ResidualCITMatlab()));
 //        algorithms.add(new PcAll(new FcitJRI()));
 ////
-        algorithms.add(new PcAll(new RcotJRI()));
-        algorithms.add(new PcAll(new RcitJRI()));
+//        algorithms.add(new PcAll(new RcotJRI()));
+//        algorithms.add(new PcAll(new RcitJRI()));
         algorithms.add(new PcAll(new CciTest()));
-        algorithms.add(new Fges(new CciScore()));
-        algorithms.add(new PcAll(new ConditionalGaussianLRT()));
-        algorithms.add(new PcAll(new FisherZ()));
-        algorithms.add(new PcAll(new SemBicTest()));
+//        algorithms.add(new Fges(new CciScore()));
+//        algorithms.add(new PcAll(new ConditionalGaussianLRT()));
+//        algorithms.add(new PcAll(new FisherZ()));
+//        algorithms.add(new PcAll(new SemBicTest()));
 
 //        algorithms.add(new Fci(new CciTest()));
 
         Simulations simulations = new Simulations();
 
 //        simulations.add(new SemSimulation(new RandomForward()));
-//        simulations.add(new GeneralSemSimulation(new RandomForward()));
-        simulations.add(new GeneralSemSimulationRandomPostnonlinear(new RandomForward()));
+        simulations.add(new GeneralSemSimulation(new RandomForward()));
+//        simulations.add(new GeneralSemSimulationRandomPostnonlinear(new RandomForward()));
 //        Simulation simulation = new LoadDataAndGraphs("comparison10vars");
 //        simulations.add(new LeeHastieSimulation(new RandomForward()));
 
@@ -157,7 +170,7 @@ public class ExampleCompareSimulationJoe {
 
         comparison.setShowAlgorithmIndices(true);
         comparison.setShowSimulationIndices(false);
-        comparison.setSortByUtility(false);
+        comparison.setSortByUtility(true);
         comparison.setShowUtilities(false);
         comparison.setParallelized(false);
         comparison.setComparisonGraph(Comparison.ComparisonGraph.true_DAG);

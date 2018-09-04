@@ -17,6 +17,7 @@ import edu.cmu.tetrad.search.SearchGraphUtils;
 import edu.cmu.tetrad.util.Parameters;
 import edu.pitt.dbmi.algo.bootstrap.BootstrapEdgeEnsemble;
 import edu.pitt.dbmi.algo.bootstrap.GeneralBootstrapTest;
+
 import java.util.List;
 
 /**
@@ -52,23 +53,6 @@ public class PcAll implements Algorithm, TakesInitialGraph, HasKnowledge, TakesI
     @Override
     public Graph search(DataModel dataSet, Parameters parameters) {
         if (parameters.getInt("bootstrapSampleSize") < 1) {
-
-            edu.cmu.tetrad.search.PcAll.FasRule fasRule;
-
-            switch (parameters.getInt("fasRule")) {
-                case 1:
-                    fasRule = edu.cmu.tetrad.search.PcAll.FasRule.FAS;
-                    break;
-                case 2:
-                    fasRule = edu.cmu.tetrad.search.PcAll.FasRule.FAS_STABLE;
-                    break;
-                case 3:
-                    fasRule = edu.cmu.tetrad.search.PcAll.FasRule.FAS_STABLE_CONCURRENT;
-                    break;
-                default:
-                    throw new IllegalArgumentException("Not a choice.");
-            }
-
             edu.cmu.tetrad.search.PcAll.ColliderDiscovery colliderDiscovery;
 
             switch (parameters.getInt("colliderDiscoveryRule")) {
@@ -104,7 +88,19 @@ public class PcAll implements Algorithm, TakesInitialGraph, HasKnowledge, TakesI
             edu.cmu.tetrad.search.PcAll search = new edu.cmu.tetrad.search.PcAll(test.getTest(dataSet, parameters), initialGraph);
             search.setDepth(parameters.getInt("depth"));
             search.setKnowledge(knowledge);
-            search.setFasRule(fasRule);
+
+            if (parameters.getBoolean("stableFAS")) {
+                search.setFasType(edu.cmu.tetrad.search.PcAll.FasType.STABLE);
+            } else {
+                search.setFasType(edu.cmu.tetrad.search.PcAll.FasType.REGULAR);
+            }
+
+            if (parameters.getBoolean("concurrentFAS")) {
+                search.setConcurrent(edu.cmu.tetrad.search.PcAll.Concurrent.YES);
+            } else {
+                search.setConcurrent(edu.cmu.tetrad.search.PcAll.Concurrent.NO);
+            }
+
             search.setColliderDiscovery(colliderDiscovery);
             search.setConflictRule(conflictRule);
             search.setUseHeuristic(parameters.getBoolean("useMaxPOrientationHeuristic"));
@@ -136,12 +132,12 @@ public class PcAll implements Algorithm, TakesInitialGraph, HasKnowledge, TakesI
                 case 2:
                     edgeEnsemble = BootstrapEdgeEnsemble.Majority;
             }
+
             search.setEdgeEnsemble(edgeEnsemble);
             search.setParameters(parameters);
             search.setVerbose(parameters.getBoolean("verbose"));
             return search.search();
         }
-
     }
 
     @Override
@@ -163,7 +159,8 @@ public class PcAll implements Algorithm, TakesInitialGraph, HasKnowledge, TakesI
     @Override
     public List<String> getParameters() {
         List<String> parameters = test.getParameters();
-        parameters.add("fasRule");
+        parameters.add("stableFAS");
+        parameters.add("concurrentFAS");
         parameters.add("colliderDiscoveryRule");
         parameters.add("conflictRule");
         parameters.add("depth");

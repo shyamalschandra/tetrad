@@ -49,7 +49,17 @@ public final class PcAll implements GraphSearch {
         this.maxPathLength = maxPathLength;
     }
 
-    public enum FasRule {FAS, FAS_STABLE, FAS_STABLE_CONCURRENT}
+    public void setFasType(FasType fasType) {
+        this.fasType = fasType;
+    }
+
+    public void setConcurrent(Concurrent concurrent) {
+        this.concurrent = concurrent;
+    }
+
+    public enum FasType {REGULAR, STABLE}
+
+    public enum Concurrent {YES, NO};
 
     public enum ColliderDiscovery {FAS_SEPSETS, CONSERVATIVE, MAX_P}
 
@@ -120,7 +130,8 @@ public final class PcAll implements GraphSearch {
     private int maxPathLength;
 
 
-    private FasRule fasRule = FasRule.FAS;
+    private FasType fasType = FasType.REGULAR;
+    private Concurrent concurrent = Concurrent.YES;
     private ColliderDiscovery colliderDiscovery = ColliderDiscovery.FAS_SEPSETS;
     private ConflictRule conflictRule = ConflictRule.OVERWRITE;
 
@@ -153,14 +164,6 @@ public final class PcAll implements GraphSearch {
      */
     public void setAggressivelyPreventCycles(boolean aggressivelyPreventCycles) {
         this.aggressivelyPreventCycles = aggressivelyPreventCycles;
-    }
-
-    private FasRule getFasRule() {
-        return fasRule;
-    }
-
-    public void setFasRule(FasRule fasRule) {
-        this.fasRule = fasRule;
     }
 
     public void setColliderDiscovery(ColliderDiscovery colliderDiscovery) {
@@ -288,14 +291,20 @@ public final class PcAll implements GraphSearch {
 
         IFas fas;
 
-        if (getFasRule() == FasRule.FAS) {
-            fas = new Fas(initialGraph, getIndependenceTest());
-        } else if (getFasRule() == FasRule.FAS_STABLE) {
-            fas = new FasStable(initialGraph, getIndependenceTest());
-        } else if (getFasRule() == FasRule.FAS_STABLE_CONCURRENT) {
-            fas = new FasConcurrent(initialGraph, getIndependenceTest());
+        if (fasType == FasType.REGULAR) {
+            if (concurrent == Concurrent.NO) {
+                fas = new Fas(initialGraph, getIndependenceTest());
+            } else {
+                fas = new FasConcurrent(initialGraph, getIndependenceTest());
+                ((FasConcurrent) fas).setStable(false);
+            }
         } else {
-            throw new IllegalArgumentException("Not a supported FAS: " + getFasRule());
+            if (concurrent == Concurrent.NO) {
+                fas = new FasStable(initialGraph, getIndependenceTest());
+            } else {
+                fas = new FasConcurrent(initialGraph, getIndependenceTest());
+                ((FasConcurrent) fas).setStable(true);
+            }
         }
 
         fas.setKnowledge(getKnowledge());

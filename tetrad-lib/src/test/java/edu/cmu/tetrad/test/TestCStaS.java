@@ -77,7 +77,7 @@ public class TestCStaS {
         IndependenceTest test = new IndTestScore(score);
 
         PcAll pc = new PcAll(test, null);
-        pc.setFasRule(PcAll.FasRule.FAS_STABLE);
+        pc.setFasType(PcAll.FasType.REGULAR);
         pc.setConflictRule(PcAll.ConflictRule.PRIORITY);
         pc.setColliderDiscovery(PcAll.ColliderDiscovery.MAX_P);
         Graph pattern = pc.search();
