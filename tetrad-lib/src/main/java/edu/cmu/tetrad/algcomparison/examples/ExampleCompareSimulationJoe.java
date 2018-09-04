@@ -55,13 +55,13 @@ public class ExampleCompareSimulationJoe {
         parameters.set("useMaxPOrientationHeuristic", false);
         parameters.set("maxPOrientationMaxPathLength", 3);
 
-//        parameters.set("maxDegree", 6);
+//        parameters.set("maxDegree", 2, 3, 4);
 
-        parameters.set("alpha", 0.001);
+        parameters.set("alpha", 0.0001);
         parameters.set("cciScoreAlpha", .01);
         parameters.set("numBasisFunctions", 30);
         parameters.set("kernelType", 1);
-        parameters.set("kernelMultiplier", 1.5);
+        parameters.set("kernelMultiplier", 1.0);
         parameters.set("basisType", 2);
         parameters.set("kernelRegressionSampleSize", 10);
         parameters.set("numDependenceSpotChecks", 0);
