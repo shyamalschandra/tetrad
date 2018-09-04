@@ -37,6 +37,7 @@ public final class IndependenceFact implements Comparable, TetradSerializable {
     static final long serialVersionUID = 23L;
 
     private Node x;
+
     private Node y;
     private Set<Node> _z;
 

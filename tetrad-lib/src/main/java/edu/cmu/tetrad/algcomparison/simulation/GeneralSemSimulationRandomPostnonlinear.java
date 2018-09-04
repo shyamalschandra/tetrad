@@ -1,5 +1,6 @@
 package edu.cmu.tetrad.algcomparison.simulation;
 
+import com.google.common.primitives.Chars;
 import edu.cmu.tetrad.algcomparison.graph.RandomGraph;
 import edu.cmu.tetrad.algcomparison.graph.SingleGraph;
 import edu.cmu.tetrad.data.DataModel;
@@ -189,9 +190,27 @@ public class GeneralSemSimulationRandomPostnonlinear implements Simulation {
             for (Node node : variablesNodes) {
                 String _template = TemplateExpander.getInstance().expandTemplate(
                         variablesString, pm, node);
-                _template = wrapRandom(_template);
-                _template = wrapRandom(_template);
-                pm.setNodeExpression(node, _template);
+                int p1 = 0;
+                for (int p = _template.length() - 1; p >= 0; p--) {
+                    if (_template.charAt(p) == 'E') {
+                        p1 = p;
+                        break;
+                    }
+                }
+
+                if (p1 != 0) {
+                    p1 -= 2;
+                }
+
+                String prefix = _template.subSequence(0, p1).toString();
+                String postfix = _template.subSequence(p1, _template.length()).toString();
+
+                if (!prefix.isEmpty()) {
+                    prefix = wrapRandom(prefix);
+                    prefix = wrapRandom(prefix);
+                }
+
+                pm.setNodeExpression(node, prefix + postfix);
             }
 
             for (Node node : errorNodes) {

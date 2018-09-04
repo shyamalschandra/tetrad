@@ -293,7 +293,7 @@ public final class PcAll implements GraphSearch {
         } else if (getFasRule() == FasRule.FAS_STABLE) {
             fas = new FasStable(initialGraph, getIndependenceTest());
         } else if (getFasRule() == FasRule.FAS_STABLE_CONCURRENT) {
-            fas = new FasStableConcurrent(initialGraph, getIndependenceTest());
+            fas = new FasConcurrent(initialGraph, getIndependenceTest());
         } else {
             throw new IllegalArgumentException("Not a supported FAS: " + getFasRule());
         }

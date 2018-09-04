@@ -26,6 +26,7 @@ import edu.cmu.tetrad.data.Knowledge2;
 import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.util.ChoiceGenerator;
 import edu.cmu.tetrad.util.TetradLogger;
+
 import java.io.PrintStream;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
@@ -122,7 +123,6 @@ public class Fas implements IFas {
     private boolean verbose = false;
 
     private PrintStream out = System.out;
-    private boolean sepsetsReturnEmptyIfNotFixed;
 
     //==========================CONSTRUCTORS=============================//
 
@@ -158,7 +158,6 @@ public class Fas implements IFas {
         this.logger.log("info", "Starting Fast Adjacency Search.");
 
         sepset = new SepsetMap();
-        sepset.setReturnEmptyIfNotSet(sepsetsReturnEmptyIfNotFixed);
 
         int _depth = depth;
 
@@ -313,17 +312,10 @@ public class Fas implements IFas {
 
 
                 if (independent && noEdgeRequired) {
-                    if (!getSepsets().isReturnEmptyIfNotSet()) {
-                        getSepsets().set(x, y, empty);
-                    }
+                    getSepsets().set(x, y, empty);
                 } else if (!forbiddenEdge(x, y)) {
                     adjacencies.get(x).add(y);
                     adjacencies.get(y).add(x);
-
-//                    if (verbose) {
-//                        TetradLogger.getInstance().log("dependencies", SearchLogUtils.independenceFact(x, y, empty) + " score = " +
-//                                nf.format(test.getScore()));
-//                    }
                 }
             }
         }
@@ -392,10 +384,6 @@ public class Fas implements IFas {
                     int[] choice;
 
                     while ((choice = cg.next()) != null) {
-                        if (Thread.currentThread().isInterrupted()) {
-                            break;
-                        }
-
                         if (Thread.currentThread().isInterrupted()) {
                             break;
                         }
@@ -532,14 +520,6 @@ public class Fas implements IFas {
     @Override
     public void setOut(PrintStream out) {
         this.out = out;
-    }
-
-    public boolean isSepsetsReturnEmptyIfNotFixed() {
-        return sepsetsReturnEmptyIfNotFixed;
-    }
-
-    public void setSepsetsReturnEmptyIfNotFixed(boolean sepsetsReturnEmptyIfNotFixed) {
-        this.sepsetsReturnEmptyIfNotFixed = sepsetsReturnEmptyIfNotFixed;
     }
 }
 

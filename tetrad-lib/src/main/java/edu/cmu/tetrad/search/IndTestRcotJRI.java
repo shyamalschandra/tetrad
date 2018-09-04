@@ -142,7 +142,7 @@ public final class IndTestRcotJRI implements IndependenceTest {
 //        double p = r.eval("RCoT(x,y,z,approx=\"lpd4\")$p").asDouble();
         double p = r.eval("RCoT(x,y,z,num_f=50)$p").asDouble();
 
-        if(fastFDR) {
+        if (fastFDR) {
             final int d1 = 0; // reference
             final int d2 = z.size();
             final int v = variables.size() - 2;

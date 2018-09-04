@@ -53,7 +53,6 @@ public final class SepsetMap implements TetradSerializable {
 
     private Map<Node, HashSet<Node>> parents = new HashMap<>();
     private Set<Set<Node>> correlations;
-    private boolean returnEmptyIfNotSet = false;
 
     //=============================CONSTRUCTORS===========================//
 
@@ -102,15 +101,6 @@ public final class SepsetMap implements TetradSerializable {
         Set<Node> pair = new HashSet<>(2);
         pair.add(a);
         pair.add(b);
-
-        if (correlations != null && !correlations.contains(pair)) {
-            return Collections.emptyList();
-        }
-
-        if (returnEmptyIfNotSet && sepsets.get(pair) == null) {
-            return Collections.emptyList();
-        }
-
         return sepsets.get(pair);
     }
 
@@ -178,14 +168,6 @@ public final class SepsetMap implements TetradSerializable {
      */
     public void setCorrelations(Set<Set<Node>> pairs) {
         this.correlations = pairs;
-    }
-
-    public boolean isReturnEmptyIfNotSet() {
-        return returnEmptyIfNotSet;
-    }
-
-    public void setReturnEmptyIfNotSet(boolean returnEmptyIfNotSet) {
-        this.returnEmptyIfNotSet = returnEmptyIfNotSet;
     }
 
     public void addAll(SepsetMap newSepsets) {

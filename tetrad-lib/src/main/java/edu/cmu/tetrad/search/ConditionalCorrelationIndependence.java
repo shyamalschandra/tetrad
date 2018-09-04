@@ -25,7 +25,6 @@ import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.util.RandomUtil;
 import edu.cmu.tetrad.util.StatUtils;
-import org.apache.commons.math3.distribution.ChiSquaredDistribution;
 import org.apache.commons.math3.distribution.NormalDistribution;
 
 import java.util.*;
@@ -64,7 +63,7 @@ public final class ConditionalCorrelationIndependence {
      * The matrix of data, N x M, where N is the number of samples, M the number
      * of variables, gotten from dataSet.
      */
-    private double[][] data;
+    private final double[][] data;
 
     /**
      * The ith array gives indices into the ith variables in sorted order.
@@ -79,17 +78,17 @@ public final class ConditionalCorrelationIndependence {
     /**
      * Bowman and Azzalini Kernel widths of each variable.
      */
-    private double[] h;
+    private final double[] h;
 
     /**
      * Looks up the index of a record in the the sorted order for each variable z.
      */
-    private List<Map<Integer, Integer>> reverseLookup;
+    private final List<Map<Integer, Integer>> reverseLookup;
 
     /**
      * Depth 0 residuals for reuse.
      */
-    private double[][] depth0Residuals;
+    private final double[][] depth0Residuals;
 
     /**
      * The q value of the most recent test.
@@ -99,7 +98,7 @@ public final class ConditionalCorrelationIndependence {
     /**
      * Map from nodes to the indices.
      */
-    private Map<String, Integer> indices;
+    private final Map<String, Integer> indices;
 
     /**
      * Number of functions to use in the (truncated) basis.
@@ -299,6 +298,10 @@ public final class ConditionalCorrelationIndependence {
      * and the second double[] array contains the resituls for y.
      */
     public double[] residuals(String x, List<String> z) {
+        if (z.isEmpty()) {
+            return depth0Residuals[indices.get(x)];
+        }
+
         int N = data[0].length;
 
         int _x = indices.get(x);
@@ -318,10 +321,6 @@ public final class ConditionalCorrelationIndependence {
         }
 
         double h = getH(_z);
-
-        if (z.isEmpty()) {
-            return depth0Residuals[indices.get(x)];
-        }
 
         for (int i = 0; i < N; i++) {
             Set<Integer> js = getCloseZs(data, _z, i, kernelRegressionSapleSize);

@@ -28,6 +28,7 @@ import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.util.NumberFormatUtil;
 import edu.cmu.tetrad.util.TetradLogger;
 import edu.cmu.tetrad.util.TetradMatrix;
+import edu.pitt.csb.ScoreForFact;
 
 import java.text.NumberFormat;
 import java.util.*;
@@ -42,7 +43,7 @@ import static java.lang.Math.log;
  *
  * @author Joseph Ramsey
  */
-public final class IndTestConditionalCorrelation implements IndependenceTest {
+public final class IndTestConditionalCorrelation implements IndependenceTest, ScoreForFact {
 
     /**
      * The instance of CCI that is wrapped.
@@ -52,7 +53,7 @@ public final class IndTestConditionalCorrelation implements IndependenceTest {
     /**
      * The variables of the covariance data, in order. (Unmodifiable list.)
      */
-    private List<Node> variables;
+    private final List<Node> variables;
 
     /**
      * The significance level of the independence tests.
@@ -67,12 +68,12 @@ public final class IndTestConditionalCorrelation implements IndependenceTest {
     /**
      * Stores a reference to the data set passed in through the constructor.
      */
-    private DataSet dataSet;
+    private final DataSet dataSet;
 
     /**
      * Map from nodes to the indices.
      */
-    private Map<Node, Integer> indices;
+    private final Map<Node, Integer> indices;
 
     /**
      * True iff the fast FDR adjustment should be made.
@@ -143,36 +144,42 @@ public final class IndTestConditionalCorrelation implements IndependenceTest {
 
             cci.setAlpha(alpha2);
             double p = cci.isIndependent(_x, _y, _z);
-            this.score = cci.getScore();
-            IndependenceFact fact = new IndependenceFact(x, y, z);
+            this.score = alpha2 - p;// cci.getScore();
 
-            if (p > alpha2) {
-                final String s = fact + " INDEPENDENT p = " + p;
-                System.out.println(s);
-                TetradLogger.getInstance().log("info", s);
+            if (verbose) {
+                IndependenceFact fact = new IndependenceFact(x, y, z);
 
-            } else {
-                final String s = fact + " dependent p = " + p;
-                System.out.println(s);
-                TetradLogger.getInstance().log("info", s);
+                if (p > alpha2) {
+                    final String s = fact + " INDEPENDENT p = " + p;
+                    System.out.println(s);
+                    TetradLogger.getInstance().log("info", s);
+
+                } else {
+                    final String s = fact + " dependent p = " + p;
+                    System.out.println(s);
+                    TetradLogger.getInstance().log("info", s);
+                }
             }
 
             return p > alpha2;
         } else {
             cci.setAlpha(alpha);
             double p = cci.isIndependent(_x, _y, _z);
-            this.score = cci.getScore();
-            IndependenceFact fact = new IndependenceFact(x, y, z);
+            this.score = alpha - p;// cci.getScore();
 
-            if (p > alpha) {
-                final String s = fact + " INDEPENDENT p = " + p;
-                System.out.println(s);
-                TetradLogger.getInstance().log("info", s);
+            if (verbose) {
+                IndependenceFact fact = new IndependenceFact(x, y, z);
 
-            } else {
-                final String s = fact + " dependent p = " + p;
-                System.out.println(s);
-                TetradLogger.getInstance().log("info", s);
+                if (p > alpha) {
+                    final String s = fact + " INDEPENDENT p = " + p;
+                    System.out.println(s);
+                    TetradLogger.getInstance().log("info", s);
+
+                } else {
+                    final String s = fact + " dependent p = " + p;
+                    System.out.println(s);
+                    TetradLogger.getInstance().log("info", s);
+                }
             }
 
             return p > alpha;
@@ -300,6 +307,16 @@ public final class IndTestConditionalCorrelation implements IndependenceTest {
 
     @Override
     public double getScore() {
+        return score;
+    }
+
+    @Override
+    public double getScoreForFact(IndependenceFact fact) {
+        List<String> zNames = new ArrayList<>();
+        for (Node node : fact.getZ()) zNames.add(node.getName());
+        double p = cci.isIndependent(fact.getX().getName(), fact.getY().getName(), zNames);
+        double score = alpha - p;// cci.getScore();
+        this.score = score;
         return score;
     }
 

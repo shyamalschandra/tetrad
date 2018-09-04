@@ -82,7 +82,7 @@ public class ScoredIndTest implements Score {
         final Node _y = variables.get(y);
         final List<Node> _z = getVariableList(z);
 
-        test.isIndependent(_x, _y, _z);
+//        test.isIndependent(_x, _y, _z);
 
         if (test instanceof ScoreForFact) {
             return ((ScoreForFact) test).getScoreForFact(new IndependenceFact(_x, _y, _z));
