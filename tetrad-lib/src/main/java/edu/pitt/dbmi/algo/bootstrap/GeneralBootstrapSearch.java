@@ -160,7 +160,7 @@ public class GeneralBootstrapSearch {
 	public List<Graph> search() {
 		
 		PAGs.clear();
-		parameters.set("bootstrapSampleSize", 0);
+		parameters.set("bootstrapSampleSize", 0); // This needs to be set to zero to not loop indefinitely
 		
 		long start, stop;
 		
@@ -244,7 +244,43 @@ public class GeneralBootstrapSearch {
 			//out.println("Is terminated: " + pool.isTerminated());
 		}
 		
+		// If the pool is prematurely terminated, do sequentially
+		if(PAGs == null || PAGs.size() == 0) {
+			for (int i1 = 0; i1 < this.numBootstrap; i1++) {
+				start = System.currentTimeMillis();
+
+				GeneralBootstrapSearchRunnable task = null;
+				
+				if(data != null){
+					DataSet dataSet = DataUtils.getBootstrapSample(data, data.getNumRows()); 
+					task = new GeneralBootstrapSearchRunnable(dataSet, algorithm, parameters, this, verbose);
+					//GeneralBootstrapSearchAction task = new GeneralBootstrapSearchAction(i1, 1, algorithm, parameters, this, verbose);
+				}else{
+					List<DataModel> dataModels = new ArrayList<>();
+					for(DataSet data : dataSets){
+						DataSet dataSet = DataUtils.getBootstrapSample(data, data.getNumRows());
+						dataModels.add(dataSet);
+					}
+					
+					task = new GeneralBootstrapSearchRunnable(dataModels, multiDataSetAlgorithm, parameters, this, verbose);
+				}
+	            
+				if(initialGraph != null){
+					task.setInitialGraph(initialGraph);
+				}
+				task.setKnowledge(knowledge);
+				task.run();
+				//task.compute();
+				
+				stop = System.currentTimeMillis();
+				if (verbose) {
+					out.println("processing time of bootstrap : " + (stop - start) / 1000.0 + " sec");
+				}
+			}
+		}
+		
 		parameters.set("bootstrapping", true);
+		parameters.set("bootstrapSampleSize", numBootstrap); // This needs to be reset back to the previous value
 		
 		return PAGs;
 	}

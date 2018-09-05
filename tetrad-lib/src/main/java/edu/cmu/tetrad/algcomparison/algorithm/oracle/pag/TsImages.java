@@ -61,10 +61,15 @@ public class TsImages implements Algorithm, HasKnowledge, MultiDataSetAlgorithm,
         if (parameters.getInt("bootstrapSampleSize") < 1) {
             DataSet dataSet = (DataSet) dataModel;
             TsGFci search;
+            if(knowledge != null) {
+        		dataSet.setKnowledge(knowledge);
+        	}
             Score score1 = score.getScore(dataSet, parameters);
             IndependenceTest test = new IndTestScore(score1);
             search = new TsGFci(test, score1);
             search.setKnowledge(dataSet.getKnowledge());
+            search.setVerbose(parameters.getBoolean("verbose"));
+            
             return search.search();
         } else {
             TsImages algorithm = new TsImages(score);
