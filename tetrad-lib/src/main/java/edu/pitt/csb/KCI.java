@@ -51,10 +51,10 @@ public class KCI implements IndependenceTest, ScoreForFact {
     private final double[] h;
 
     // The supplied data set, standardized
-    private DataSet data;
+    private final DataSet data;
 
     // The data stored in vertical columns.
-    private double[][] _data;
+    private final double[][] _data;
 
     // Variables in data
     private List<Node> variables;
@@ -112,7 +112,6 @@ public class KCI implements IndependenceTest, ScoreForFact {
      * @param alpha The alpha value of the test.
      */
     public KCI(DataSet data, double alpha) {
-        this.data = data;
         this.data = DataUtils.standardizeData(data);
         this.variables = data.getVariables();
         this._data = this.data.getDoubleData().transpose().toArray();
@@ -778,7 +777,7 @@ public class KCI implements IndependenceTest, ScoreForFact {
         }
 
         public Eigendecomposition invoke() {
-            if (false) {
+            if (true) {
                 EigenDecomposition ed = new EigenDecomposition(k.getRealMatrix());
 
                 List<Double> evxAll = asList(ed.getRealEigenvalues());
