@@ -242,10 +242,10 @@ public final class CcdMax implements GraphSearch {
 
                                 if (
                                         graph.getEdge(a, c).pointsTowards(a)
-                                        || graph.getEdge(a, d).pointsTowards(a)
-                                        || graph.getEdge(b, c).pointsTowards(b)
-                                        || graph.getEdge(b, d).pointsTowards(b)
-                                        ) {
+                                                || graph.getEdge(a, d).pointsTowards(a)
+                                                || graph.getEdge(b, c).pointsTowards(b)
+                                                || graph.getEdge(b, d).pointsTowards(b)
+                                ) {
                                     continue;
                                 }
 
@@ -646,7 +646,6 @@ public final class CcdMax implements GraphSearch {
 //        }
     }
 }
-
 
 
 
