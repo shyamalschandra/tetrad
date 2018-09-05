@@ -510,4 +510,3 @@ public class IndTestMultinomialLogisticRegressionWald implements IndependenceTes
     }
 }
 
-

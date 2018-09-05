@@ -414,4 +414,3 @@ public final class IndTestGSquare implements IndependenceTest {
 
 
 
-

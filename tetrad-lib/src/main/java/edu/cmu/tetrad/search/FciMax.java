@@ -27,9 +27,12 @@ import edu.cmu.tetrad.data.KnowledgeEdge;
 import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.util.ChoiceGenerator;
 import edu.cmu.tetrad.util.DepthChoiceGenerator;
+import edu.cmu.tetrad.util.ForkJoinPoolInstance;
 import edu.cmu.tetrad.util.TetradLogger;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.RecursiveTask;
 
 
 /**
@@ -148,7 +151,7 @@ public final class FciMax implements GraphSearch {
     }
 
     public Graph search() {
-        FasStable fas = new FasStable(initialGraph, getIndependenceTest());
+        FasConcurrent fas = new FasConcurrent(initialGraph, getIndependenceTest());
         fas.setVerbose(verbose);
         return search(fas);
     }
@@ -206,19 +209,76 @@ public final class FciMax implements GraphSearch {
         fciOrient.setMaxPathLength(maxPathLength);
         fciOrient.setKnowledge(knowledge);
         fciOrient.doFinalOrientation(graph);
-
         graph.setPag(true);
 
         return graph;
     }
 
     private void addColliders(Graph graph) {
-        final OrientCollidersMaxP orientCollidersMaxP = new OrientCollidersMaxP(independenceTest);
-        orientCollidersMaxP.setKnowledge(getKnowledge());
-        orientCollidersMaxP.setConflictRule(PcAll.ConflictRule.BIDIRECTED);
-        orientCollidersMaxP.setUseHeuristic(false);
-        orientCollidersMaxP.setMaxPathLength(maxPathLength);
-        orientCollidersMaxP.orient(graph);
+        final Map<Triple, Double> scores = new ConcurrentHashMap<>();
+
+        List<Node> nodes = graph.getNodes();
+
+        class Task extends RecursiveTask<Boolean> {
+            int from;
+            int to;
+            int chunk = 20;
+            List<Node> nodes;
+            Graph graph;
+
+            public Task(List<Node> nodes, Graph graph, Map<Triple, Double> scores, int from, int to) {
+                this.nodes = nodes;
+                this.graph = graph;
+                this.from = from;
+                this.to = to;
+            }
+
+            @Override
+            protected Boolean compute() {
+                if (to - from <= chunk) {
+                    for (int i = from; i < to; i++) {
+                        doNode(graph, scores, nodes.get(i));
+                    }
+
+                    return true;
+                } else {
+                    int mid = (to + from) / 2;
+
+                    Task left = new Task(nodes, graph, scores, from, mid);
+                    Task right = new Task(nodes, graph, scores, mid, to);
+
+                    left.fork();
+                    right.compute();
+                    left.join();
+
+                    return true;
+                }
+            }
+        }
+
+        Task task = new Task(nodes, graph, scores, 0, nodes.size());
+
+        ForkJoinPoolInstance.getInstance().getPool().invoke(task);
+
+        List<Triple> tripleList = new ArrayList<>(scores.keySet());
+
+        // Most independent ones first.
+        Collections.sort(tripleList, new Comparator<Triple>() {
+
+            @Override
+            public int compare(Triple o1, Triple o2) {
+                return Double.compare(scores.get(o2), scores.get(o1));
+            }
+        });
+
+        for (Triple triple : tripleList) {
+            Node a = triple.getX();
+            Node b = triple.getY();
+            Node c = triple.getZ();
+
+            graph.setEndpoint(a, b, Endpoint.ARROW);
+            graph.setEndpoint(c, b, Endpoint.ARROW);
+        }
     }
 
     private void doNode(Graph graph, Map<Triple, Double> scores, Node b) {
@@ -410,10 +470,6 @@ public final class FciMax implements GraphSearch {
         }
 
         logger.log("info", "Finishing BK Orientation.");
-    }
-
-    public void setPossibleDsepDepth(int possibleDsepDepth) {
-        this.possibleDsepDepth = possibleDsepDepth;
     }
 }
 

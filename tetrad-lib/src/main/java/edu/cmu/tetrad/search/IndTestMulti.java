@@ -275,4 +275,3 @@ public final class IndTestMulti implements IndependenceTest {
     }
 }
 
-

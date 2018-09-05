@@ -369,7 +369,7 @@ public final class IndTestChiSquare implements IndependenceTest {
     private double getDeterminationP() {
         return determinationP;
     }
-    
+
     public void setDeterminationP(double determinationP) {
         this.determinationP = determinationP;
     }
@@ -422,7 +422,6 @@ public final class IndTestChiSquare implements IndependenceTest {
         this.verbose = verbose;
     }
 }
-
 
 
 

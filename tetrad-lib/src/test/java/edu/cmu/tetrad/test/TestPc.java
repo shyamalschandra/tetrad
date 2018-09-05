@@ -154,7 +154,7 @@ public class TestPc {
 
         // Run search
 //        Graph resultGraph = pc.search();
-        Graph resultGraph = pc.search(new FasConcurrent(independence), independence.getVariables());
+        Graph resultGraph = pc.search(new Fas(independence), independence.getVariables());
 
         // Build comparison graph.
         Graph trueGraph = GraphConverter.convert(outputGraph);
@@ -248,7 +248,7 @@ public class TestPc {
         }
     }
 
-//    @Test
+    //    @Test
     public void testPcFci() {
 
         String[] algorithms = {"PC", "CPC", "FGES", "FCI", "GFCI", "RFCI", "CFCI"};
@@ -625,7 +625,7 @@ public class TestPc {
         System.out.println(table.toString());
     }
 
-//    @Test
+    //    @Test
     public void testPcRegression() {
 
         String[] algorithms = {"PC", "CPC", "FGES", "FCI", "GFCI", "RFCI", "CFCI", "Regression"};

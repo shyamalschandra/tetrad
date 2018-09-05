@@ -694,7 +694,3 @@ public final class ConditionalCorrelationIndependence {
         return h;
     }
 }
-
-
-
-

@@ -83,5 +83,4 @@ public class CciTest implements IndependenceWrapper {
         params.add("numDependenceSpotChecks");
         return params;
     }
-
 }

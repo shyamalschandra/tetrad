@@ -28,7 +28,6 @@ import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.util.NumberFormatUtil;
 import edu.cmu.tetrad.util.TetradLogger;
 import edu.cmu.tetrad.util.TetradMatrix;
-import edu.pitt.csb.ScoreForFact;
 
 import java.text.NumberFormat;
 import java.util.*;
@@ -378,7 +377,6 @@ public final class IndTestConditionalCorrelation implements IndependenceTest, Sc
         cci.setNumDependenceSpotChecks(numDependenceSpotChecks);
     }
 }
-
 
 
 
