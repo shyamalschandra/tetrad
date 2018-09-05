@@ -340,22 +340,6 @@ public class GraphSelectionEditor extends JPanel implements GraphEditable, Tripl
         if (type == GraphSelectionWrapper.Type.Degree) {
             graphEditorOptionsPanel.setNLabel("");
         }
-
-        if (type == GraphSelectionWrapper.Type.Ancestors) {
-            editorPanel.setNLabel("");
-        }
-
-        if (type == GraphSelectionWrapper.Type.Descendants) {
-            editorPanel.setNLabel("");
-        }
-
-        if (type == GraphSelectionWrapper.Type.Parents) {
-            editorPanel.setNLabel("");
-        }
-
-        if (type == GraphSelectionWrapper.Type.Children) {
-            editorPanel.setNLabel("");
-        }
     }
 
     // Create scroll pane for each graph
