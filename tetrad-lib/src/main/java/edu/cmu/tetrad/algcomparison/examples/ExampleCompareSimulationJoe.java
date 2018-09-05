@@ -40,13 +40,13 @@ import edu.cmu.tetrad.util.Parameters;
 public class ExampleCompareSimulationJoe {
 
     public static void main(String... args) {
-        int problem = 1;
+        int problem = 3;
 
         Parameters parameters = new Parameters();
 
         if (problem == 1) {
-            parameters.set("numRuns", 5);
-            parameters.set("numMeasures", 10);
+            parameters.set("numRuns", 1);
+            parameters.set("numMeasures", 50);
             parameters.set("avgDegree", 2);
             parameters.set("numLatents", 0);
             parameters.set("differentGraphs", true);
@@ -85,8 +85,8 @@ public class ExampleCompareSimulationJoe {
 //        parameters.set("generalSemParameterTemplate", "1")
 
         } else if (problem == 2) {
-            parameters.set("numRuns", 10);
-            parameters.set("numMeasures", 10);
+            parameters.set("numRuns", 1);
+            parameters.set("numMeasures", 50);
             parameters.set("avgDegree", 3);
             parameters.set("numLatents", 0);
             parameters.set("differentGraphs", true);
@@ -117,13 +117,13 @@ public class ExampleCompareSimulationJoe {
             parameters.set("generalSemErrorTemplate", "U(-.2, .2)");
         } else if (problem == 3) {
             parameters.set("numRuns", 1);
-            parameters.set("numMeasures", 10);
+            parameters.set("numMeasures", 20);
             parameters.set("avgDegree", 2);
             parameters.set("numLatents", 0);
             parameters.set("differentGraphs", true);
-            parameters.set("sampleSize", 500);
+            parameters.set("sampleSize", 1000);
             parameters.set("fastFDR", false);
-            parameters.set("verbose", true);
+            parameters.set("verbose", false);
             parameters.set("maxDegree", 4);
             parameters.set("colliderDiscoveryRule", 1);
             parameters.set("conflictRule", 1);
@@ -131,8 +131,8 @@ public class ExampleCompareSimulationJoe {
             parameters.set("maxPOrientationMaxPathLength", 3);
             parameters.set("depth", -1);
             parameters.set("stableFAS", false);
-            parameters.set("concurrentFAS", true);
-            parameters.set("alpha", 0.001);
+            parameters.set("concurrentFAS", false);
+            parameters.set("alpha", 0.001, 0.0001);
             parameters.set("penaltyDiscount", 1);
             parameters.set("cciScoreAlpha", .1);
             parameters.set("numBasisFunctions", 10);
@@ -140,7 +140,7 @@ public class ExampleCompareSimulationJoe {
             parameters.set("kernelMultiplier", 1.0);
             parameters.set("basisType", 2);
             parameters.set("kernelRegressionSampleSize", 100);
-            parameters.set("numDependenceSpotChecks", 100);
+            parameters.set("numDependenceSpotChecks", 200);
 
             final String function = "TPROD($) * ERROR";
 //        final String function = "TSUM(1 - 4 * exp(-$^2 / 2) * $))";
@@ -196,7 +196,7 @@ public class ExampleCompareSimulationJoe {
 //        statistics.setWeight("AHFP", 1.0);
 //        statistics.setWeight("AHFN", 0.5);
         statistics.setWeight("SHD", 1.0);
-        statistics.setWeight("AHP", .5);
+//        statistics.setWeight("AHP", .5);
 
         Algorithms algorithms = new Algorithms();
 

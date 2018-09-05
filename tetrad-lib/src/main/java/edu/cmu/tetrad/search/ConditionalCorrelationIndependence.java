@@ -134,7 +134,7 @@ public final class ConditionalCorrelationIndependence {
     /**
      * The minimum sample size to use for the kernel regression.
      */
-    private int kernelRegressionSapleSize = 100;
+    private int kernelRegressionSampleSize = 100;
 
     /**
      * If rx ~_||_ ry, spot check dependence for this many points.
@@ -244,7 +244,6 @@ public final class ConditionalCorrelationIndependence {
         if (score < cutoff) {
             return getPValue(score);
         } else {
-
             final int N = data[0].length;
 
             int[] _z = new int[z.size()];
@@ -262,7 +261,7 @@ public final class ConditionalCorrelationIndependence {
                 // X _||_ Y | Z ? Look for a dependence rx ~_||_ ry | Z = _z
                 for (int i = 0; i < numDependenceSpotChecks; i++) {
                     List<Integer> js = new ArrayList<>(getCloseZs(data, _z,
-                            RandomUtil.getInstance().nextInt(N), kernelRegressionSapleSize));
+                            RandomUtil.getInstance().nextInt(N), kernelRegressionSampleSize));
 
                     double[] rx2 = new double[js.size()];
                     double[] ry2 = new double[js.size()];
@@ -323,7 +322,7 @@ public final class ConditionalCorrelationIndependence {
         double h = getH(_z);
 
         for (int i = 0; i < N; i++) {
-            Set<Integer> js = getCloseZs(data, _z, i, kernelRegressionSapleSize);
+            Set<Integer> js = getCloseZs(data, _z, i, kernelRegressionSampleSize);
 
             for (int j : js) {
                 double xj = xdata[j];
@@ -414,7 +413,7 @@ public final class ConditionalCorrelationIndependence {
     }
 
     public void setKernelRegressionSampleSize(int kernelRegressionSapleSize) {
-        this.kernelRegressionSapleSize = kernelRegressionSapleSize;
+        this.kernelRegressionSampleSize = kernelRegressionSapleSize;
     }
 
     public void setEarlyReturn(boolean earlyReturn) {
@@ -488,6 +487,14 @@ public final class ConditionalCorrelationIndependence {
         double z = 0.5 * sqrt(N) * (log(1.0 + r) - log(1.0 - r));
 
         return z / (sqrt((moment22(__x, __y))));
+    }
+
+    private double[] logColumn(double[] f) {
+        double[] ret = new double[f.length];
+        double min = min(f) - 0.0001;
+        if (min > 0) min = 0;
+        for (int i = 0; i < f.length; i++) ret[i] = log(f[i] - min);
+        return ret;
     }
 
     private double moment22(double[] x, double[] y) {
