@@ -32,7 +32,13 @@ import edu.cmu.tetrad.annotation.AlgType;
 import edu.cmu.tetrad.annotation.Gaussian;
 import edu.cmu.tetrad.annotation.Linear;
 import edu.cmu.tetrad.annotation.Nonexecutable;
-import edu.cmu.tetrad.data.*;
+import edu.cmu.tetrad.data.DataModel;
+import edu.cmu.tetrad.data.DataModelList;
+import edu.cmu.tetrad.data.DataSet;
+import edu.cmu.tetrad.data.DataType;
+import edu.cmu.tetrad.data.ICovarianceMatrix;
+import edu.cmu.tetrad.data.IKnowledge;
+import edu.cmu.tetrad.data.Knowledge2;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.util.JOptionUtils;
@@ -44,7 +50,6 @@ import edu.cmu.tetradapp.app.hpc.manager.HpcAccountManager;
 import edu.cmu.tetradapp.app.hpc.manager.HpcJobManager;
 import edu.cmu.tetradapp.app.hpc.util.HpcAccountUtils;
 import edu.cmu.tetradapp.model.GeneralAlgorithmRunner;
-import edu.cmu.tetradapp.model.GraphSelectionWrapper;
 import edu.cmu.tetradapp.ui.PaddingPanel;
 import edu.cmu.tetradapp.ui.model.AlgorithmModel;
 import edu.cmu.tetradapp.ui.model.AlgorithmModels;
@@ -52,9 +57,12 @@ import edu.cmu.tetradapp.ui.model.IndependenceTestModel;
 import edu.cmu.tetradapp.ui.model.IndependenceTestModels;
 import edu.cmu.tetradapp.ui.model.ScoreModel;
 import edu.cmu.tetradapp.ui.model.ScoreModels;
+import edu.cmu.tetradapp.util.BootstrapTable;
 import edu.cmu.tetradapp.util.DesktopController;
 import edu.cmu.tetradapp.util.FinalizingEditor;
+import edu.cmu.tetradapp.util.ImageUtils;
 import edu.cmu.tetradapp.util.WatchedProcess;
+import edu.cmu.tetradapp.workbench.GraphWorkbench;
 import edu.pitt.dbmi.ccd.commons.file.MessageDigestHash;
 import edu.pitt.dbmi.ccd.rest.client.dto.user.JsonWebToken;
 import edu.pitt.dbmi.tetrad.db.entity.AlgorithmParamRequest;
@@ -66,13 +74,16 @@ import edu.pitt.dbmi.tetrad.db.entity.JvmOptions;
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.Frame;
 import java.awt.Toolkit;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -85,6 +96,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import javax.help.CSH;
+import javax.help.HelpBroker;
+import javax.help.HelpSet;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.ButtonGroup;
@@ -92,6 +106,7 @@ import javax.swing.ButtonModel;
 import javax.swing.ComboBoxModel;
 import javax.swing.DefaultListModel;
 import javax.swing.GroupLayout;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
@@ -102,9 +117,11 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
 import javax.swing.JTextArea;
 import javax.swing.LayoutStyle;
 import javax.swing.SwingConstants;
+import javax.swing.border.EmptyBorder;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -164,13 +181,11 @@ public class GeneralAlgorithmEditor extends JPanel implements FinalizingEditor {
     private final GeneralAlgorithmRunner runner;
     private final TetradDesktop desktop;
     private final DataType dataType;
-    private final GraphSelectionEditor graphEditor;
-
+    
     public GeneralAlgorithmEditor(GeneralAlgorithmRunner runner) {
         this.runner = runner;
         this.desktop = (TetradDesktop) DesktopController.getInstance();
         this.dataType = getDataType();
-        this.graphEditor = new GraphSelectionEditor(new GraphSelectionWrapper(runner.getGraphs(), new Parameters()));
         this.parametersPanel = new AlgorithmParameterPanel();
 
         if (dataType == null) {
@@ -185,9 +200,9 @@ public class GeneralAlgorithmEditor extends JPanel implements FinalizingEditor {
         // Repopulate all the previous selections if reopen the search box
         if (runner.getGraphs() != null && runner.getGraphs().size() > 0) {
             parametersPanel.addToPanel(runner);
-
-            // show the generated graph if reopen the search box
-            graphContainer.add(graphEditor);  // use the already generated graphEditor
+            
+            // show the generated graph with bootstrap table if reopen the search box
+            graphContainer.add(createSearchResultPane(runner.getGraph()));
             changeCard(GRAPH_CARD);
         }
     }
@@ -333,7 +348,7 @@ public class GeneralAlgorithmEditor extends JPanel implements FinalizingEditor {
         mainPanel.add(new AlgorithmCard(), ALGORITHM_CARD);
         mainPanel.add(new ParameterCard(), PARAMETER_CARD);
         mainPanel.add(new GraphCard(), GRAPH_CARD);
-        mainPanel.setPreferredSize(new Dimension(940, 640));
+        mainPanel.setPreferredSize(new Dimension(860, 640));
 
         setLayout(new BorderLayout());
         add(mainPanel, BorderLayout.CENTER);
@@ -415,6 +430,20 @@ public class GeneralAlgorithmEditor extends JPanel implements FinalizingEditor {
                         LOGGER.error("", exception);
                     }
                 }
+            }
+            
+            // Time-series (TsFci, TsGfci, TsImages) algorithms need lagged data
+            String cmd = algoModel.getAlgorithm().getAnnotation().command();
+            if(cmd.equalsIgnoreCase("ts-fci") ||
+            		cmd.equalsIgnoreCase("ts-gfci") ||
+            		cmd.equalsIgnoreCase("ts-imgs")) {
+            	DataModel dataModel = runner.getDataModel();
+            	IKnowledge knowledge = runner.getKnowledge();
+            	if((knowledge == null || knowledge.isEmpty()) &&
+            			(dataModel.getKnowledge() == null || dataModel.getKnowledge().isEmpty())) {
+            		paramSetFwdBtn.setEnabled(false);
+                    JOptionPane.showMessageDialog(desktop, "Time-series algorithm needs lagged data", "Please Note", JOptionPane.INFORMATION_MESSAGE);
+            	}
             }
         }
 
@@ -665,14 +694,13 @@ public class GeneralAlgorithmEditor extends JPanel implements FinalizingEditor {
             runner.getGraphs().remove(index);
         }
         runner.getGraphs().add(graph);
-        // Show graph
-        graphEditor.replace(graphs);
-        graphEditor.validate();
+
         LOGGER.info("Remote graph result assigned to runner!");
         firePropertyChange("modelChanged", null, null);
 
         // Update the graphContainer
-        graphContainer.add(graphEditor);
+        graphContainer.removeAll();
+        graphContainer.add(createSearchResultPane(graph));
 
         changeCard(GRAPH_CARD);
     }
@@ -703,7 +731,7 @@ public class GeneralAlgorithmEditor extends JPanel implements FinalizingEditor {
             LOGGER.error("", exception);
         }
 
-        // Those pairwise algos (R1, R2,..) require source graph to initialize - Zhou
+        // Those pairwise algos (R3, RShew, Skew..) require source graph to initialize - Zhou
         if (algorithm != null && algorithm instanceof TakesInitialGraph && runner.getSourceGraph() != null && !runner.getDataModelList().isEmpty()) {
             Algorithm initialGraph = new SingleGraphAlg(runner.getSourceGraph());
             ((TakesInitialGraph) algorithm).setInitialGraph(initialGraph);
@@ -820,7 +848,7 @@ public class GeneralAlgorithmEditor extends JPanel implements FinalizingEditor {
             Knowledge2 knowledge = (Knowledge2) dataModel.getKnowledge();
             if (knowledge != null && !knowledge.isEmpty()) {
                 prior = Files.createTempFile(file.getFileName().toString(), ".prior");
-                DataWriter.saveKnowledge(knowledge, Files.newBufferedWriter(prior));
+                knowledge.saveKnowledge(Files.newBufferedWriter(prior));
 
                 progressTextArea.replaceRange("Done", progressTextLength, progressTextArea.getText().length());
                 progressTextArea.append(newline);
@@ -1035,17 +1063,13 @@ public class GeneralAlgorithmEditor extends JPanel implements FinalizingEditor {
                     }
 
                     if (hpcAccount == null) {
-                        graphEditor.saveLayout();
-
                         runner.execute();
 
-                        // Show graph
-                        graphEditor.replace(runner.getGraphs());
-                        graphEditor.validate();
                         firePropertyChange("modelChanged", null, null);
 
                         // Update the graphContainer
-                        graphContainer.add(graphEditor);
+                        graphContainer.removeAll();
+                        graphContainer.add(createSearchResultPane(runner.getGraph()));
 
                         changeCard(GRAPH_CARD);
                     } else {
@@ -1230,6 +1254,93 @@ public class GeneralAlgorithmEditor extends JPanel implements FinalizingEditor {
 
     }
 
+    /**
+     * Resulting graph with bootstrap table - Zhou
+     * 
+     * @param graph
+     * @return 
+     */
+    private JSplitPane createSearchResultPane(Graph graph) {
+        // topBox contains the graphEditorScroll and the instructionBox underneath
+        Box topBox = Box.createVerticalBox();       
+        topBox.setPreferredSize(new Dimension(820, 400));
+ 
+        // topBox graph editor
+        JScrollPane graphEditorScroll = new JScrollPane();
+        graphEditorScroll.setPreferredSize(new Dimension(820, 420));
+        graphEditorScroll.setViewportView(new GraphWorkbench(graph));
+
+        // Instruction with info button 
+        Box instructionBox = Box.createHorizontalBox();
+        instructionBox.setMaximumSize(new Dimension(820, 40));
+        
+        JLabel label = new JLabel("More information on graph edge types");
+        label.setFont(new Font("SansSerif", Font.PLAIN, 12));
+
+        // Info button added by Zhou to show edge types
+        JButton infoBtn = new JButton(new ImageIcon(ImageUtils.getImage(this, "info.png")));
+        infoBtn.setBorder(new EmptyBorder(0, 0, 0, 0));
+
+        // Clock info button to show edge types instructions - Zhou
+        infoBtn.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // Initialize helpSet
+                String helpHS = "/resources/javahelp/TetradHelp.hs";
+
+                try {
+                    URL url = this.getClass().getResource(helpHS);
+                    HelpSet helpSet = new HelpSet(null, url);
+
+                    helpSet.setHomeID("graph_edge_types");
+                    HelpBroker broker = helpSet.createHelpBroker();
+                    ActionListener listener = new CSH.DisplayHelpFromSource(broker);
+                    listener.actionPerformed(e);
+                } catch (Exception ee) {
+                    System.out.println("HelpSet " + ee.getMessage());
+                    System.out.println("HelpSet " + helpHS + " not found");
+                    throw new IllegalArgumentException();
+                }
+            }
+        });
+
+        instructionBox.add(label);
+        instructionBox.add(Box.createHorizontalStrut(2));
+        instructionBox.add(infoBtn);
+        
+        // Add to topBox
+        topBox.add(graphEditorScroll);
+        topBox.add(instructionBox);
+
+        // bottomBox contains bootstrap table
+        Box bottomBox = Box.createVerticalBox();
+        bottomBox.setPreferredSize(new Dimension(820, 150));
+
+        bottomBox.add(Box.createVerticalStrut(5));
+        
+        // Put the table title label in a box so it can be centered
+        Box tableTitleBox = Box.createHorizontalBox();
+        JLabel tableTitle = new JLabel("Edges and Edge Type Probabilities");
+        tableTitleBox.add(tableTitle);
+        
+        bottomBox.add(tableTitleBox);
+        
+        bottomBox.add(Box.createVerticalStrut(5));
+        
+        JScrollPane tablePane = BootstrapTable.renderBootstrapTable(graph);
+        
+        bottomBox.add(tablePane);
+        
+        // Use JSplitPane to allow resize the bottom box - Zhou
+        JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
+        
+        // Set the top and bottom split panes
+        splitPane.setTopComponent(topBox);
+        splitPane.setBottomComponent(bottomBox);
+        
+        return splitPane;
+    }
+    
     private JPanel createAlgorithmPanel() {
         JButton resetSettingsBtn = new JButton("Reset All Settings");
         resetSettingsBtn.addActionListener((e) -> {
@@ -1495,7 +1606,7 @@ public class GeneralAlgorithmEditor extends JPanel implements FinalizingEditor {
             titlePanel.add(algorithmGraphTitle);
 
             add(titlePanel, BorderLayout.NORTH);
-            add(new JScrollPane(graphContainer), BorderLayout.CENTER);
+            add(graphContainer, BorderLayout.CENTER);
             add(new SouthPanel(backBtn), BorderLayout.SOUTH);
         }
 
