@@ -204,11 +204,11 @@ public class ExampleCompareSimulationJoe {
 //        algorithms.add(new PcAll(new KciMatlab()));
 
 //        algorithms.add(new PcAll(new ResidualCITMatlab()));
-//        algorithms.add(new PcAll(new FcitJRI()));
+//        algorithms.add(new/Library/Frameworks/R.Framework/Libraries PcAll(new FcitJRI()));
 ////
-//        algorithms.add(new PcAll(new RcotJRI()));
+        algorithms.add(new PcAll(new RcotJRI()));
 //        algorithms.add(new PcAll(new RcitJRI()));
-        algorithms.add(new PcAll(new CciTest()));
+//        algorithms.add(new PcAll(new CciTest()));
 //        algorithms.add(new Fges(new CciScore()));
 //        algorithms.add(new PcAll(new ConditionalGaussianLRT()));
 //        algorithms.add(new PcAll(new FisherZ()));
