@@ -22,9 +22,9 @@ package edu.cmu.tetrad.data;
 
 import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.util.TetradSerializable;
+
 import java.io.CharArrayWriter;
 import java.io.IOException;
-import java.io.Writer;
 import java.util.*;
 import java.util.regex.Matcher;
 
@@ -168,7 +168,7 @@ public final class Knowledge2 implements TetradSerializable, IKnowledge {
      * is a non-negative integer.
      */
     public final void addToTier(int tier, String spec) {
-        addVariable(spec);
+        //addVariable(spec);     -  jue - doesn't seem right to add the search pattern to the variable set
 
         if (tier < 0) {
             throw new IllegalArgumentException();
@@ -706,12 +706,24 @@ public final class Knowledge2 implements TetradSerializable, IKnowledge {
     }
 
     /**
-     * Removes the given variable from all tiers.
+     * Removes the given variable by name or search string from all tiers.
      */
     public final void removeFromTiers(String spec) {
-        for (Set<MyNode> tier : tierSpecs) {
-            tier.remove(getVar(spec));
+
+        if (spec == null) {
+            throw new NullPointerException();
         }
+
+        spec = checkSpec(spec);
+        final Set<MyNode> vars = getExtent(spec);
+
+        for (MyNode s : vars) {
+            for (Set<MyNode> tier : tierSpecs) {
+                tier.remove(s);
+            }
+        }
+
+
     }
 
     /**

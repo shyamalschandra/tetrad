@@ -27,11 +27,8 @@ import edu.cmu.tetrad.util.JOptionUtils;
 import edu.cmu.tetrad.util.TetradLogger;
 import edu.cmu.tetradapp.model.ForbiddenGraphModel;
 import edu.cmu.tetradapp.model.KnowledgeBoxModel;
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Dimension;
-import java.awt.Font;
+
+import java.awt.*;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.event.ComponentAdapter;
@@ -41,35 +38,10 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 import java.util.prefs.Preferences;
-import javax.swing.Box;
-import javax.swing.DefaultListModel;
-import javax.swing.DropMode;
-import javax.swing.JButton;
-import javax.swing.JCheckBox;
-import javax.swing.JComponent;
-import javax.swing.JFileChooser;
-import javax.swing.JLabel;
-import javax.swing.JList;
-import javax.swing.JMenu;
-import javax.swing.JMenuBar;
-import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JSpinner;
-import javax.swing.JTabbedPane;
-import javax.swing.JTextArea;
-import javax.swing.SpinnerNumberModel;
-import javax.swing.SwingConstants;
-import javax.swing.TransferHandler;
+import javax.swing.*;
 import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
@@ -102,8 +74,7 @@ public class KnowledgeBoxEditor extends JPanel {
     private boolean showForbiddenByGroups = false;
     private JTextArea textArea;
 
-    // Unused, moved to KnowledgeBoxModel. Keeping for serialization. Can delete after a while. 2017.06.17
-    private int numTiers = 2;
+
     private final KnowledgeBoxModel knowledgeBoxModel;
     private JTabbedPane tabbedPane = null;
     private Graph sourceGraph;
@@ -247,6 +218,7 @@ public class KnowledgeBoxEditor extends JPanel {
             }
         });
 
+
         return menuBar;
     }
 
@@ -373,6 +345,8 @@ public class KnowledgeBoxEditor extends JPanel {
 
             textRow.add(Box.createHorizontalGlue());
 
+            JButton regexAdd = new JButton("Find");
+
             JCheckBox forbiddenCheckbox = new JCheckBox("Forbid Within Tier",
                     getKnowledge().isTierForbiddenWithin(_tier));
 
@@ -392,6 +366,28 @@ public class KnowledgeBoxEditor extends JPanel {
                 }
 
                 notifyKnowledge();
+            });
+
+            textRow.add(regexAdd);
+
+            regexAdd.addActionListener((e) -> {
+                String regex = JOptionPane.showInputDialog("Search Pattern");
+                try {
+
+                    getKnowledge().removeFromTiers(regex);
+                    getKnowledge().addToTier(_tier, regex);
+                } catch (IllegalArgumentException iae) {
+                    JOptionPane.showMessageDialog(upReference, iae.getMessage());
+                }
+
+                notifyKnowledge();
+
+                tiersPanel.removeAll();
+                tiersPanel.add(getTierBoxes(getNumTiers()), BorderLayout.CENTER);
+                tiersPanel.revalidate();
+                tiersPanel.repaint();
+
+
             });
 
             textRow.add(forbiddenCheckbox);
