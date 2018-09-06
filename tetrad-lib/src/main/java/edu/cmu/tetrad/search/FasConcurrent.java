@@ -360,13 +360,12 @@ public class FasConcurrent implements IFas {
             if ((i + 1) % 100 == 0) out.println("Node # " + (i + 1));
         }
 
-        if (Thread.currentThread().isInterrupted()) {
-            return;
-        }
-
         Node x = nodes.get(i);
 
         for (int j = i + 1; j < nodes.size(); j++) {
+            if (Thread.currentThread().isInterrupted()) {
+                break;
+            }
 
             Node y = nodes.get(j);
 
@@ -400,7 +399,6 @@ public class FasConcurrent implements IFas {
                 adjacencies.get(y).add(x);
             }
         }
-//        }
     }
 
     private void doNodeAtDepth(int i, List<Node> nodes, Map<Node, Set<Node>> adjacenciesCopy, int depth, IndependenceTest test, Map<Node, Set<Node>> adjacencies) {
@@ -410,10 +408,6 @@ public class FasConcurrent implements IFas {
 
         Node x = nodes.get(i);
 
-        if (Thread.currentThread().isInterrupted()) {
-            return;
-        }
-
         List<Node> adjx = new ArrayList<>(adjacencies.get(x));
 
         EDGE:
@@ -421,6 +415,10 @@ public class FasConcurrent implements IFas {
             List<Node> _adjx = new ArrayList<>(adjacencies.get(x));
             _adjx.remove(y);
             List<Node> ppx = possibleParents(x, _adjx, knowledge);
+
+            if (Thread.currentThread().isInterrupted()) {
+                break;
+            }
 
             if (ppx.size() >= depth) {
                 ChoiceGenerator cg = new ChoiceGenerator(ppx.size(), depth);
@@ -454,6 +452,10 @@ public class FasConcurrent implements IFas {
                         continue EDGE;
                     }
                 }
+            }
+
+            if (Thread.currentThread().isInterrupted()) {
+                return;
             }
         }
     }

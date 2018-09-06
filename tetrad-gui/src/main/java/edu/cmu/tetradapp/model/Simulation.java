@@ -171,7 +171,7 @@ public class Simulation extends DataWrapper implements SessionModel,
     }
 
     public Simulation(GeneralizedSemPmWrapper wrapper, Parameters parameters) {
-        simulation = new GeneralSemSimulationRandomPostnonlinear(wrapper.getSemPm());
+        simulation = new GeneralSemSimulation(wrapper.getSemPm());
         this.parameters = parameters;
 //        createSimulation();
     }
@@ -181,7 +181,7 @@ public class Simulation extends DataWrapper implements SessionModel,
             throw new IllegalArgumentException("I'm sorry; this editor can only edit a single generalized SEM IM.");
         }
 
-        simulation = new GeneralSemSimulationRandomPostnonlinear(wrapper.getSemIms().get(0));
+        simulation = new GeneralSemSimulation(wrapper.getSemIms().get(0));
         this.parameters = parameters;
 //        createSimulation();
     }

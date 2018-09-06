@@ -155,15 +155,8 @@ public class GeneralSemSimulation implements Simulation {
     @Override
     public List<String> getParameters() {
         List<String> parameters = new ArrayList<>();
-
-        if (!(randomGraph instanceof SingleGraph)) {
-            parameters.addAll(randomGraph.getParameters());
-        }
-
-        if (pm == null) {
-            parameters.addAll(GeneralizedSemPm.getParameterNames());
-        }
-
+        parameters.addAll(randomGraph.getParameters());
+        parameters.addAll(GeneralizedSemPm.getParameterNames());
         parameters.add("numRuns");
         parameters.add("differentGraphs");
         parameters.add("sampleSize");

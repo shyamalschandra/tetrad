@@ -546,7 +546,7 @@ public final class ConditionalCorrelationIndependence {
     private double kernelEpinechnikov(double z, double h) {
         z /= getWidth() * h;
         if (abs(z) > 1) return 0.0;
-        else return (/*0.75 **/ (1.0 - z * z));
+        else return (1.0 - z * z);
     }
 
     private double kernelGaussian(double z, double h) {

@@ -67,6 +67,8 @@ public class ParamDescriptions {
         map.put("generalSemFunctionTemplateMeasured", new ParamDescription("General function template for measured variables", "TSUM(NEW(B)*$)"));
         map.put("generalSemFunctionTemplateLatent", new ParamDescription("General function template for latent variables", "TSUM(NEW(B)*$)"));
         map.put("generalSemErrorTemplate", new ParamDescription("General function for error terms", "Beta(2, 5)"));
+        map.put("generalSemParameterTemplate", new ParamDescription("General function for parameters", "Split(-1.0, -0.5, 0.5, 1.0)"));
+
         map.put("coefSymmetric", new ParamDescription("Yes if negative coefficient values should be considered", true));
         map.put("covSymmetric", new ParamDescription("Yes if negative covariance values should be considered", true));
 
@@ -180,7 +182,7 @@ public class ParamDescriptions {
 
         map.put("colliderDiscoveryRule", new ParamDescription(
                 "Collider discovery: 1 = Lookup from adjacency sepsets, 2 = Conservative (CPC), 3 = Max-P",
-                1, 1, 1));
+                1, 1, 3));
 
         map.put("conflictRule", new ParamDescription(
                 "Collider conflicts: 1 = Overwrite, 2 = Orient bidirected, 3 = Prioritize existing colliders",
@@ -268,17 +270,65 @@ public class ParamDescriptions {
                 "Number of functions to use in (truncated) basis",
                 30, 1, Integer.MAX_VALUE));
 
-        map.put("kernelType", new ParamDescription(
-                "Kernel type (1 = Gaussian, 2 = Epinechnikov)",
-                2, 1, 2));
+        map.put("kciCutoff", new ParamDescription(
+                "Cutoff",
+                6, 1, Integer.MAX_VALUE));
+
+        map.put("kernelWidth", new ParamDescription(
+                "Kernel width",
+                1.0, Double.MIN_VALUE, Double.POSITIVE_INFINITY));
 
         map.put("kernelMultiplier", new ParamDescription(
                 "Bowman and Azzalini (1997) default kernel bandwidhts should be multiplied by...",
                 1.0, Double.MIN_VALUE, Double.POSITIVE_INFINITY));
 
+        map.put("kernelType", new ParamDescription(
+                "Kernel type (1 = Gaussian, 2 = Epinechnikov)",
+                2, 1, 2));
+
         map.put("basisType", new ParamDescription(
                 "Basis type (1 = Polynomial, 2 = Cosine)",
                 2, 1, 2));
+
+        map.put("kciNumBootstraps", new ParamDescription(
+                "Number of bootstraps for Theorems 4 and Proposition 5 for KCI",
+                5000, 1, Integer.MAX_VALUE));
+
+        map.put("thresholdForNumEigenvalues", new ParamDescription(
+                "Threshold to determine how many eigenvalues to use--the lower the more (0 to 1)",
+                0.001, 0, Double.POSITIVE_INFINITY));
+
+        map.put("rcitNumFeatures", new ParamDescription(
+                "The number of random features to use",
+                10, 1, Integer.MAX_VALUE));
+
+        map.put("kciUseAppromation", new ParamDescription(
+                "Use the approximate Gamma approximation algorithm", true));
+
+        map.put("kciEpsilon", new ParamDescription(
+                "Epsilon for Proposition 5, a small positive number", 0.001, 0, Double.POSITIVE_INFINITY));
+
+        map.put("rcitApproxType", new ParamDescription(
+                "Approximation Type: 1 = LPD4, 2 = Gamma, 3 = HBE, 4 = PERM",
+                4, 1, 4));
+
+        map.put("possibleDsepDone", new ParamDescription(
+                "Yes if the possible dsep search should be done", true));
+
+        map.put("selfLoopCoef", new ParamDescription(
+                "The coefficient for the self-loop (default 0.0)", 0.0, 0.0, Double.POSITIVE_INFINITY));
+
+        map.put("tsbetathr", new ParamDescription(
+                "Threshold to determine whether a coefficient in the Beta matrix implies an edge int h graph",
+                0.01, 0, Double.POSITIVE_INFINITY));
+
+        map.put("tstheta", new ParamDescription(
+                "Alasso threshold",
+                1.0, 0, Double.POSITIVE_INFINITY));
+
+        map.put("tssigma", new ParamDescription(
+                "ICA threshold",
+                1.0, 0, Double.POSITIVE_INFINITY));
 
         map.put("fastFDR", new ParamDescription(
                 "Yes if the  possible fastFDR adjustment to alpha levels should be done", false));

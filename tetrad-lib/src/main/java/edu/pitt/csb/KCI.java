@@ -169,6 +169,10 @@ public class KCI implements IndependenceTest, ScoreForFact {
     public boolean isIndependent(Node x, Node y, List<Node> z) {
         boolean independent;
 
+        if (Thread.currentThread().isInterrupted()) {
+            return false;
+        }
+
         IndependenceFact fact = new IndependenceFact(x, y, z);
 
         if (facts.get(fact) != null) {
@@ -393,27 +397,27 @@ public class KCI implements IndependenceTest, ScoreForFact {
                     double alpha2 = (exp(log(alpha) + logChoose(v, d1) - logChoose(v, d2)));
                     final boolean independent = p > alpha2;
 
-                    if (independent) {
-                        System.out.println(fact + " INDEPENDENT p = " + p);
-                        TetradLogger.getInstance().log("info", fact + " Independent");
-
-                    } else {
-                        System.out.println(fact + " dependent p = " + p);
-                        TetradLogger.getInstance().log("info", fact.toString());
-                    }
+//                    if (independent) {
+//                        System.out.println(fact + " INDEPENDENT p = " + p);
+//                        TetradLogger.getInstance().log("info", fact + " Independent");
+//
+//                    } else {
+//                        System.out.println(fact + " dependent p = " + p);
+//                        TetradLogger.getInstance().log("info", fact.toString());
+//                    }
 
                     return independent;
                 } else {
                     final boolean independent = p > alpha;
 
-                    if (independent) {
-                        System.out.println(fact + " INDEPENDENT p = " + p);
-                        TetradLogger.getInstance().log("info", fact + " Independent");
-
-                    } else {
-                        System.out.println(fact + " dependent p = " + p);
-                        TetradLogger.getInstance().log("info", fact.toString());
-                    }
+//                    if (independent) {
+//                        System.out.println(fact + " INDEPENDENT p = " + p);
+//                        TetradLogger.getInstance().log("info", fact + " Independent");
+//
+//                    } else {
+//                        System.out.println(fact + " dependent p = " + p);
+//                        TetradLogger.getInstance().log("info", fact.toString());
+//                    }
 
                     return independent;
                 }
@@ -729,7 +733,7 @@ public class KCI implements IndependenceTest, ScoreForFact {
         double sum = 0.0;
 
         for (int col : cols) {
-            double d = data[col][i] - data[col][j];
+            double d = (data[col][i] - data[col][j]) / 2;
 
             if (!Double.isNaN(d)) {
                 sum += d * d;

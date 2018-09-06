@@ -131,6 +131,10 @@ public final class IndTestKciMatlab implements IndependenceTest {
 
             @Override
             public void run() {
+                if (Thread.currentThread().isInterrupted()) {
+                    return;
+                }
+
                 boolean independent = checkIndependent(x, y, z);
 
                 if (verbose) {
