@@ -30,7 +30,7 @@ public class KciMatlab implements IndependenceWrapper {
     @Override
     public IndependenceTest getTest(DataModel dataSet, Parameters parameters) {
         final IndTestKciMatlab kci = new IndTestKciMatlab(DataUtils.getContinuousDataSet(dataSet),
-                parameters.getDouble("alpha"));
+                parameters.getDouble("kciAlpha"));
         kci.setFastFDR(parameters.getBoolean("fastFDR"));
         return kci;
     }
@@ -48,7 +48,7 @@ public class KciMatlab implements IndependenceWrapper {
     @Override
     public List<String> getParameters() {
         List<String> params = new ArrayList<>();
-        params.add("alpha");
+        params.add("kciAlpha");
         params.add("fastFDR");
         return params;
     }

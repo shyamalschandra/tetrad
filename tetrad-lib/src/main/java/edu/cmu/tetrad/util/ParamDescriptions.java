@@ -337,6 +337,8 @@ public class ParamDescriptions {
                 "Minimum sample size to use per conditioning for kernel regression",
                 100, 1, Double.POSITIVE_INFINITY));
 
+        map.put("kciAlpha", new ParamDescription("Cutoff for p values (alpha) (min = 0.0)", 0.05, 0.0, 1.0));
+
         map.put("cciScoreAlpha", new ParamDescription("Cutoff for p values (alpha) (min = 0.0)", 0.01, 0.0, 1.0));
 
         map.put("numDependenceSpotChecks", new ParamDescription(

@@ -307,7 +307,7 @@ public final class ConditionalCorrelationIndependence {
 
         double[] residualsx = new double[N];
 
-        double[] xdata = Arrays.copyOf(data[_x], data[_x].length);
+        double[] xdata = data[_x];
 
         double[] sumx = new double[N];
 

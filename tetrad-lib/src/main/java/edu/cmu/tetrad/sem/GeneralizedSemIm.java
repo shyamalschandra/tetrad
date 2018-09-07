@@ -40,6 +40,8 @@ import org.apache.commons.math3.optim.nonlinear.scalar.noderiv.PowellOptimizer;
 import java.text.NumberFormat;
 import java.util.*;
 
+import static edu.cmu.tetrad.util.StatUtils.sd;
+
 /**
  * Represents a generalized SEM instantiated model. The parameteric form of this
  * model allows arbitrary equations for variables. This instantiated model
@@ -415,6 +417,9 @@ public class GeneralizedSemIm implements IM, Simulator, TetradSerializable {
      * @return the simulated data set.
      */
     public DataSet simulateDataRecursive(int sampleSize, boolean latentDataSaved) {
+        List<Node> variables = pm.getNodes();
+        Map<String, Double> std = new HashMap<>();
+
         final Map<String, Double> variableValues = new HashMap<>();
 
         Context context = new Context() {
@@ -428,14 +433,13 @@ public class GeneralizedSemIm implements IM, Simulator, TetradSerializable {
                 value = variableValues.get(term);
 
                 if (value != null) {
-                    return value;
+                    return value * 2 / std.get(term);
                 }
 
                 throw new IllegalArgumentException("No value recorded for '" + term + "'");
             }
         };
 
-        List<Node> variables = pm.getNodes();
         List<Node> continuousVariables = new LinkedList<>();
         List<Node> nonErrorVariables = pm.getVariableNodes();
 
@@ -475,21 +479,27 @@ public class GeneralizedSemIm implements IM, Simulator, TetradSerializable {
             }
         }
 
-        // Do the simulation.
-        for (int row = 0; row < sampleSize; row++) {
-            variableValues.clear();
 
-            for (int tier = 0; tier < tierOrdering.size(); tier++) {
+        // Do the simulation.
+        for (int tier = 0; tier < variables.size(); tier++) {
+            double[] v = new double[sampleSize];
+
+            int col = tierIndices[tier];
+
+            if (col == -1) {
+                continue;
+            }
+
+            for (int row = 0; row < sampleSize; row++) {
+                variableValues.clear();
+
                 Node node = tierOrdering.get(tier);
                 Expression expression = pm.getNodeExpression(node);
                 double value = expression.evaluate(context);
+                v[row] = value;
                 variableValues.put(node.getName(), value);
 
-                int col = tierIndices[tier];
 
-                if (col == -1) {
-                    continue;
-                }
 
 //                if (isSimulatePositiveDataOnly() && value < 0) {
 //                    row--;
@@ -504,6 +514,12 @@ public class GeneralizedSemIm implements IM, Simulator, TetradSerializable {
 
                 fullDataSet.setDouble(row, col, value);
             }
+
+            std.put(tierOrdering.get(tier).getName(), sd(v));
+
+//            for (int row = 0; row < sampleSize; row++) {
+//                fullDataSet.setDouble(row, col, 2v[row] / std);
+//            }
         }
 
         if (latentDataSaved) {
@@ -852,7 +868,7 @@ public class GeneralizedSemIm implements IM, Simulator, TetradSerializable {
      * @param epsilon               The convergence criterion; |xi.t - xi.t-1| < epsilon.
      */
     public synchronized DataSet simulateDataFisher(int sampleSize, int intervalBetweenShocks,
-                                      double epsilon) {
+                                                   double epsilon) {
         boolean printedUndefined = false;
         boolean printedInfinite = false;
 

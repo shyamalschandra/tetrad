@@ -29,7 +29,7 @@ public class Kci implements IndependenceWrapper {
     @Override
     public IndependenceTest getTest(DataModel dataSet, Parameters parameters) {
         final KCI kci = new KCI(DataUtils.getContinuousDataSet(dataSet),
-                parameters.getDouble("alpha"));
+                parameters.getDouble("kciAlpha"));
         kci.setApproximate(parameters.getBoolean("kciUseAppromation"));
         kci.setWidthMultiplier(parameters.getDouble("kernelMultiplier"));
         kci.setNumBootstraps(parameters.getInt("kciNumBootstraps"));
@@ -52,7 +52,7 @@ public class Kci implements IndependenceWrapper {
     public List<String> getParameters() {
         List<String> params = new ArrayList<>();
         params.add("kciUseAppromation");
-        params.add("alpha");
+        params.add("kciAlpha");
         params.add("kernelMultiplier");
         params.add("kciNumBootstraps");
         params.add("thresholdForNumEigenvalues");
