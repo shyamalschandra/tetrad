@@ -374,7 +374,7 @@ public class CStaS {
                             int count = 0;
 
                             for (int k = 0; k < getNumSubsamples(); k++) {
-                                if (q > doubles.get(k).size()) {
+                                if (q >= doubles.get(k).size()) {
                                     continue;
                                 }
 
