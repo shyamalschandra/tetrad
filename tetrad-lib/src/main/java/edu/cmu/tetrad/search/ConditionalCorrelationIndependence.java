@@ -23,6 +23,7 @@ package edu.cmu.tetrad.search;
 
 import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.graph.Node;
+import edu.cmu.tetrad.util.RandomUtil;
 import edu.cmu.tetrad.util.StatUtils;
 import org.apache.commons.math3.distribution.NormalDistribution;
 
@@ -135,6 +136,11 @@ public final class ConditionalCorrelationIndependence {
      */
     private int kernelRegressionSampleSize = 100;
 
+    /**
+     * If rx ~_||_ ry, spot check dependence for this many points.
+     */
+    private int numDependenceSpotChecks = 10;
+
     //==================CONSTRUCTORS====================//
 
     /**
@@ -234,7 +240,53 @@ public final class ConditionalCorrelationIndependence {
         double score = independent(rx, ry);
         this.score = score;
 
-        return getPValue(score);
+        // rx _||_ ry ?
+        if (score < cutoff) {
+            return getPValue(score);
+        } else {
+            final int N = data[0].length;
+
+            int[] _z = new int[z.size()];
+
+            for (int m = 0; m < z.size(); m++) {
+                _z[m] = indices.get(z.get(m));
+            }
+
+            // X _||_ Y ?
+            if (z.isEmpty() || numDependenceSpotChecks == 0) {
+                return getPValue(score);
+            } else {
+                double min = Double.POSITIVE_INFINITY;
+
+                // X _||_ Y | Z ? Look for a dependence rx ~_||_ ry | Z = _z
+                for (int i = 0; i < numDependenceSpotChecks; i++) {
+                    List<Integer> js = new ArrayList<>(getCloseZs(data, _z,
+                            RandomUtil.getInstance().nextInt(N), kernelRegressionSampleSize));
+
+                    double[] rx2 = new double[js.size()];
+                    double[] ry2 = new double[js.size()];
+
+                    for (int k = 0; k < js.size(); k++) {
+                        rx2[k] = rx[js.get(k)];
+                        ry2[k] = ry[js.get(k)];
+                    }
+
+                    double _score = independent(rx2, ry2);
+
+                    if (_score > cutoff) {
+                        this.score = score;
+                        return getPValue(score);
+                    } else {
+                        if (_score < min) {
+                            min = _score;
+                        }
+                    }
+                }
+
+                this.score = min;
+                return getPValue(min);
+            }
+        }
     }
 
     /**
@@ -366,6 +418,10 @@ public final class ConditionalCorrelationIndependence {
 
     public void setEarlyReturn(boolean earlyReturn) {
         this.earlyReturn = earlyReturn;
+    }
+
+    public void setNumDependenceSpotChecks(int numDependenceSpotChecks) {
+        this.numDependenceSpotChecks = numDependenceSpotChecks;
     }
 
     //=====================PRIVATE METHODS====================//
