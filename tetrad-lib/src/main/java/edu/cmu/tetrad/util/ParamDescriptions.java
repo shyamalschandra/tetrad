@@ -313,6 +313,33 @@ public class ParamDescriptions {
         map.put("kciUseAppromation", new ParamDescription(
                 "Use the approximate Gamma approximation algorithm", true));
 
+        map.put("selectionAlpha", new ParamDescription(
+                "The alpha used for a Fisher Z test to select variables associated with the target",
+                0.05, 0.0, 1));
+
+        map.put("targetNames", new ParamDescription("Target variable names (comnma separated list)", ""));
+
+        map.put("maxEr", new ParamDescription(
+                "Bound on the expected false positive error rate",
+                5.0, 0.0, Double.POSITIVE_INFINITY));
+        map.put("q", new ParamDescription(
+                "Examine this q",
+                10, 1, Integer.MAX_VALUE));
+        map.put("qFrom", new ParamDescription(
+                "Examine qs from this integer",
+                10, 1, Integer.MAX_VALUE));
+
+        map.put("qTo", new ParamDescription(
+                "Examine qs to this integer",
+                1, 1, Integer.MAX_VALUE));
+
+        map.put("qIncrement", new ParamDescription(
+                "Examine qs in incrementing by this each time",
+                1, 1, Integer.MAX_VALUE));
+
+        map.put("parallelism", new ParamDescription(
+                "The number of threads to use in the parallel calculation",
+                Runtime.getRuntime().availableProcessors() * 10, 1, Integer.MAX_VALUE));
     }
 
     public static ParamDescriptions getInstance() {
