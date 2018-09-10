@@ -23,7 +23,6 @@ package edu.cmu.tetrad.search;
 
 import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.graph.Node;
-import edu.cmu.tetrad.util.RandomUtil;
 import edu.cmu.tetrad.util.StatUtils;
 import org.apache.commons.math3.distribution.NormalDistribution;
 
@@ -136,11 +135,6 @@ public final class ConditionalCorrelationIndependence {
      */
     private int kernelRegressionSampleSize = 100;
 
-    /**
-     * If rx ~_||_ ry, spot check dependence for this many points.
-     */
-    private int numDependenceSpotChecks = 10;
-
     //==================CONSTRUCTORS====================//
 
     /**
@@ -240,53 +234,7 @@ public final class ConditionalCorrelationIndependence {
         double score = independent(rx, ry);
         this.score = score;
 
-        // rx _||_ ry ?
-        if (score < cutoff) {
-            return getPValue(score);
-        } else {
-            final int N = data[0].length;
-
-            int[] _z = new int[z.size()];
-
-            for (int m = 0; m < z.size(); m++) {
-                _z[m] = indices.get(z.get(m));
-            }
-
-            // X _||_ Y ?
-            if (z.isEmpty() || numDependenceSpotChecks == 0) {
-                return getPValue(score);
-            } else {
-                double min = Double.POSITIVE_INFINITY;
-
-                // X _||_ Y | Z ? Look for a dependence rx ~_||_ ry | Z = _z
-                for (int i = 0; i < numDependenceSpotChecks; i++) {
-                    List<Integer> js = new ArrayList<>(getCloseZs(data, _z,
-                            RandomUtil.getInstance().nextInt(N), kernelRegressionSampleSize));
-
-                    double[] rx2 = new double[js.size()];
-                    double[] ry2 = new double[js.size()];
-
-                    for (int k = 0; k < js.size(); k++) {
-                        rx2[k] = rx[js.get(k)];
-                        ry2[k] = ry[js.get(k)];
-                    }
-
-                    double _score = independent(rx2, ry2);
-
-                    if (_score > cutoff) {
-                        this.score = score;
-                        return getPValue(score);
-                    } else {
-                        if (_score < min) {
-                            min = _score;
-                        }
-                    }
-                }
-
-                this.score = min;
-                return getPValue(min);
-            }
-        }
+        return getPValue(score);
     }
 
     /**
@@ -420,10 +368,6 @@ public final class ConditionalCorrelationIndependence {
         this.earlyReturn = earlyReturn;
     }
 
-    public void setNumDependenceSpotChecks(int numDependenceSpotChecks) {
-        this.numDependenceSpotChecks = numDependenceSpotChecks;
-    }
-
     //=====================PRIVATE METHODS====================//
 
     /**
@@ -487,14 +431,6 @@ public final class ConditionalCorrelationIndependence {
         double z = 0.5 * sqrt(N) * (log(1.0 + r) - log(1.0 - r));
 
         return z / (sqrt((moment22(__x, __y))));
-    }
-
-    private double[] logColumn(double[] f) {
-        double[] ret = new double[f.length];
-        double min = min(f) - 0.0001;
-        if (min > 0) min = 0;
-        for (int i = 0; i < f.length; i++) ret[i] = log(f[i] - min);
-        return ret;
     }
 
     private double moment22(double[] x, double[] y) {
@@ -598,57 +534,6 @@ public final class ConditionalCorrelationIndependence {
 
         return data;
     }
-
-//    private Set<Integer> getCloseZs(double[][] data, int[] _z, int i, int sampleSize) {
-//        try {
-//            Set<Integer> js = new HashSet<>();
-//
-//            if (sampleSize > data[0].length) sampleSize = (int) ceil(0.8 * data.length);
-//            if (_z.length == 0) return new HashSet<>();
-//
-//            int[] left = new int[_z.length];
-//            int[] right = new int[_z.length];
-//
-//            while (true) {
-//                for (int k = 0; k < _z.length; k++) {
-//                    int z1 = _z[k];
-//                    int l = -1, r = -1;
-//
-//                    int q = reverseLookup.get(z1).get(k);
-//                    int qq = sortedIndices.get(z1).get(q);
-//
-//                    if (q - left[k] >= 0 && q - left[k] < data[z1].length) {
-//                        l = sortedIndices.get(z1).get(q - left[k]);
-//                    }
-//
-//                    if (q + right[k] >= 0 && q + right[k] < data[z1].length) {
-//                        r = sortedIndices.get(z1).get(q + right[k]);
-//                    }
-//
-//                    final double L = l == -1 ? 0 : data[z1][qq] - data[z1][l];
-//                    final double R = r == -1 ? 0 : data[z1][r] - data[z1][qq];
-//
-//                    if (L == 0 && R == 0) {
-//                        js.add(qq);
-//                        if (js.size() >= sampleSize) return js;
-//                        left[k]++;
-//                        right[k]++;
-//                    } else if (L > R) {
-//                        js.add(l);
-//                        if (js.size() >= sampleSize) return js;
-//                        left[k]++;
-//                    } else {
-//                        js.add(r);
-//                        if (js.size() >= sampleSize) return js;
-//                        right[k]++;
-//                    }
-//                }
-//            }
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//            throw new RuntimeException(e);
-//        }
-//    }
 
     private Set<Integer> getCloseZs(double[][] data, int[] _z, int i, int sampleSize) {
         Set<Integer> js = new HashSet<>();

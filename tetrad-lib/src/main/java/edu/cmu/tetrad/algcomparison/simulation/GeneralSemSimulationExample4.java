@@ -17,12 +17,14 @@ import edu.cmu.tetrad.util.RandomUtil;
 
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author jdramsey
  */
-public class GeneralSemSimulationRandomPostnonlinear2 implements Simulation {
+public class GeneralSemSimulationExample4 implements Simulation {
     static final long serialVersionUID = 23L;
     private RandomGraph randomGraph;
     private GeneralizedSemPm pm;
@@ -38,18 +40,18 @@ public class GeneralSemSimulationRandomPostnonlinear2 implements Simulation {
     private String errorString = "U(0, 1)^2";
     private String parametersString = "U(.4,.9)";
 
-    public GeneralSemSimulationRandomPostnonlinear2(RandomGraph graph) {
+    public GeneralSemSimulationExample4(RandomGraph graph) {
         this.randomGraph = graph;
     }
 
-    public GeneralSemSimulationRandomPostnonlinear2(GeneralizedSemPm pm) {
+    public GeneralSemSimulationExample4(GeneralizedSemPm pm) {
         SemGraph graph = pm.getGraph();
         graph.setShowErrorTerms(false);
         this.randomGraph = new SingleGraph(graph);
         this.pm = pm;
     }
 
-    public GeneralSemSimulationRandomPostnonlinear2(GeneralizedSemIm im) {
+    public GeneralSemSimulationExample4(GeneralizedSemIm im) {
         SemGraph graph = im.getSemPm().getGraph();
         graph.setShowErrorTerms(false);
         this.randomGraph = new SingleGraph(graph);
@@ -187,77 +189,43 @@ public class GeneralSemSimulationRandomPostnonlinear2 implements Simulation {
 
         try {
 
+            Map<Node, String> temp = new HashMap<>();
+
             for (Node x : variablesNodes) {
                 List<Node> parents = graph.getParents(x);
 
-                String formula = "";///nonlinearFunctions[RandomUtil.getInstance().nextInt(nonlinearFunctions.length)];
-
-//                if (!parents.isEmpty()) {
-//                    formula += "(";
-//                }
+                String formula = "";
 
                 for (int i = 0; i < parents.size(); i++) {
                     Node p = parents.get(i);
-                    formula += wrapRandom2( p.getName());
-
+                    formula += wrapRandom2(p.getName());
                     if (i < parents.size() - 1) formula += " + ";
                 }
 
-                if (!parents.isEmpty()) {
-                    formula = wrapRandom(formula);
-                    formula += " + ";
-                }
-
-                formula += "N(0, 1)";
-
-                System.out.println("Node " + x + " " + formula);
-
-                pm.setNodeExpression(x, formula);
+                temp.put(x, formula);
 
             }
 
-//            for (Node node : variablesNodes) {
-//                String _template = TemplateExpander.getInstance().expandTemplate(
-//                        variablesString, pm, node);
-//                int p1 = 0;
-//                for (int p = _template.length() - 1; p >= 0; p--) {
-//                    if (_template.charAt(p) == 'E') {
-//                        p1 = p;
-//                        break;
-//                    }
-//                }
-//
-//                if (p1 != 0) {
-//                    p1 -= 2;
-//                }
-//
-//                String prefix = _template.subSequence(0, p1).toString();
-//                String postfix = _template.subSequence(p1, _template.length()).toString();
-//
-//                if (!prefix.isEmpty()) {
-//                    prefix = wrapRandom(prefix);
-////                    prefix = wrapRandom(prefix);
-//                }
-//
-//                pm.setNodeExpression(node, prefix + postfix);
-//            }
+            for (Node x : variablesNodes) {
+                String formula = temp.get(x);
+                if (!formula.isEmpty()) formula += " + ";
+                formula += "U(-.5, .5)";
+                formula = wrapRandom2(formula);
+                pm.setNodeExpression(x, formula);
+            }
 
             for (Node node : errorNodes) {
                 String _template = TemplateExpander.getInstance().expandTemplate(
                         errorString, pm, node);
-                pm.setNodeExpression(node, "");//"N(0, 1)");
+                pm.setNodeExpression(node, "U(-.5, .5)");
             }
 
             for (String parameter : pm.getParameters()) {
                 pm.setParameterExpression(parameter, "U(.2, .7)");
             }
 
-//            pm.setVariablesTemplate(variablesString);
-//            pm.setErrorsTemplate("N(0, 1)");
-//            pm.setParametersTemplate("U(.2, .7)");
-
         } catch (ParseException e) {
-            System.out.println(e);
+            e.printStackTrace();
         }
 
         System.out.println(pm);

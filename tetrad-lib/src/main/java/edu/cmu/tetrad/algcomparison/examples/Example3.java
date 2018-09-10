@@ -23,10 +23,14 @@ package edu.cmu.tetrad.algcomparison.examples;
 
 import edu.cmu.tetrad.algcomparison.Comparison;
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithms;
-import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.*;
+import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.PcAll;
 import edu.cmu.tetrad.algcomparison.graph.RandomForward;
-import edu.cmu.tetrad.algcomparison.independence.*;
-import edu.cmu.tetrad.algcomparison.simulation.*;
+import edu.cmu.tetrad.algcomparison.independence.CciTest;
+import edu.cmu.tetrad.algcomparison.independence.Kci;
+import edu.cmu.tetrad.algcomparison.simulation.GeneralSemSimulation;
+import edu.cmu.tetrad.algcomparison.simulation.GeneralSemSimulationRandomPostnonlinear;
+import edu.cmu.tetrad.algcomparison.simulation.GeneralSemSimulationExample4;
+import edu.cmu.tetrad.algcomparison.simulation.Simulations;
 import edu.cmu.tetrad.algcomparison.statistic.*;
 import edu.cmu.tetrad.util.Parameters;
 
@@ -35,7 +39,7 @@ import edu.cmu.tetrad.util.Parameters;
  *
  * @author jdramsey
  */
-public class ExampleCompareSimulationJoe {
+public class Example3 {
 
     public static void main(String... args) {
         int problem = 4;

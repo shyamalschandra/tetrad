@@ -102,6 +102,9 @@ public class GeneralSemSimulation implements Simulation {
 
     private synchronized DataSet simulate(Graph graph, Parameters parameters) {
         pm = getPm(graph, parameters);
+
+        System.out.println(pm);
+
         im = new GeneralizedSemIm(pm);
         ims.add(im);
         return im.simulateData(parameters.getInt("sampleSize"), true);

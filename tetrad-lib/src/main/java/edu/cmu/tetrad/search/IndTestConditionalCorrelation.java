@@ -372,10 +372,6 @@ public final class IndTestConditionalCorrelation implements IndependenceTest, Sc
     public void setEarlyReturn(boolean b) {
         cci.setEarlyReturn(b);
     }
-
-    public void setNumDependenceSpotChecks(int numDependenceSpotChecks) {
-        cci.setNumDependenceSpotChecks(numDependenceSpotChecks);
-    }
 }
 
 
