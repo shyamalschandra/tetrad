@@ -367,6 +367,7 @@ public class CStaS {
                         System.out.println("Examining q = " + q);
                     }
 
+
                     List<Tuple> tuples = new ArrayList<>();
 
                     for (int e = 0; e < possibleEffects.size(); e++) {
