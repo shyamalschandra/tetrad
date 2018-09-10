@@ -323,8 +323,8 @@ public class CStaS {
         int avgEdges = (int) (edgesTotal[0] / (double) edgesCount[0]);
 //        avgEdges /= 2.0;
 
-        qs.clear();
-        qs.add(avgEdges);
+//        qs.clear();
+//        qs.add(avgEdges);
 
 
         List<List<Double>> doubles = new ArrayList<>();
