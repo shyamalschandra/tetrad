@@ -121,8 +121,8 @@ public class Example4 {
         //==============ALGORIHTHMS============//
         Algorithms algorithms = new Algorithms();
 
-        algorithms.add(new PcAll(new Kci()));
-        algorithms.add(new PcAll(new KciMatlab()));
+//        algorithms.add(new PcAll(new Kci()));
+//        algorithms.add(new PcAll(new KciMatlab()));
 
 //        algorithms.add(new PcAll(new ResidualCITMatlab()));
 //        algorithms.add(new/Library/Frameworks/R.Framework/Libraries PcAll(new FcitJRI()));
@@ -154,7 +154,7 @@ public class Example4 {
 //        comparison.setSavePatterns(true);
         comparison.setSavePags(true);
 
-        final String dir = "zhang.experiment5";
+        final String dir = "example4";
         comparison.saveToFiles(dir, simulations.getSimulations().get(0), parameters);
         comparison.compareFromFiles(dir, dir, algorithms, statistics, parameters);
 

@@ -84,9 +84,9 @@ public class GeneralSemSimulationExample4 implements Simulation {
 
             DataSet dataSet = simulate(graph, parameters);
 
-            if (parameters.getBoolean("standardize")) {
+//            if (parameters.getBoolean("standardize")) {
                 dataSet = DataUtils.standardizeData(dataSet);
-            }
+//            }
 
             double variance = parameters.getDouble("measurementVariance");
 
@@ -206,10 +206,12 @@ public class GeneralSemSimulationExample4 implements Simulation {
 
             }
 
+            String error = "N(0, 1)";
+
             for (Node x : variablesNodes) {
                 String formula = temp.get(x);
                 if (!formula.isEmpty()) formula += " + ";
-                formula += "U(-.5, .5)";
+                formula += error;
                 formula = wrapRandom2(formula);
                 pm.setNodeExpression(x, formula);
             }
@@ -217,7 +219,7 @@ public class GeneralSemSimulationExample4 implements Simulation {
             for (Node node : errorNodes) {
                 String _template = TemplateExpander.getInstance().expandTemplate(
                         errorString, pm, node);
-                pm.setNodeExpression(node, "U(-.5, .5)");
+                pm.setNodeExpression(node, error);
             }
 
             for (String parameter : pm.getParameters()) {

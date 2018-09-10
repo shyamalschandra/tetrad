@@ -378,7 +378,7 @@ public class CStaS {
                                     continue;
                                 }
 
-                                double cutoff = doubles.get(k).get(q - 1);
+                                double cutoff = doubles.get(k).get(q);
 
                                 if (allEffects.get(k)[c][e] >= cutoff) {
                                     count++;

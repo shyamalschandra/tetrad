@@ -27,6 +27,7 @@ import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.PcAll;
 import edu.cmu.tetrad.algcomparison.graph.RandomForward;
 import edu.cmu.tetrad.algcomparison.independence.CciTest;
 import edu.cmu.tetrad.algcomparison.independence.Kci;
+import edu.cmu.tetrad.algcomparison.independence.KciMatlab;
 import edu.cmu.tetrad.algcomparison.simulation.GeneralSemSimulation;
 import edu.cmu.tetrad.algcomparison.simulation.GeneralSemSimulationRandomPostnonlinear;
 import edu.cmu.tetrad.algcomparison.simulation.GeneralSemSimulationExample4;
@@ -46,147 +47,45 @@ public class Example3 {
 
         Parameters parameters = new Parameters();
 
-        if (problem == 1) {
-            parameters.set("numRuns", 1);
-            parameters.set("numMeasures", 5);
-            parameters.set("avgDegree", 2);
-            parameters.set("numLatents", 0);
-            parameters.set("differentGraphs", true);
-            parameters.set("sampleSize", 500);
-            parameters.set("fastFDR", false);
-            parameters.set("verbose", true);
-            parameters.set("maxDegree", 4);
-            parameters.set("colliderDiscoveryRule", 1);
-            parameters.set("conflictRule", 1);
-            parameters.set("useMaxPOrientationHeuristic", false);
-            parameters.set("maxPOrientationMaxPathLength", 3);
-            parameters.set("depth", -1);
-            parameters.set("stableFAS", false);
-            parameters.set("concurrentFAS", true);
-            parameters.set("alpha", 0.0001);
-            parameters.set("penaltyDiscount", 1);
-            parameters.set("cciScoreAlpha", .01);
-            parameters.set("numBasisFunctions", 30);
-            parameters.set("kernelType", 2);
-            parameters.set("kernelMultiplier", 1.0);
-            parameters.set("basisType", 2);
-            parameters.set("kernelRegressionSampleSize", 100);
+        parameters.set("numRuns", 1);
+        parameters.set("numMeasures", 5);
+        parameters.set("avgDegree", 2);
+        parameters.set("numLatents", 0);
+        parameters.set("differentGraphs", true);
+        parameters.set("sampleSize", 500);
+        parameters.set("fastFDR", false);
+        parameters.set("verbose", false);
+        parameters.set("maxDegree", 4);
+        parameters.set("colliderDiscoveryRule", 1);
+        parameters.set("conflictRule", 1);
+        parameters.set("useMaxPOrientationHeuristic", false);
+        parameters.set("maxPOrientationMaxPathLength", 3);
+        parameters.set("depth", -1);
+        parameters.set("stableFAS", false);
+        parameters.set("concurrentFAS", false);
+        parameters.set("alpha", 0.05, 0.01, 0.001);
+        parameters.set("kciAlpha", 0.05);
+        parameters.set("penaltyDiscount", 1);
+        parameters.set("cciScoreAlpha", .1);
+        parameters.set("numBasisFunctions", 10);
+        parameters.set("kernelType", 2);
+        parameters.set("kernelMultiplier", 1.0);
+        parameters.set("basisType", 1);
+        parameters.set("kernelRegressionSampleSize", 100);
+        parameters.set("verbose", true);
 
-            String function = "TSUM(NEW(B) * $^2)";
-//        final String function = "TPROD($) * ERROR";
+        final String function = "TPROD($) * ERROR";
 //        final String function = "TSUM(1 - 4 * exp(-$^2 / 2) * $))";
 //        final String function = "TSUM(1 - 4 * exp(-$^2 / 2) * $ * $ * $";
-            parameters.set("generalSemFunctionTemplateMeasured", function);
-            parameters.set("generalSemFunctionTemplateLatent", function);
+        parameters.set("generalSemFunctionTemplateMeasured", function);
+        parameters.set("generalSemFunctionTemplateLatent", function);
 
-//        parameters.set("generalSemErrorTemplate", "U(-.2, .2)");
-            parameters.set("generalSemErrorTemplate", "N(0, 1)");
-
-            parameters.set("generalSemParameterTemplate", "U(.2, .7)");
-//        parameters.set("generalSemParameterTemplate", "1")
-
-        } else if (problem == 2) {
-            parameters.set("numRuns", 1);
-            parameters.set("numMeasures", 10);
-            parameters.set("avgDegree", 3);
-            parameters.set("numLatents", 0);
-            parameters.set("differentGraphs", true);
-            parameters.set("sampleSize", 500);
-            parameters.set("fastFDR", false);
-            parameters.set("verbose", true);
-            parameters.set("alpha", 0.01, 0.001, 0.0001);
-            parameters.set("kciAlpha", 0.05);
-            parameters.set("penaltyDiscount", 1);
-            parameters.set("maxDegree", 4);
-            parameters.set("colliderDiscoveryRule", 1);
-            parameters.set("conflictRule", 1);
-            parameters.set("useMaxPOrientationHeuristic", false);
-            parameters.set("maxPOrientationMaxPathLength", 3);
-            parameters.set("depth", -1);
-            parameters.set("stableFAS", false);
-            parameters.set("concurrentFAS", true);
-            parameters.set("cciScoreAlpha", .01);
-            parameters.set("numBasisFunctions", 30);
-            parameters.set("kernelType", 2);
-            parameters.set("kernelMultiplier", 1.0);
-            parameters.set("basisType", 2);
-            parameters.set("kernelRegressionSampleSize", 10);
-
-            String function = "TSUM($)";
-            parameters.set("generalSemFunctionTemplateMeasured", function);
-            parameters.set("generalSemFunctionTemplateLatent", function);
-            parameters.set("generalSemErrorTemplate", "U(-.2, .2)");
-        } else if (problem == 3) {
-            parameters.set("numRuns", 1);
-            parameters.set("numMeasures", 5);
-            parameters.set("avgDegree", 2);
-            parameters.set("numLatents", 0);
-            parameters.set("differentGraphs", true);
-            parameters.set("sampleSize", 500);
-            parameters.set("fastFDR", false);
-            parameters.set("verbose", false);
-            parameters.set("maxDegree", 4);
-            parameters.set("colliderDiscoveryRule", 1);
-            parameters.set("conflictRule", 1);
-            parameters.set("useMaxPOrientationHeuristic", false);
-            parameters.set("maxPOrientationMaxPathLength", 3);
-            parameters.set("depth", -1);
-            parameters.set("stableFAS", false);
-            parameters.set("concurrentFAS", false);
-            parameters.set("alpha", 0.05, 0.01, 0.001);
-            parameters.set("kciAlpha", 0.05);
-            parameters.set("penaltyDiscount", 1);
-            parameters.set("cciScoreAlpha", .1);
-            parameters.set("numBasisFunctions", 10);
-            parameters.set("kernelType", 2);
-            parameters.set("kernelMultiplier", 1.0);
-            parameters.set("basisType", 1);
-            parameters.set("kernelRegressionSampleSize", 100);
-            parameters.set("verbose", true);
-
-            final String function = "TPROD($) * ERROR";
-//        final String function = "TSUM(1 - 4 * exp(-$^2 / 2) * $))";
-//        final String function = "TSUM(1 - 4 * exp(-$^2 / 2) * $ * $ * $";
-            parameters.set("generalSemFunctionTemplateMeasured", function);
-            parameters.set("generalSemFunctionTemplateLatent", function);
-
-            parameters.set("generalSemErrorTemplate", "U(-.5, .5)");
+        parameters.set("generalSemErrorTemplate", "U(-.5, .5)");
 //            parameters.set("generalSemErrorTemplate", "N(0, 1)");
 
 //            parameters.set("generalSemParameterTemplate", "U(.2, .7)");
 //            parameters.set("generalSemParameterTemplate", "1")
-        } else if (problem == 4) {
-            parameters.set("numRuns", 1);
-            parameters.set("numMeasures", 5);
-            parameters.set("avgDegree", 3);
-            parameters.set("numLatents", 0);
-            parameters.set("differentGraphs", true);
-            parameters.set("sampleSize", 500);
-            parameters.set("fastFDR", false);
-            parameters.set("verbose", true);
-            parameters.set("alpha", 0.05);
-            parameters.set("kciAlpha", 0.05);
-            parameters.set("penaltyDiscount", 1);
-            parameters.set("maxDegree", 4);
-            parameters.set("colliderDiscoveryRule", 1);
-            parameters.set("conflictRule", 1);
-            parameters.set("useMaxPOrientationHeuristic", false);
-            parameters.set("maxPOrientationMaxPathLength", 3);
-            parameters.set("depth", -1);
-            parameters.set("stableFAS", false);
-            parameters.set("concurrentFAS", false);
-            parameters.set("cciScoreAlpha", .01);
-            parameters.set("numBasisFunctions", 30);
-            parameters.set("kernelType", 2);
-            parameters.set("kernelMultiplier", 1.0);
-            parameters.set("basisType", 2);
-            parameters.set("kernelRegressionSampleSize", 10);
 
-            String function = "TSUM($)";
-            parameters.set("generalSemFunctionTemplateMeasured", function);
-            parameters.set("generalSemFunctionTemplateLatent", function);
-            parameters.set("generalSemErrorTemplate", "U(-.2, .2)");
-        }
 
 //        parameters.set("percentDiscrete", 50);
 
@@ -236,7 +135,7 @@ public class Example3 {
         Algorithms algorithms = new Algorithms();
 
         algorithms.add(new PcAll(new Kci()));
-//        algorithms.add(new PcAll(new KciMatlab()));
+        algorithms.add(new PcAll(new KciMatlab()));
 
 //        algorithms.add(new PcAll(new ResidualCITMatlab()));
 //        algorithms.add(new/Library/Frameworks/R.Framework/Libraries PcAll(new FcitJRI()));
@@ -257,15 +156,7 @@ public class Example3 {
 
 //        simulations.add(new SemSimulation(new RandomForward()));
 
-        if (problem == 1 || problem == 3) {
-            simulations.add(new GeneralSemSimulation(new RandomForward()));
-        } else if (problem == 2) {
-            simulations.add(new GeneralSemSimulationRandomPostnonlinear(new RandomForward()));
-        } else if (problem == 4) {
-            simulations.add(new GeneralSemSimulationExample4(new RandomForward()));
-        }
-//        Simulation simulation = new LoadDataAndGraphs("comparison10vars");
-//        simulations.add(new LeeHastieSimulation(new RandomForward()));
+        simulations.add(new GeneralSemSimulation(new RandomForward()));
 
         Comparison comparison = new Comparison();
 
@@ -280,11 +171,9 @@ public class Example3 {
 //        comparison.setSavePatterns(true);
         comparison.setSavePags(true);
 
-        final String dir = "zhang.experiment5";
+        final String dir = "example3";
         comparison.saveToFiles(dir, simulations.getSimulations().get(0), parameters);
         comparison.compareFromFiles(dir, dir, algorithms, statistics, parameters);
-
-//        comparison.compareFromSimulations("Q", simulations, algorithms, statistics, parameters);
     }
 }
 
