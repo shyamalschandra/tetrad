@@ -43,13 +43,11 @@ import edu.cmu.tetrad.util.Parameters;
 public class Example3 {
 
     public static void main(String... args) {
-        int problem = 4;
-
         Parameters parameters = new Parameters();
 
-        parameters.set("numRuns", 1);
-        parameters.set("numMeasures", 5);
-        parameters.set("avgDegree", 2);
+        parameters.set("numRuns", 3);
+        parameters.set("numMeasures", 10);
+        parameters.set("avgDegree", 5);
         parameters.set("numLatents", 0);
         parameters.set("differentGraphs", true);
         parameters.set("sampleSize", 500);
@@ -63,7 +61,7 @@ public class Example3 {
         parameters.set("depth", -1);
         parameters.set("stableFAS", false);
         parameters.set("concurrentFAS", false);
-        parameters.set("alpha", 0.05, 0.01, 0.001);
+        parameters.set("alpha", 0.01, 0.001);
         parameters.set("kciAlpha", 0.05);
         parameters.set("penaltyDiscount", 1);
         parameters.set("cciScoreAlpha", .1);
@@ -71,7 +69,8 @@ public class Example3 {
         parameters.set("kernelType", 2);
         parameters.set("kernelMultiplier", 1.0);
         parameters.set("basisType", 1);
-        parameters.set("kernelRegressionSampleSize", 100);
+        parameters.set("kernelRegressionSampleSize", 120);
+        parameters.set("numDependenceSpotChecks", 0, 30, 100);
         parameters.set("verbose", true);
 
         final String function = "TPROD($) * ERROR";
@@ -80,7 +79,7 @@ public class Example3 {
         parameters.set("generalSemFunctionTemplateMeasured", function);
         parameters.set("generalSemFunctionTemplateLatent", function);
 
-        parameters.set("generalSemErrorTemplate", "U(-.5, .5)");
+        parameters.set("generalSemErrorTemplate", "U(-1, 1)");
 //            parameters.set("generalSemErrorTemplate", "N(0, 1)");
 
 //            parameters.set("generalSemParameterTemplate", "U(.2, .7)");
@@ -135,7 +134,7 @@ public class Example3 {
         Algorithms algorithms = new Algorithms();
 
         algorithms.add(new PcAll(new Kci()));
-        algorithms.add(new PcAll(new KciMatlab()));
+//        algorithms.add(new PcAll(new KciMatlab()));
 
 //        algorithms.add(new PcAll(new ResidualCITMatlab()));
 //        algorithms.add(new/Library/Frameworks/R.Framework/Libraries PcAll(new FcitJRI()));
