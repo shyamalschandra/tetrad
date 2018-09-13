@@ -51,7 +51,7 @@ public class Example4 {
         parameters.set("sampleSize", 500);
         parameters.set("fastFDR", false);
         parameters.set("verbose", true);
-        parameters.set("alpha", 0.01, 0.001);
+        parameters.set("alpha", 0.01);
         parameters.set("kciAlpha", 0.05);
         parameters.set("penaltyDiscount", 1);
         parameters.set("maxDegree", 4);
@@ -68,7 +68,7 @@ public class Example4 {
         parameters.set("kernelMultiplier", 1.0);
         parameters.set("basisType", 2);
         parameters.set("kernelRegressionSampleSize", 100);
-        parameters.set("numDependenceSpotChecks", 0, 30, 100);
+        parameters.set("numDependenceSpotChecks", 0);
 
         String function = "TSUM($)";
         parameters.set("generalSemFunctionTemplateMeasured", function);
@@ -122,8 +122,8 @@ public class Example4 {
         //==============ALGORIHTHMS============//
         Algorithms algorithms = new Algorithms();
 
-        algorithms.add(new PcAll(new Kci()));
-        algorithms.add(new PcAll(new KciMatlab()));
+//        algorithms.add(new PcAll(new Kci()));
+//        algorithms.add(new PcAll(new KciMatlab()));
 
 //        algorithms.add(new PcAll(new ResidualCITMatlab()));
 //        algorithms.add(new/Library/Frameworks/R.Framework/Libraries PcAll(new FcitJRI()));

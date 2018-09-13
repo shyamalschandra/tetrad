@@ -21,6 +21,7 @@
 
 package edu.cmu.tetrad.search;
 
+import edu.cmu.tetrad.algcomparison.TrueGraphSetter;
 import edu.cmu.tetrad.data.IKnowledge;
 import edu.cmu.tetrad.data.Knowledge2;
 import edu.cmu.tetrad.graph.*;
@@ -36,6 +37,8 @@ import java.util.*;
  * @author Joseph Ramsey (this version).
  */
 public final class PcAll implements GraphSearch {
+
+    private Graph trueGraph = null;
 
     public void setUseHeuristic(boolean useHeuristic) {
         this.useHeuristic = useHeuristic;
@@ -55,6 +58,10 @@ public final class PcAll implements GraphSearch {
 
     public void setConcurrent(Concurrent concurrent) {
         this.concurrent = concurrent;
+    }
+
+    public void setTrueGraph(Graph trueGraph) {
+        this.trueGraph = trueGraph;
     }
 
     public enum FasType {REGULAR, STABLE}
@@ -310,6 +317,7 @@ public final class PcAll implements GraphSearch {
         fas.setKnowledge(getKnowledge());
         fas.setDepth(getDepth());
         fas.setVerbose(verbose);
+        fas.setTrueGraph(trueGraph);
 
         // Note that we are ignoring the sepset map returned by this method
         // on purpose; it is not used in this search.

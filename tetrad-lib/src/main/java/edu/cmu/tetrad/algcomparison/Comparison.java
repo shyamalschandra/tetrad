@@ -1214,6 +1214,11 @@ public class Comparison {
             } else {
                 DataModel dataModel = copyData ? data.copy() : data;
                 Parameters _params = algorithmWrapper.getAlgorithmSpecificParameters();
+
+                if (algorithm instanceof TrueGraphSetter) {
+                    ((TrueGraphSetter) algorithm).setTrueGraph(trueGraph);
+                }
+
                 out = algorithm.search(dataModel, _params);
             }
         } catch (Exception e) {

@@ -23,7 +23,6 @@ package edu.cmu.tetrad.search;
 
 import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.graph.Node;
-import edu.cmu.tetrad.util.RandomUtil;
 import edu.cmu.tetrad.util.StatUtils;
 import org.apache.commons.math3.distribution.NormalDistribution;
 
@@ -60,7 +59,7 @@ public final class ConditionalCorrelationIndependence {
     public enum Basis {Polynomial, Cosine}
 
     /**
-     * The matrix of data, N x M, where N is the number of samples, M the number
+     * The matrix of data, M x N, where N is the number of samples, M the number
      * of variables, gotten from dataSet.
      */
     private final double[][] data;
@@ -241,52 +240,52 @@ public final class ConditionalCorrelationIndependence {
         this.score = score;
 
         // rx _||_ ry ?
-        if (score < cutoff) {
+//        if (score < cutoff) {
             return getPValue(score);
-        } else {
-            final int N = data[0].length;
-
-            int[] _z = new int[z.size()];
-
-            for (int m = 0; m < z.size(); m++) {
-                _z[m] = indices.get(z.get(m));
-            }
-
-            // X _||_ Y ?
-            if (z.isEmpty() || numDependenceSpotChecks == 0) {
-                return getPValue(score);
-            } else {
-                double min = Double.POSITIVE_INFINITY;
-
-                // X _||_ Y | Z ? Look for a dependence rx ~_||_ ry | Z = _z
-                for (int i = 0; i < numDependenceSpotChecks; i++) {
-                    List<Integer> js = new ArrayList<>(getCloseZs(data, _z,
-                            RandomUtil.getInstance().nextInt(N), kernelRegressionSampleSize));
-
-                    double[] rx2 = new double[js.size()];
-                    double[] ry2 = new double[js.size()];
-
-                    for (int k = 0; k < js.size(); k++) {
-                        rx2[k] = rx[js.get(k)];
-                        ry2[k] = ry[js.get(k)];
-                    }
-
-                    double _score = independent(rx2, ry2);
-
-                    if (_score > cutoff) {
-                        this.score = score;
-                        return getPValue(score);
-                    } else {
-                        if (_score < min) {
-                            min = _score;
-                        }
-                    }
-                }
-
-                this.score = min;
-                return getPValue(min);
-            }
-        }
+//        } else {
+//            final int N = data[0].length;
+//
+//            int[] _z = new int[z.size()];
+//
+//            for (int m = 0; m < z.size(); m++) {
+//                _z[m] = indices.get(z.get(m));
+//            }
+//
+//            // X _||_ Y ?
+//            if (z.isEmpty() || numDependenceSpotChecks == 0) {
+//                return getPValue(score);
+//            } else {
+//                double min = Double.POSITIVE_INFINITY;
+//
+//                // X _||_ Y | Z ? Look for a dependence rx ~_||_ ry | Z = _z
+//                for (int i = 0; i < numDependenceSpotChecks; i++) {
+//                    List<Integer> js = new ArrayList<>(getCloseZs(data, _z,
+//                            RandomUtil.getInstance().nextInt(N), kernelRegressionSampleSize));
+//
+//                    double[] rx2 = new double[js.size()];
+//                    double[] ry2 = new double[js.size()];
+//
+//                    for (int k = 0; k < js.size(); k++) {
+//                        rx2[k] = rx[js.get(k)];
+//                        ry2[k] = ry[js.get(k)];
+//                    }
+//
+//                    double _score = independent(rx2, ry2);
+//
+//                    if (_score > cutoff) {
+//                        this.score = score;
+//                        return getPValue(score);
+//                    } else {
+//                        if (_score < min) {
+//                            min = _score;
+//                        }
+//                    }
+//                }
+//
+//                this.score = min;
+//                return getPValue(min);
+//            }
+//        }
     }
 
     /**
@@ -392,7 +391,8 @@ public final class ConditionalCorrelationIndependence {
     }
 
     public double getPValue(double score) {
-        return 2.0 * (1.0 - new NormalDistribution(0, 1).cumulativeProbability(score));
+//        int n = data.length;// * (data.length - 1) / 2;
+        return 2 * (1.0 - new NormalDistribution(0, 1).cumulativeProbability(score));
     }
 
     /**
@@ -446,12 +446,13 @@ public final class ConditionalCorrelationIndependence {
                     _y[i] = function(n, y[i]);
                 }
 
-                final double score = abs(nonparametricFisherZ(_x, _y));
+                final double score = 0.75 * abs(nonparametricFisherZ(_x, _y));
+//                final double score = 0.8 * abs(fisherZ(_x, _y));
                 if (Double.isInfinite(score) || Double.isNaN(score)) continue;
 
-                if (earlyReturn && score >= cutoff) {
-                    return score;
-                }
+//                if (earlyReturn && score >= cutoff) {
+//                    return score;
+//                }
 
                 if (score > maxScore) {
                     maxScore = score;
@@ -471,6 +472,15 @@ public final class ConditionalCorrelationIndependence {
         }
 
         return x;
+    }
+
+    private double fisherZ(double[] _x, double[] _y) {
+
+        double r = correlation(_x, _y); // correlation
+        int N = _x.length;
+
+        // Non-parametric Fisher Z test.
+        return 0.5 * sqrt(N) * (log(1.0 + r) - log(1.0 - r));
     }
 
     private double nonparametricFisherZ(double[] _x, double[] _y) {

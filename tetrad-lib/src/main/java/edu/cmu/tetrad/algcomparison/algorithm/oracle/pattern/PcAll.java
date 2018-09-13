@@ -1,5 +1,6 @@
 package edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern;
 
+import edu.cmu.tetrad.algcomparison.TrueGraphSetter;
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithm;
 import edu.cmu.tetrad.algcomparison.independence.IndependenceWrapper;
 import edu.cmu.tetrad.algcomparison.utils.HasKnowledge;
@@ -30,13 +31,14 @@ import java.util.List;
         command = "pc-all",
         algoType = AlgType.forbid_latent_common_causes
 )
-public class PcAll implements Algorithm, TakesInitialGraph, HasKnowledge, TakesIndependenceWrapper {
+public class PcAll implements Algorithm, TakesInitialGraph, HasKnowledge, TakesIndependenceWrapper, TrueGraphSetter {
 
     static final long serialVersionUID = 23L;
     private IndependenceWrapper test;
     private Algorithm algorithm = null;
     private Graph initialGraph = null;
     private IKnowledge knowledge = new Knowledge2();
+    private Graph trueGraph = null;
 
     public PcAll() {
     }
@@ -107,6 +109,8 @@ public class PcAll implements Algorithm, TakesInitialGraph, HasKnowledge, TakesI
             search.setMaxPathLength(parameters.getInt("maxPOrientationMaxPathLength"));
             search.setVerbose(parameters.getBoolean("verbose"));
 
+            search.setTrueGraph(trueGraph);
+
             return search.search();
         } else {
             PcAll pcAll = new PcAll(test, algorithm);
@@ -138,6 +142,10 @@ public class PcAll implements Algorithm, TakesInitialGraph, HasKnowledge, TakesI
             search.setVerbose(parameters.getBoolean("verbose"));
             return search.search();
         }
+    }
+
+    public void setTrueGraph(Graph trueGraph) {
+        this.trueGraph = trueGraph;
     }
 
     @Override

@@ -123,6 +123,9 @@ public class Fas implements IFas {
     private boolean verbose = false;
 
     private PrintStream out = System.out;
+    private int trueIndep = 0;
+    private int testIndep = 0;
+    private IndTestDSep dsep = null;
 
     //==========================CONSTRUCTORS=============================//
 
@@ -310,6 +313,7 @@ public class Fas implements IFas {
                 boolean noEdgeRequired =
                         knowledge.noEdgeRequired(x.getName(), y.getName());
 
+                printDsepCount(x, y, empty, independent);
 
                 if (independent && noEdgeRequired) {
                     getSepsets().set(x, y, empty);
@@ -405,6 +409,9 @@ public class Fas implements IFas {
                             numDependenceJudgement++;
                         }
 
+                        printDsepCount(x, y, condSet, independent);
+
+
                         boolean noEdgeRequired =
                                 knowledge.noEdgeRequired(x.getName(), y.getName());
 
@@ -428,6 +435,22 @@ public class Fas implements IFas {
         }
 
         return freeDegree(nodes, adjacencies) > depth;
+    }
+
+    private void printDsepCount(Node x, Node y, List<Node> condSet, boolean independent) {
+        if (dsep != null) {
+            final boolean trueIndep = dsep.isIndependent(x, y, condSet);
+
+            if (trueIndep) {
+                this.trueIndep++;
+            }
+
+            if (trueIndep && !independent) {
+                this.testIndep++;
+            }
+
+            System.out.println("TRUE INDEP = " + this.trueIndep + " DEP AMONG TRUE INDEP = " + this.testIndep + " RATIO = " + (this.testIndep / (double) this.trueIndep));
+        }
     }
 
     private List<Node> possibleParents(Node x, List<Node> adjx,
@@ -455,7 +478,9 @@ public class Fas implements IFas {
     }
 
     public void setTrueGraph(Graph trueGraph) {
+        trueGraph = GraphUtils.replaceNodes(trueGraph, test.getVariables());
         this.trueGraph = trueGraph;
+        dsep = new IndTestDSep(trueGraph);
     }
 
     public int getNumFalseDependenceJudgments() {
