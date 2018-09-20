@@ -25,6 +25,7 @@ import edu.cmu.tetrad.util.JOptionUtils;
 import edu.cmu.tetrad.util.TetradLogger;
 import edu.cmu.tetrad.util.Version;
 import edu.cmu.tetradapp.app.TetradDesktop;
+import edu.cmu.tetradapp.plugin.SpringConfiguration;
 import edu.cmu.tetradapp.util.DesktopController;
 import edu.cmu.tetradapp.util.ImageUtils;
 import edu.cmu.tetradapp.util.SplashScreen;
@@ -40,6 +41,9 @@ import java.util.Locale;
 import javax.swing.JFrame;
 import javax.swing.UIManager;
 import javax.swing.WindowConstants;
+
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
 /**
  * <p>
@@ -122,6 +126,10 @@ public final class Tetrad implements PropertyChangeListener {
         // Check if we should skip checking for latest version
         skipLatest = argv.length > 0 && argv[0] != null && argv[0].compareToIgnoreCase("--skip-latest") == 0;
         SplashScreen.show("Loading Tetrad...", 1000, skipLatest);
+        
+        // retrieves the spring application context
+        ApplicationContext applicationContext = new AnnotationConfigApplicationContext(SpringConfiguration.class);
+        
         EventQueue.invokeLater(() -> {
             new Tetrad().launchFrame();
         });
