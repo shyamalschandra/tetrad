@@ -7,7 +7,7 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
-import edu.cmu.tetradapp.plugin.api.PluginAlgorithm;
+import edu.pitt.dbmi.tetrad.plugin.api.PluginAlgorithm;
 
 /**
  * Sep 20, 2018 5:25:05 PM

@@ -142,6 +142,12 @@
 			<version>0.3.1</version>
 		</dependency>
 
+		<dependency>
+			<groupId>edu.pitt.dbmi</groupId>
+			<artifactId>tetrad-plugin-api</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
+
 		<!-- pf4j plugins -->
 		<dependency>
 			<groupId>org.pf4j</groupId>
