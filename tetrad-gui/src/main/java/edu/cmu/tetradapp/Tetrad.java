@@ -20,15 +20,22 @@
 ///////////////////////////////////////////////////////////////////////////////
 package edu.cmu.tetradapp;
 
+import edu.cmu.tetrad.algcomparison.algorithm.Algorithm;
+import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.Fges;
+import edu.cmu.tetrad.algcomparison.utils.HasKnowledge;
+import edu.cmu.tetrad.algcomparison.utils.TakesInitialGraph;
+import edu.cmu.tetrad.algcomparison.utils.UsesScoreWrapper;
 import edu.cmu.tetrad.graph.NodeEqualityMode;
 import edu.cmu.tetrad.util.JOptionUtils;
 import edu.cmu.tetrad.util.TetradLogger;
 import edu.cmu.tetrad.util.Version;
 import edu.cmu.tetradapp.app.TetradDesktop;
-import edu.cmu.tetradapp.plugin.SpringConfiguration;
 import edu.cmu.tetradapp.util.DesktopController;
 import edu.cmu.tetradapp.util.ImageUtils;
 import edu.cmu.tetradapp.util.SplashScreen;
+
+import static org.hamcrest.CoreMatchers.instanceOf;
+
 import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.Image;
@@ -37,237 +44,248 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.List;
 import java.util.Locale;
+import java.util.Set;
+
 import javax.swing.JFrame;
 import javax.swing.UIManager;
 import javax.swing.WindowConstants;
 
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.pf4j.DefaultPluginManager;
+import org.pf4j.PluginManager;
+import org.pf4j.PluginWrapper;
 
 /**
  * <p>
  * Launches Tetrad as an application. The intended class path in either case is
  * "edu.cmu.tetradapp.Tetrad", so care should be taken not to move this class
  * out of the "INSTANCE" package. The launch itself is carried out by the method
- * "launchFrame()", which generates a new frame for the application.</p>
+ * "launchFrame()", which generates a new frame for the application.
+ * </p>
  * <p>
- * Note to programmers: <b>Please don't make any changes to this class.</b>
- * If you need another way of launching Tetrad for special purposes, it's easy
- * enough to create a copy of this class with a different name and modify
- * it.</p>
+ * Note to programmers: <b>Please don't make any changes to this class.</b> If
+ * you need another way of launching Tetrad for special purposes, it's easy
+ * enough to create a copy of this class with a different name and modify it.
+ * </p>
  *
  * @author Joseph Ramsey jdramsey@andrew.cmu.edu
  */
 public final class Tetrad implements PropertyChangeListener {
 
-    /**
-     * The launch frame.
-     */
-    private JFrame frame;
+	/**
+	 * The launch frame.
+	 */
+	private JFrame frame;
 
-    /**
-     * The desktop placed into the launch frame.
-     */
-    private TetradDesktop desktop;
+	/**
+	 * The desktop placed into the launch frame.
+	 */
+	private TetradDesktop desktop;
 
-    /**
-     * The main application title.
-     */
-    private final String mainTitle
-            = "Tetrad " + Version.currentViewableVersion()
-                    .toString();
+	/**
+	 * The main application title.
+	 */
+	private final String mainTitle = "Tetrad " + Version.currentViewableVersion().toString();
 
-    /**
-     * Skip latest version checking
-     */
-    private static boolean skipLatest;
+	/**
+	 * Skip latest version checking
+	 */
+	private static boolean skipLatest;
 
-    //==============================CONSTRUCTORS===========================//
-    public Tetrad() {
-    }
+	// ==============================CONSTRUCTORS===========================//
+	public Tetrad() {
 
-    //==============================PUBLIC METHODS=========================//
-    /**
-     * Responds to "exitProgram" property change events by disposing of the
-     * Tetrad IV frame and exiting if possible.
-     *
-     * @param e the property change event
-     */
-    public void propertyChange(final PropertyChangeEvent e) {
-        if ("exitProgram".equals(e.getPropertyName())) {
-            exitApplication();
-        }
-    }
+	}
 
-    /**
-     * <p>
-     * Launches Tetrad as an application. One way to launch Tetrad IV as an
-     * application is the following:</p>
-     * <pre>java -cp jarname.jar INSTANCE.Tetrad</pre>
-     * <p>
-     * where "jarname.jar" is a jar containing all of the classes of Tetrad IV,
-     * properly compiled, along with all of the auxiliary jar contents and all
-     * of the images which Tetrad IV uses, all in their proper relative
-     * directories.</p>
-     *
-     * @param argv --skip-latest argument will skip checking for latest version.
-     */
-    public static void main(final String[] argv) {
+	// ==============================PUBLIC METHODS=========================//
+	/**
+	 * Responds to "exitProgram" property change events by disposing of the Tetrad
+	 * IV frame and exiting if possible.
+	 *
+	 * @param e
+	 *            the property change event
+	 */
+	public void propertyChange(final PropertyChangeEvent e) {
+		if ("exitProgram".equals(e.getPropertyName())) {
+			exitApplication();
+		}
+	}
 
-        // Avoid updates to swing code that causes comparison-method-violates-its-general-contract warnings
-        System.setProperty("java.util.Arrays.useLegacyMergeSort", "true");
+	/**
+	 * <p>
+	 * Launches Tetrad as an application. One way to launch Tetrad IV as an
+	 * application is the following:
+	 * </p>
+	 * 
+	 * <pre>
+	 * java -cp jarname.jar INSTANCE.Tetrad
+	 * </pre>
+	 * <p>
+	 * where "jarname.jar" is a jar containing all of the classes of Tetrad IV,
+	 * properly compiled, along with all of the auxiliary jar contents and all of
+	 * the images which Tetrad IV uses, all in their proper relative directories.
+	 * </p>
+	 *
+	 * @param argv
+	 *            --skip-latest argument will skip checking for latest version.
+	 */
+	public static void main(final String[] argv) {
 
-        setLookAndFeel();
+		// Avoid updates to swing code that causes
+		// comparison-method-violates-its-general-contract warnings
+		System.setProperty("java.util.Arrays.useLegacyMergeSort", "true");
 
-        // This is needed to get numbers to be parsed and rendered uniformly, especially in the interface.
-        Locale.setDefault(Locale.US);
+		setLookAndFeel();
 
-        // Check if we should skip checking for latest version
-        skipLatest = argv.length > 0 && argv[0] != null && argv[0].compareToIgnoreCase("--skip-latest") == 0;
-        SplashScreen.show("Loading Tetrad...", 1000, skipLatest);
-        
-        // retrieves the spring application context
-        ApplicationContext applicationContext = new AnnotationConfigApplicationContext(SpringConfiguration.class);
-        
-        EventQueue.invokeLater(() -> {
-            new Tetrad().launchFrame();
-        });
-    }
+		// This is needed to get numbers to be parsed and rendered uniformly, especially
+		// in the interface.
+		Locale.setDefault(Locale.US);
 
-    //===============================PRIVATE METHODS=======================//
-    private static void setLookAndFeel() {
-        try {
-            String os = System.getProperties().getProperty("os.name");
-            if (os.equals("Windows XP")) {
-                // The only system look and feel that seems to work well is the
-                // one for Windows XP. When running on Mac the mac look and
-                // feel is forced. The new look (synth or whatever its called)
-                // and feel for linux on 1.5 looks
-                // pretty bad so it shouldn't be used.
-                // By default linux will use the metal look and feel.
-                UIManager.setLookAndFeel(
-                        UIManager.getSystemLookAndFeelClassName());
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
+		// Check if we should skip checking for latest version
+		skipLatest = argv.length > 0 && argv[0] != null && argv[0].compareToIgnoreCase("--skip-latest") == 0;
+		SplashScreen.show("Loading Tetrad...", 1000, skipLatest);
 
-    /**
-     * Launches the frame. (This is left as a separate method in case we ever
-     * want to launch it as an applet.)
-     */
-    private void launchFrame() {
-        System.setProperty("java.util.Arrays.useLegacyMergeSort", "true");
-        NodeEqualityMode.setEqualityMode(NodeEqualityMode.Type.OBJECT);
+		EventQueue.invokeLater(() -> {
+			new Tetrad().launchFrame();
+		});
+	}
 
-        // Set up the desktop.
-        this.desktop = new TetradDesktop();
-        getDesktop().addPropertyChangeListener(this);
-        JOptionUtils.setCenteringComp(getDesktop());
-        DesktopController.setReference(getDesktop());
+	// ===============================PRIVATE METHODS=======================//
+	private static void setLookAndFeel() {
+		try {
+			String os = System.getProperties().getProperty("os.name");
+			if (os.equals("Windows XP")) {
+				// The only system look and feel that seems to work well is the
+				// one for Windows XP. When running on Mac the mac look and
+				// feel is forced. The new look (synth or whatever its called)
+				// and feel for linux on 1.5 looks
+				// pretty bad so it shouldn't be used.
+				// By default linux will use the metal look and feel.
+				UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
 
-        // Set up the frame. Note the order in which the next few steps
-        // happen. First, the frame is given a preferred size, so that if
-        // someone unmaximizes it it doesn't shrivel up to the top left
-        // corner. Next, the content pane is set. Next, it is packed. Finally,
-        // it is maximized. For some reason, most of the details of this
-        // order are important. jdramsey 12/14/02
-        this.frame = new JFrame(this.mainTitle) {
+	/**
+	 * Launches the frame. (This is left as a separate method in case we ever want
+	 * to launch it as an applet.)
+	 */
+	private void launchFrame() {
+		System.setProperty("java.util.Arrays.useLegacyMergeSort", "true");
+		NodeEqualityMode.setEqualityMode(NodeEqualityMode.Type.OBJECT);
 
-            private static final long serialVersionUID = -9077349253115802418L;
+		// Set up the desktop.
+		this.desktop = new TetradDesktop();
+		getDesktop().addPropertyChangeListener(this);
+		JOptionUtils.setCenteringComp(getDesktop());
+		DesktopController.setReference(getDesktop());
 
-            @Override
-            public Dimension getPreferredSize() {
-                Dimension size = Toolkit.getDefaultToolkit().getScreenSize();
-                double minLength = Math.min(size.getWidth(), size.getHeight());
-                double height = minLength * 0.8;
-                double width = height * (4.0 / 3);
+		// Set up the frame. Note the order in which the next few steps
+		// happen. First, the frame is given a preferred size, so that if
+		// someone unmaximizes it it doesn't shrivel up to the top left
+		// corner. Next, the content pane is set. Next, it is packed. Finally,
+		// it is maximized. For some reason, most of the details of this
+		// order are important. jdramsey 12/14/02
+		this.frame = new JFrame(this.mainTitle) {
 
-                return new Dimension((int) width, (int) height);
-//                return Toolkit.getDefaultToolkit().getScreenSize();
+			private static final long serialVersionUID = -9077349253115802418L;
 
-//                Dimension size = Toolkit.getDefaultToolkit().getScreenSize();
-//                return new Dimension(size.width - 100, size.height - 100);
-            }
+			@Override
+			public Dimension getPreferredSize() {
+				Dimension size = Toolkit.getDefaultToolkit().getScreenSize();
+				double minLength = Math.min(size.getWidth(), size.getHeight());
+				double height = minLength * 0.8;
+				double width = height * (4.0 / 3);
 
-//            public Dimension getMinimumSize() {
-//                return Toolkit.getDefaultToolkit().getScreenSize();
-////                return new Dimension(400, 400);
-//            }
-//////
-//            public Dimension getMaximumSize() {
-//                return Toolkit.getDefaultToolkit().getScreenSize();
-//            }
-        };
+				return new Dimension((int) width, (int) height);
+				// return Toolkit.getDefaultToolkit().getScreenSize();
 
-        // Fixing a bug caused by switch to Oracle Java (at least for Mac), although I must say the following
-        // code is what should have worked to begin with. Bug was that sessions would appear only in the lower
-        // left hand corner of the screen.
-        this.frame.setPreferredSize(Toolkit.getDefaultToolkit().getScreenSize());
-//        this.frame.setMinimumSize(Toolkit.getDefaultToolkit().getScreenSize());
-//        this.frame.setMaximumSize(Toolkit.getDefaultToolkit().getScreenSize());
+				// Dimension size = Toolkit.getDefaultToolkit().getScreenSize();
+				// return new Dimension(size.width - 100, size.height - 100);
+			}
 
-        getFrame().setContentPane(getDesktop());
-        getFrame().pack();
-        getFrame().setLocationRelativeTo(null);
+			// public Dimension getMinimumSize() {
+			// return Toolkit.getDefaultToolkit().getScreenSize();
+			//// return new Dimension(400, 400);
+			// }
+			//////
+			// public Dimension getMaximumSize() {
+			// return Toolkit.getDefaultToolkit().getScreenSize();
+			// }
+		};
 
-        // This doesn't let the user resize the main window.
-//        getFrame().setExtendedState(Frame.MAXIMIZED_BOTH);
-        Image image = ImageUtils.getImage(this, "tyler16.png");
-        getFrame().setIconImage(image);
+		// Fixing a bug caused by switch to Oracle Java (at least for Mac), although I
+		// must say the following
+		// code is what should have worked to begin with. Bug was that sessions would
+		// appear only in the lower
+		// left hand corner of the screen.
+		this.frame.setPreferredSize(Toolkit.getDefaultToolkit().getScreenSize());
+		// this.frame.setMinimumSize(Toolkit.getDefaultToolkit().getScreenSize());
+		// this.frame.setMaximumSize(Toolkit.getDefaultToolkit().getScreenSize());
 
-        // Add an initial session editor to the desktop. Must be done
-        // from here, not in the constructor of TetradDesktop.
-        getDesktop().newSessionEditor();
-        getFrame().setVisible(true);
-        getFrame().setDefaultCloseOperation(
-                WindowConstants.DO_NOTHING_ON_CLOSE);
+		getFrame().setContentPane(getDesktop());
+		getFrame().pack();
+		getFrame().setLocationRelativeTo(null);
 
-        getFrame().addWindowListener(new WindowAdapter() {
-            @Override
-            public void windowClosing(final WindowEvent e) {
-                exitApplication();
-            }
-        });
+		// This doesn't let the user resize the main window.
+		// getFrame().setExtendedState(Frame.MAXIMIZED_BOTH);
+		Image image = ImageUtils.getImage(this, "tyler16.png");
+		getFrame().setIconImage(image);
 
-        SplashScreen.hide();
+		// Add an initial session editor to the desktop. Must be done
+		// from here, not in the constructor of TetradDesktop.
+		getDesktop().newSessionEditor();
+		getFrame().setVisible(true);
+		getFrame().setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 
-//        try {
-//            Preferences.userRoot().clear();
-//        } catch (BackingStoreException e) {
-//            e.printStackTrace();
-//        }
-    }
+		getFrame().addWindowListener(new WindowAdapter() {
+			@Override
+			public void windowClosing(final WindowEvent e) {
+				exitApplication();
+			}
+		});
 
-    /**
-     * Exits the application gracefully.
-     */
-    private void exitApplication() {
-        boolean succeeded = getDesktop().closeAllSessions();
+		SplashScreen.hide();
 
-        if (!succeeded) {
-            return;
-        }
+		// try {
+		// Preferences.userRoot().clear();
+		// } catch (BackingStoreException e) {
+		// e.printStackTrace();
+		// }
+	}
 
-        getFrame().setVisible(false);
-        getFrame().dispose();
-        TetradLogger.getInstance().removeNextOutputStream();
+	/**
+	 * Exits the application gracefully.
+	 */
+	private void exitApplication() {
+		boolean succeeded = getDesktop().closeAllSessions();
 
-        try {
-            System.exit(0);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
+		if (!succeeded) {
+			return;
+		}
 
-    private JFrame getFrame() {
-        return frame;
-    }
+		getFrame().setVisible(false);
+		getFrame().dispose();
+		TetradLogger.getInstance().removeNextOutputStream();
 
-    private TetradDesktop getDesktop() {
-        return desktop;
-    }
+		try {
+			System.exit(0);
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	private JFrame getFrame() {
+		return frame;
+	}
+
+	private TetradDesktop getDesktop() {
+		return desktop;
+	}
 
 }
