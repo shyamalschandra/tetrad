@@ -25,9 +25,7 @@ import edu.cmu.tetrad.algcomparison.Comparison;
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithms;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.PcAll;
 import edu.cmu.tetrad.algcomparison.graph.RandomForward;
-import edu.cmu.tetrad.algcomparison.independence.CciTest;
-import edu.cmu.tetrad.algcomparison.independence.Kci;
-import edu.cmu.tetrad.algcomparison.independence.KciMatlab;
+import edu.cmu.tetrad.algcomparison.independence.*;
 import edu.cmu.tetrad.algcomparison.simulation.GeneralSemSimulationExample4;
 import edu.cmu.tetrad.algcomparison.simulation.Simulations;
 import edu.cmu.tetrad.algcomparison.statistic.*;
@@ -44,14 +42,14 @@ public class Example4 {
         Parameters parameters = new Parameters();
 
         parameters.set("numRuns", 1);
-        parameters.set("numMeasures", 5);
+        parameters.set("numMeasures", 20);
         parameters.set("avgDegree", 2);
         parameters.set("numLatents", 0);
         parameters.set("differentGraphs", true);
-        parameters.set("sampleSize", 500);
-        parameters.set("fastFDR", false);
+        parameters.set("sampleSize", 1000);
+        parameters.set("fastFDR", true);
         parameters.set("verbose", true);
-        parameters.set("alpha", 0.01);
+        parameters.set("alpha", 0.001);
         parameters.set("kciAlpha", 0.05);
         parameters.set("penaltyDiscount", 1);
         parameters.set("maxDegree", 4);
@@ -156,10 +154,10 @@ public class Example4 {
         comparison.setSavePags(true);
 
         final String dir = "example4";
-        comparison.saveToFiles(dir, simulations.getSimulations().get(0), parameters);
-        comparison.compareFromFiles(dir, dir, algorithms, statistics, parameters);
-
-//        comparison.compareFromSimulations("Q", simulations, algorithms, statistics, parameters);
+//        comparison.saveToFiles(dir, simulations.getSimulations().get(0), parameters);
+//        comparison.compareFromFiles(dir, dir, algorithms, statistics, parameters);
+//
+        comparison.compareFromSimulations(dir, simulations, algorithms, statistics, parameters);
     }
 }
 

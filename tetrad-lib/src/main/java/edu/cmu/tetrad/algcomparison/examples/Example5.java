@@ -24,9 +24,10 @@ package edu.cmu.tetrad.algcomparison.examples;
 import edu.cmu.tetrad.algcomparison.Comparison;
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithms;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.PcAll;
+import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.Pcp;
 import edu.cmu.tetrad.algcomparison.graph.RandomForward;
-import edu.cmu.tetrad.algcomparison.independence.*;
-import edu.cmu.tetrad.algcomparison.simulation.GeneralSemSimulation;
+import edu.cmu.tetrad.algcomparison.independence.FisherZ;
+import edu.cmu.tetrad.algcomparison.simulation.LinearFisherModel;
 import edu.cmu.tetrad.algcomparison.simulation.Simulations;
 import edu.cmu.tetrad.algcomparison.statistic.*;
 import edu.cmu.tetrad.util.Parameters;
@@ -36,17 +37,19 @@ import edu.cmu.tetrad.util.Parameters;
  *
  * @author jdramsey
  */
-public class Example3 {
+public class Example5 {
 
     public static void main(String... args) {
+//        RandomUtil.getInstance().setSeed(384828384L);
+
         Parameters parameters = new Parameters();
 
         parameters.set("numRuns", 1);
-        parameters.set("numMeasures", 20);
-        parameters.set("avgDegree", 2);
+        parameters.set("numMeasures", 100);
+        parameters.set("avgDegree", 4);
         parameters.set("numLatents", 0);
         parameters.set("differentGraphs", true);
-        parameters.set("sampleSize", 500);
+        parameters.set("sampleSize", 1000);
         parameters.set("fastFDR", true);
         parameters.set("verbose", false);
         parameters.set("maxDegree", 4);
@@ -55,32 +58,31 @@ public class Example3 {
         parameters.set("useMaxPOrientationHeuristic", false);
         parameters.set("maxPOrientationMaxPathLength", 3);
         parameters.set("depth", -1);
-        parameters.set("stableFAS", false);
+        parameters.set("fasType", 4, 5);
+        parameters.set("stableFAS", true);
         parameters.set("concurrentFAS", false);
-        parameters.set("alpha", 0.01);
-        parameters.set("kciAlpha", 0.05);
+        parameters.set("alpha", .05);
         parameters.set("penaltyDiscount", 1);
-        parameters.set("cciScoreAlpha", .1);
-        parameters.set("numBasisFunctions", 10);
+//        parameters.set("cciScoreAlpha", .003);
+        parameters.set("numBasisFunctions", 20);
         parameters.set("kernelType", 2);
         parameters.set("kernelMultiplier", 1.0);
-        parameters.set("basisType", 1);
-        parameters.set("kernelRegressionSampleSize", 120);
-        parameters.set("numDependenceSpotChecks", 0);
-        parameters.set("verbose", true);
+        parameters.set("basisType", 2);
+        parameters.set("kernelRegressionSampleSize", 10);
+        parameters.set("numDependenceSpotChecks", 30);
 
-        final String function = "TPROD($) * ERROR";
+        String function = "TSUM(NEW(B) * $^2)";
+//        final String function = "TPROD($) * ERROR";
 //        final String function = "TSUM(1 - 4 * exp(-$^2 / 2) * $))";
 //        final String function = "TSUM(1 - 4 * exp(-$^2 / 2) * $ * $ * $";
         parameters.set("generalSemFunctionTemplateMeasured", function);
         parameters.set("generalSemFunctionTemplateLatent", function);
 
-        parameters.set("generalSemErrorTemplate", "U(-1, 1)");
-//            parameters.set("generalSemErrorTemplate", "N(0, 1)");
+//        parameters.set("generalSemErrorTemplate", "U(-.2, .2)");
+        parameters.set("generalSemErrorTemplate", "N(0, 1)");
 
-//            parameters.set("generalSemParameterTemplate", "U(.2, .7)");
-//            parameters.set("generalSemParameterTemplate", "1")
-
+        parameters.set("generalSemParameterTemplate", "U(.2, .7)");
+//        parameters.set("generalSemParameterTemplate", "1")
 
 //        parameters.set("percentDiscrete", 50);
 
@@ -89,8 +91,9 @@ public class Example3 {
 //        statistics.add(new ParameterColumn("colliderDiscoveryRule"));
 //        statistics.add(new ParameterColumn("conflictRule"));
 //
-//        statistics.add(new ParameterColumn("alpha"));
-//        statistics.add(new ParameterColumn("cciScoreAlpha"));
+        statistics.add(new ParameterColumn("numMeasures"));
+        statistics.add(new ParameterColumn("avgDegree"));
+//        statistics.add(new ParameterColumn("sampleSize"));
 //        statistics.add(new ParameterColumn("conflictRule"));
 //        statistics.add(new ParameterColumn("numBasisFunctions"));
 //        statistics.add(new ParameterColumn("kernelType"));
@@ -135,9 +138,10 @@ public class Example3 {
 //        algorithms.add(new PcAll(new ResidualCITMatlab()));
 //        algorithms.add(new/Library/Frameworks/R.Framework/Libraries PcAll(new FcitJRI()));
 ////
-        algorithms.add(new PcAll(new RcotJRI()));
-        algorithms.add(new PcAll(new RcitJRI()));
-        algorithms.add(new PcAll(new CciTest()));
+//        algorithms.add(new PcAll(new RcotJRI()));
+//        algorithms.add(new PcAll(new RcitJRI()));
+//        algorithms.add(new PcAll(new FisherZ()));
+        algorithms.add(new Pcp(new FisherZ()));
 //        algorithms.add(new Fges(new CciScore()));
 //        algorithms.add(new PcAll(new FcitJRI()));
 
@@ -151,24 +155,29 @@ public class Example3 {
 
 //        simulations.add(new SemSimulation(new RandomForward()));
 
-        simulations.add(new GeneralSemSimulation(new RandomForward()));
+        simulations.add(new LinearFisherModel(new RandomForward()));
+//        simulations.add(new GeneralSemSimulation(new RandomForward()));
+//        Simulation simulation = new LoadDataAndGraphs("comparison10vars");
+//        simulations.add(new LeeHastieSimulation(new RandomForward()));
 
         Comparison comparison = new Comparison();
 
         comparison.setShowAlgorithmIndices(true);
         comparison.setShowSimulationIndices(false);
-        comparison.setSortByUtility(true);
+        comparison.setSortByUtility(false);
         comparison.setShowUtilities(false);
         comparison.setParallelized(false);
-        comparison.setComparisonGraph(Comparison.ComparisonGraph.true_DAG);
+        comparison.setComparisonGraph(Comparison.ComparisonGraph.Pattern_of_the_true_DAG);
 
         comparison.setSaveGraphs(true);
 //        comparison.setSavePatterns(true);
         comparison.setSavePags(true);
 
-        final String dir = "example3";
-        comparison.saveToFiles(dir, simulations.getSimulations().get(0), parameters);
-        comparison.compareFromFiles(dir, dir, algorithms, statistics, parameters);
+        final String dir = "example5";
+//        comparison.saveToFiles(dir, simulations.getSimulations().get(0), parameters);
+//        comparison.compareFromFiles(dir, dir, algorithms, statistics, parameters);
+//
+        comparison.compareFromSimulations(dir, simulations, algorithms, statistics, parameters);
     }
 }
 

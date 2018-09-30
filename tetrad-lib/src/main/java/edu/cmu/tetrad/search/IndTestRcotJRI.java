@@ -25,9 +25,7 @@ import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.data.ICovarianceMatrix;
 import edu.cmu.tetrad.graph.IndependenceFact;
 import edu.cmu.tetrad.graph.Node;
-import edu.cmu.tetrad.util.NumberFormatUtil;
-import edu.cmu.tetrad.util.TetradLogger;
-import edu.cmu.tetrad.util.TetradMatrix;
+import edu.cmu.tetrad.util.*;
 import org.rosuda.JRI.Rengine;
 
 import java.text.NumberFormat;
@@ -72,6 +70,9 @@ public final class IndTestRcotJRI implements IndependenceTest {
     private boolean verbose = false;
     private static Rengine r;
     private boolean fastFDR = false;
+    private boolean fdrCutoffCalculated = false;
+    private double adjustedAlpha;
+    private List<Double> ps;
 
     //==========================CONSTRUCTORS=============================//
 
@@ -123,45 +124,59 @@ public final class IndTestRcotJRI implements IndependenceTest {
         throw new UnsupportedOperationException();
     }
 
+
+
     public boolean isIndependent(Node x, Node y, List<Node> z) {
-
-        r.assign("x", _data[nodeMap.get(x)]);
-        r.assign("y", _data[nodeMap.get(y)]);
-
-        r.eval("z<-NULL");
-
-        for (int s = 0; s < z.size(); s++) {
-            double[] col = _data[nodeMap.get(z.get(s))];
-
-            IndTestRcotJRI.r.assign("z0", col);
-            IndTestRcotJRI.r.eval("if (is.null(z)) {z <- rbind(z0)} else {z<-rbind(z, z0)}");
-        }
-
-        r.eval("if (!is.null(z)) z = t(z)");
-
-//        double p = r.eval("RCoT(x,y,z,approx=\"lpd4\")$p").asDouble();
-        double p = r.eval("RCoT(x,y,z,num_f=50)$p").asDouble();
-
         if (fastFDR) {
-            final int d1 = 0; // reference
-            final int d2 = z.size();
-            final int v = variables.size() - 2;
-
-            double alpha2 = (exp(log(alpha) + logChoose(v, d1) - logChoose(v, d2)));
-            final boolean independent = p > alpha2;
-            IndependenceFact fact = new IndependenceFact(x, y, z);
-
-            if (independent) {
-                System.out.println(fact + " INDEPENDENT p = " + p);
-                TetradLogger.getInstance().log("info", fact + " Independent");
-
-            } else {
-                System.out.println(fact + " dependent p = " + p);
-                TetradLogger.getInstance().log("info", fact.toString());
+            if (!fdrCutoffCalculated) {
+                ps = calcFdrAdjustedAlpha();
+                fdrCutoffCalculated = true;
             }
 
-            return independent;
+            double p = getP(x, y, z);
+
+            if (verbose) {
+                IndependenceFact fact = new IndependenceFact(x, y, z);
+
+                if (p > adjustedAlpha) {
+                    final String s = fact + " INDEPENDENT p = " + p;
+                    System.out.println(s);
+                    TetradLogger.getInstance().log("info", s);
+
+                } else {
+                    final String s = fact + " dependent p = " + p;
+                    System.out.println(s);
+                    TetradLogger.getInstance().log("info", s);
+                }
+            }
+
+            boolean added = false;
+
+            if (ps.isEmpty()) {
+                ps.add(p);
+                added = true;
+            } else {
+                for (int i = 0; i < ps.size(); i++) {
+                    if (ps.get(i) > p) {
+                        ps.add(i, p);
+                        added = true;
+                        break;
+                    }
+                }
+            }
+
+            if (!added) {
+                ps.add(p);
+            }
+
+            adjustedAlpha = StatUtils.fdrCutoff(alpha, ps, true, true);
+
+            System.out.println("StableFDR adjusted alpha = " + adjustedAlpha);
+
+            return p > adjustedAlpha;
         } else {
+            double p = getP(x, y, z);
+
             final boolean independent = p > alpha;
             IndependenceFact fact = new IndependenceFact(x, y, z);
 
@@ -176,6 +191,28 @@ public final class IndTestRcotJRI implements IndependenceTest {
 
             return independent;
         }
+    }
+
+    private double getP(Node x, Node y, List<Node> z) {
+        double[] _x = _data[nodeMap.get(x)];
+        double[] _y = _data[nodeMap.get(y)];
+
+        r.assign("x", _x);
+        r.assign("y", _y);
+
+        r.eval("z<-NULL");
+
+        for (int s = 0; s < z.size(); s++) {
+            double[] col = _data[nodeMap.get(z.get(s))];
+
+            IndTestRcotJRI.r.assign("z0", col);
+            IndTestRcotJRI.r.eval("if (is.null(z)) {z <- rbind(z0)} else {z<-rbind(z, z0)}");
+        }
+
+        r.eval("if (!is.null(z)) z = t(z)");
+
+//        double p = r.eval("RCoT(x,y,z,approx=\"lpd4\")$p").asDouble();
+        return r.eval("RCoT(x,y,z,num_f=50)$p").asDouble();
     }
 
     public boolean isIndependent(Node x, Node y, Node... z) {
@@ -345,6 +382,40 @@ public final class IndTestRcotJRI implements IndependenceTest {
 
     public void setFastFDR(boolean fastFDR) {
         this.fastFDR = fastFDR;
+    }
+
+    private List<Double> calcFdrAdjustedAlpha() {
+        List<Double> ps = new ArrayList<>();
+//        Set<IndependenceFact> facts = new HashSet<>();
+        List<Node> shuffled = new ArrayList<>(variables);
+
+        for (int i = 0; i < 20; i++) {
+            Collections.shuffle(shuffled);
+
+            int maxDepth = 0;
+            int depth = RandomUtil.getInstance().nextInt(maxDepth + 1);
+
+            Node __x = shuffled.get(0);
+            Node __y = shuffled.get(1);
+            List<Node> __z = new ArrayList<>();
+
+            for (int d = 0; d < depth; d++) {
+                __z.add(shuffled.get(d + 2));
+            }
+
+            double p = getP(__x, __y, __z);
+
+            System.out.println("d = " + depth + " p = " + p);
+            ps.add(p);
+        }
+
+        Collections.sort(ps);
+
+        adjustedAlpha = StatUtils.fdrCutoff(alpha, ps, true, true);
+
+        System.out.println("StableFDR adjusted alpha = " + adjustedAlpha);
+
+        return ps;
     }
 }
 

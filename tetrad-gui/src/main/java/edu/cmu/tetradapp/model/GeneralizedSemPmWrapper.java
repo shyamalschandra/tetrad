@@ -20,7 +20,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 package edu.cmu.tetradapp.model;
 
-import edu.cmu.tetrad.algcomparison.simulation.GeneralSemSimulationRandomPostnonlinear;
+import edu.cmu.tetrad.algcomparison.simulation.GeneralSemSimulationDoubleNoninear;
 import edu.cmu.tetrad.data.KnowledgeBoxInput;
 import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.sem.GeneralizedSemIm;
@@ -77,11 +77,11 @@ public class GeneralizedSemPmWrapper implements SessionModel, KnowledgeBoxInput 
             throw new NullPointerException("No data sets have been simulated.");
         }
 
-        if (!(_simulation instanceof GeneralSemSimulationRandomPostnonlinear)) {
+        if (!(_simulation instanceof GeneralSemSimulationDoubleNoninear)) {
             throw new IllegalArgumentException("That was not a Generalized SEM simulation.");
         }
 
-        List<GeneralizedSemIm> ims = ((GeneralSemSimulationRandomPostnonlinear) _simulation).getIms();
+        List<GeneralizedSemIm> ims = ((GeneralSemSimulationDoubleNoninear) _simulation).getIms();
 
         if (ims == null || ims.size() == 0) {
             throw new NullPointerException("It looks like you have not done a simulation.");

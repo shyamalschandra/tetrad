@@ -21,7 +21,6 @@
 
 package edu.cmu.tetrad.search;
 
-import edu.cmu.tetrad.algcomparison.TrueGraphSetter;
 import edu.cmu.tetrad.data.IKnowledge;
 import edu.cmu.tetrad.data.Knowledge2;
 import edu.cmu.tetrad.graph.*;
@@ -64,9 +63,11 @@ public final class PcAll implements GraphSearch {
         this.trueGraph = trueGraph;
     }
 
-    public enum FasType {REGULAR, STABLE}
+    public enum FasType {REGULAR, STABLE, StableFDR, Naive, LiWang}
 
-    public enum Concurrent {YES, NO};
+    public enum Concurrent {YES, NO}
+
+    ;
 
     public enum ColliderDiscovery {FAS_SEPSETS, CONSERVATIVE, MAX_P}
 
@@ -298,7 +299,11 @@ public final class PcAll implements GraphSearch {
 
         IFas fas;
 
-        if (fasType == FasType.REGULAR) {
+        if (fasType == FasType.Naive) {
+            fas = new FasStableFdrNaive(initialGraph, getIndependenceTest());
+        } else if (fasType == FasType.LiWang) {
+            fas = new FasStableLiAndWang(initialGraph, getIndependenceTest());
+        } else if (fasType == FasType.REGULAR) {
             if (concurrent == Concurrent.NO) {
                 fas = new Fas(initialGraph, getIndependenceTest());
             } else {
@@ -307,7 +312,7 @@ public final class PcAll implements GraphSearch {
             }
         } else {
             if (concurrent == Concurrent.NO) {
-                fas = new FasStable(initialGraph, getIndependenceTest());
+                fas = new FasStableLiAndWang(initialGraph, getIndependenceTest());
             } else {
                 fas = new FasConcurrent(initialGraph, getIndependenceTest());
                 ((FasConcurrent) fas).setStable(true);
@@ -350,6 +355,14 @@ public final class PcAll implements GraphSearch {
         }
 
         graph = GraphUtils.replaceNodes(graph, nodes);
+
+        for (Edge edge : graph.getEdges()) {
+            if (Edges.isUndirectedEdge(edge)) {
+                Edge unoriented = Edges.nondirectedEdge(edge.getNode1(), edge.getNode2());
+                graph.removeEdge(edge);
+                graph.addEdge(unoriented);
+            }
+        }
 
         MeekRules meekRules = new MeekRules();
 //        meekRules.setAggressivelyPreventCycles(this.aggressivelyPreventCycles);

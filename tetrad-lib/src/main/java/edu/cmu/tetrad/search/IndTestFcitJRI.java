@@ -25,9 +25,7 @@ import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.data.ICovarianceMatrix;
 import edu.cmu.tetrad.graph.IndependenceFact;
 import edu.cmu.tetrad.graph.Node;
-import edu.cmu.tetrad.util.NumberFormatUtil;
-import edu.cmu.tetrad.util.TetradLogger;
-import edu.cmu.tetrad.util.TetradMatrix;
+import edu.cmu.tetrad.util.*;
 import org.rosuda.JRI.Rengine;
 
 import java.text.NumberFormat;
@@ -71,6 +69,8 @@ public final class IndTestFcitJRI implements IndependenceTest {
     private boolean verbose = false;
     private static Rengine r;
     private boolean fastFDR = false;
+    private boolean fdrCutoffCalculated = false;
+    private double adjustedAlpha;
 
     //==========================CONSTRUCTORS=============================//
 
@@ -124,45 +124,31 @@ public final class IndTestFcitJRI implements IndependenceTest {
 
     public boolean isIndependent(Node x, Node y, List<Node> z) {
 
-        r.assign("x", _data[nodeMap.get(x)]);
-        r.assign("y", _data[nodeMap.get(y)]);
-
-        r.eval("x <- as.matrix(x)");
-        r.eval("y <- as.matrix(y)");
-
-        r.eval("z<-NULL");
-
-        for (int s = 0; s < z.size(); s++) {
-            double[] col = _data[nodeMap.get(z.get(s))];
-
-            IndTestFcitJRI.r.assign("z0", col);
-            IndTestFcitJRI.r.eval("if (is.null(z)) {z <- rbind(z0)} else {z<-rbind(z, z0)}");
-        }
-
-        r.eval("if (!is.null(z)) z = t(z)");
-
-        double p = r.eval("test(x,y,z)").asDouble();
-//        double p = r.eval("RCIT(x,y,z,approx=\"lpd4\")$p").asDouble();
+        double p = getP(x, y, z);
 
         if(fastFDR) {
-            final int d1 = 0; // reference
-            final int d2 = z.size();
-            final int v = variables.size() - 2;
-
-            double alpha2 = (exp(log(alpha) + logChoose(v, d1) - logChoose(v, d2)));
-            final boolean independent = p > alpha2;
-            IndependenceFact fact = new IndependenceFact(x, y, z);
-
-            if (independent) {
-                System.out.println(fact + " INDEPENDENT p = " + p);
-                TetradLogger.getInstance().log("info", fact + " Independent");
-
-            } else {
-                System.out.println(fact + " dependent p = " + p);
-                TetradLogger.getInstance().log("info", fact.toString());
+            if (!fdrCutoffCalculated) {
+                adjustedAlpha = calcFdrAdjustedAlpha();
+                fdrCutoffCalculated = true;
             }
 
-            return independent;
+            if (verbose) {
+                IndependenceFact fact = new IndependenceFact(x, y, z);
+
+                if (p > adjustedAlpha) {
+                    final String s = fact + " INDEPENDENT p = " + p;
+                    System.out.println(s);
+                    TetradLogger.getInstance().log("info", s);
+
+                } else {
+                    final String s = fact + " dependent p = " + p;
+                    System.out.println(s);
+                    TetradLogger.getInstance().log("info", s);
+                }
+            }
+
+            return p > adjustedAlpha;
+
         } else {
             final boolean independent = p > alpha;
             IndependenceFact fact = new IndependenceFact(x, y, z);
@@ -179,6 +165,8 @@ public final class IndTestFcitJRI implements IndependenceTest {
             return independent;
         }
     }
+
+
 
     public boolean isIndependent(Node x, Node y, Node... z) {
         return isIndependent(x, y, Arrays.asList(z));
@@ -338,6 +326,61 @@ public final class IndTestFcitJRI implements IndependenceTest {
 
     public void setFastFDR(boolean fastFDR) {
         this.fastFDR = fastFDR;
+    }
+
+    private double calcFdrAdjustedAlpha() {
+        List<Double> ps = new ArrayList<>();
+        List<Node> shuffled = new ArrayList<>(variables);
+
+        for (int i = 0; i < 200; i++) {
+            Collections.shuffle(shuffled);
+
+            int maxDepth = 3;
+            int depth = RandomUtil.getInstance().nextInt(maxDepth + 1);
+
+            Node ___x = shuffled.get(0);
+            Node ___y = shuffled.get(1);
+            List<Node> ___z = new ArrayList<>();
+
+            for (int d = 0; d < depth; d++) {
+                ___z.add(shuffled.get(d + 2));
+            }
+
+            double p = getP(___x, ___y, ___z); //cci.isIndependent(__x, __y, __z);
+
+            System.out.println("d = " + depth + " p = " + p);
+            ps.add(p);
+        }
+
+        double adjustedAlpha = StatUtils.fdrCutoff(alpha, ps, true, false);
+
+        System.out.println("StableFDR adjusted alpha = " + adjustedAlpha);
+
+        return adjustedAlpha;
+    }
+
+    private double getP(Node x, Node y, List<Node> z) {
+        double[] _x = _data[nodeMap.get(x)];
+        double[] _y = _data[nodeMap.get(y)];
+
+        r.assign("x", _x);
+        r.assign("y", _y);
+
+        r.eval("x <- as.matrix(x)");
+        r.eval("y <- as.matrix(y)");
+
+        r.eval("z<-NULL");
+
+        for (int s = 0; s < z.size(); s++) {
+            double[] col = _data[nodeMap.get(z.get(s))];
+
+            IndTestFcitJRI.r.assign("z0", col);
+            IndTestFcitJRI.r.eval("if (is.null(z)) {z <- rbind(z0)} else {z<-rbind(z, z0)}");
+        }
+
+        r.eval("if (!is.null(z)) z = t(z)");
+
+        return r.eval("test(x,y,z)").asDouble();
     }
 }
 

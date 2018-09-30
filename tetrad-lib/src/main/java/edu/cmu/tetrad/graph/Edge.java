@@ -484,4 +484,20 @@ public class Edge implements TetradSerializable, Comparable {
 	public List<EdgeTypeProbability> getEdgeTypeProbabilities() {
 		return edgeTypeProbabilities;
 	}
+
+	public void setProximalEndpoint(Node node, Endpoint endpoint) {
+		if (node == node1) {
+			setEndpoint1(endpoint);
+		} else if (node == node2) {
+			setEndpoint2(endpoint);
+		}
+	}
+
+	public void setDistalEndpoint(Node node, Endpoint endpoint) {
+		if (node == node1) {
+			setEndpoint2(endpoint);
+		} else if (node == node2) {
+			setEndpoint1(endpoint);
+		}
+	}
 }

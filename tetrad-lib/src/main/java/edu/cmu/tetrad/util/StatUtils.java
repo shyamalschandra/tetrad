@@ -1557,7 +1557,7 @@ public final class StatUtils {
     }
 
     /**
-     * Calculates the cutoff value for p-values using the FDR method. Hypotheses
+     * Calculates the cutoff value for p-values using the StableFDR method. Hypotheses
      * with p-values less than or equal to this cutoff should be rejected
      * according to the test.
      *
@@ -1574,7 +1574,7 @@ public final class StatUtils {
      *                             a level of alpha is used; if they are not
      *                             correlated, a level of alpha / SUM_i=1_n(1 /
      *                             i) is used.
-     * @return the FDR alpha, which is the first p-value sorted high to low to
+     * @return the StableFDR alpha, which is the first p-value sorted high to low to
      * fall below a line from (1.0, level) to (0.0, 0.0). Hypotheses
      * less than or equal to this p-value should be rejected.
      */
@@ -1592,7 +1592,7 @@ public final class StatUtils {
         }
 
         if (!pSorted) {
-            pValues = new ArrayList<>(pValues);
+//            pValues = new ArrayList<>(pValues);
             Collections.sort(pValues);
         }
 

@@ -178,7 +178,7 @@ public class ParamDescriptions {
 
         map.put("fasRule", new ParamDescription(
                 "Adjacency search: 1 = PC, 2 = PC-Stable, 3 = Concurrent PC-Stable",
-                1, 1, 3));
+                1, 1, 5));
 
         map.put("colliderDiscoveryRule", new ParamDescription(
                 "Collider discovery: 1 = Lookup from adjacency sepsets, 2 = Conservative (CPC), 3 = Max-P",
@@ -350,6 +350,10 @@ public class ParamDescriptions {
 
         map.put("concurrentFAS", new ParamDescription(
                 "Yes if a concurrent FAS should be done", true));
+
+        map.put("stableFASFDR", new ParamDescription(
+                "Yes if the 'stable' FAS should be done with the StableFDR adjustment", false));
+
     }
 
     public static ParamDescriptions getInstance() {

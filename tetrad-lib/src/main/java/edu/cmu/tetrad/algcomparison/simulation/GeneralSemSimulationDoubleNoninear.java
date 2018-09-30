@@ -23,7 +23,7 @@ import java.util.List;
 /**
  * @author jdramsey
  */
-public class GeneralSemSimulationRandomPostnonlinear implements Simulation {
+public class GeneralSemSimulationDoubleNoninear implements Simulation {
     static final long serialVersionUID = 23L;
     private RandomGraph randomGraph;
     private GeneralizedSemPm pm;
@@ -38,18 +38,18 @@ public class GeneralSemSimulationRandomPostnonlinear implements Simulation {
     private String errorString = "U(0, 1)^2";
     private String parametersString = "U(.4,.9)";
 
-    public GeneralSemSimulationRandomPostnonlinear(RandomGraph graph) {
+    public GeneralSemSimulationDoubleNoninear(RandomGraph graph) {
         this.randomGraph = graph;
     }
 
-    public GeneralSemSimulationRandomPostnonlinear(GeneralizedSemPm pm) {
+    public GeneralSemSimulationDoubleNoninear(GeneralizedSemPm pm) {
         SemGraph graph = pm.getGraph();
         graph.setShowErrorTerms(false);
         this.randomGraph = new SingleGraph(graph);
         this.pm = pm;
     }
 
-    public GeneralSemSimulationRandomPostnonlinear(GeneralizedSemIm im) {
+    public GeneralSemSimulationDoubleNoninear(GeneralizedSemIm im) {
         SemGraph graph = im.getSemPm().getGraph();
         graph.setShowErrorTerms(false);
         this.randomGraph = new SingleGraph(graph);

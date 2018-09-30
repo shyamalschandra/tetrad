@@ -184,7 +184,7 @@ public class PurifyTetradBased implements IPurify {
                 }
             }
 
-            System.out.println("FDR cutoff = " + cutoff);
+            System.out.println("StableFDR cutoff = " + cutoff);
         }
 
         List<Double> pValues2 = listPValues(cluster, eliminated, cutoff);

@@ -295,7 +295,7 @@ public final class DiscreteTetradTest implements TetradTest {
             for (int c = 0; c < 3; c++) {
                 this.bvalues[c] = (this.prob[c] >= this.sig);
             }
-            //Order p-values for FDR (false discovery rate) decision
+            //Order p-values for StableFDR (false discovery rate) decision
             if (this.prob[1] < this.prob[0] && this.prob[1] < this.prob[2]) {
                 this.tempProb = this.prob[0];
                 this.prob[0] = this.prob[1];

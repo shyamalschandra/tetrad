@@ -52,7 +52,7 @@ public class CciTest implements IndependenceWrapper {
 
         cci.setNumFunctions(parameters.getInt("numBasisFunctions"));
         cci.setKernelMultiplier(parameters.getDouble("kernelMultiplier"));
-        cci.setFastFDR(parameters.getBoolean("fastFDR"));
+        cci.setFdrAdjustment(parameters.getBoolean("fastFDR"));
         cci.setKernelRegressionSampleSize(parameters.getInt("kernelRegressionSampleSize"));
         cci.setNumDependenceSpotChecks(parameters.getInt("numDependenceSpotChecks"));
         cci.setEarlyReturn(true);

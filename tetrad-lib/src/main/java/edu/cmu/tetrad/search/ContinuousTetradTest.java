@@ -917,7 +917,7 @@ public final class ContinuousTetradTest implements TetradTest {
         for (int i = 0; i < 3; i++) {
             bvalues[i] = (prob[i] >= sig);
         }
-        //Order p-values for FDR (false discovery rate) decision
+        //Order p-values for StableFDR (false discovery rate) decision
         double tempProb;
         if (prob[1] < prob[0] && prob[1] < prob[2]) {
             tempProb = prob[0];

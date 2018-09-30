@@ -570,10 +570,10 @@ public final class ResolveSepsets {
 //        boolean independent = c < allPValues.size() - 2;
 
         if (independent) {
-            TetradLogger.getInstance().log("independence", "***FDR judges " + SearchLogUtils.independenceFact(x, y, condSet) + " independent");
+            TetradLogger.getInstance().log("independence", "***StableFDR judges " + SearchLogUtils.independenceFact(x, y, condSet) + " independent");
             TetradLogger.getInstance().log("independence", "c = " + c);
         } else {
-            TetradLogger.getInstance().log("independence", "###FDR judges " + SearchLogUtils.independenceFact(x, y, condSet) + " dependent");
+            TetradLogger.getInstance().log("independence", "###StableFDR judges " + SearchLogUtils.independenceFact(x, y, condSet) + " dependent");
             TetradLogger.getInstance().log("independence", "c = " + c);
         }
 

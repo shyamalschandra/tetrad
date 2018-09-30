@@ -25,11 +25,8 @@ import edu.cmu.tetrad.algcomparison.Comparison;
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithms;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.PcAll;
 import edu.cmu.tetrad.algcomparison.graph.RandomForward;
-import edu.cmu.tetrad.algcomparison.independence.CciTest;
-import edu.cmu.tetrad.algcomparison.independence.Kci;
-import edu.cmu.tetrad.algcomparison.simulation.GeneralSemSimulation;
-import edu.cmu.tetrad.algcomparison.simulation.GeneralSemSimulationExample4;
-import edu.cmu.tetrad.algcomparison.simulation.GeneralSemSimulationRandomPostnonlinear;
+import edu.cmu.tetrad.algcomparison.independence.*;
+import edu.cmu.tetrad.algcomparison.simulation.GeneralSemSimulationDoubleNoninear;
 import edu.cmu.tetrad.algcomparison.simulation.Simulations;
 import edu.cmu.tetrad.algcomparison.statistic.*;
 import edu.cmu.tetrad.util.Parameters;
@@ -47,15 +44,15 @@ public class Example2 {
         Parameters parameters = new Parameters();
 
         parameters.set("numRuns", 1);
-        parameters.set("numMeasures", 10);
+        parameters.set("numMeasures", 50);
         parameters.set("avgDegree", 2);
         parameters.set("numLatents", 0);
         parameters.set("differentGraphs", true);
-        parameters.set("sampleSize", 1000);
-        parameters.set("fastFDR", false);
+        parameters.set("sampleSize", 500);
+        parameters.set("fastFDR", true);
         parameters.set("verbose", true);
-        parameters.set("alpha", .01);
-        parameters.set("kciAlpha", 0.05);
+        parameters.set("alpha", 0.01);
+        parameters.set("kciAlpha", 0.005);
         parameters.set("penaltyDiscount", 1);
         parameters.set("maxDegree", 4);
         parameters.set("colliderDiscoveryRule", 1);
@@ -66,11 +63,11 @@ public class Example2 {
         parameters.set("stableFAS", false);
         parameters.set("concurrentFAS", false);
 //        parameters.set("cciScoreAlpha", .05);
-        parameters.set("numBasisFunctions", 30);
+        parameters.set("numBasisFunctions", 20);
         parameters.set("kernelType", 2);
         parameters.set("kernelMultiplier", 1.0);
         parameters.set("basisType", 2);
-        parameters.set("kernelRegressionSampleSize", 100);
+        parameters.set("kernelRegressionSampleSize", 25);
 
         String function = "TSUM($)";
         parameters.set("generalSemFunctionTemplateMeasured", function);
@@ -145,7 +142,7 @@ public class Example2 {
 
 //        simulations.add(new SemSimulation(new RandomForward()));
 
-        simulations.add(new GeneralSemSimulationRandomPostnonlinear(new RandomForward()));
+        simulations.add(new GeneralSemSimulationDoubleNoninear(new RandomForward()));
 //        Simulation simulation = new LoadDataAndGraphs("comparison10vars");
 //        simulations.add(new LeeHastieSimulation(new RandomForward()));
 
@@ -163,12 +160,10 @@ public class Example2 {
         comparison.setSavePags(true);
 
         final String dir = "example2";
-        comparison.saveToFiles(dir, simulations.getSimulations().
-
-                get(0), parameters);
-        comparison.compareFromFiles(dir, dir, algorithms, statistics, parameters);
-
-//        comparison.compareFromSimulations("Q", simulations, algorithms, statistics, parameters);
+//        comparison.saveToFiles(dir, simulations.getSimulations().get(0), parameters);
+//        comparison.compareFromFiles(dir, dir, algorithms, statistics, parameters);
+//
+        comparison.compareFromSimulations(dir, simulations, algorithms, statistics, parameters);
     }
 }
 

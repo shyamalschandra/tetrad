@@ -21,7 +21,10 @@
 
 package edu.cmu.tetrad.search;
 
-import edu.cmu.tetrad.data.*;
+import edu.cmu.tetrad.data.DataSet;
+import edu.cmu.tetrad.data.DataUtils;
+import edu.cmu.tetrad.data.IKnowledge;
+import edu.cmu.tetrad.data.Knowledge2;
 import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.util.DepthChoiceGenerator;
 import edu.cmu.tetrad.util.StatUtils;
@@ -29,12 +32,12 @@ import edu.cmu.tetrad.util.TetradLogger;
 import edu.cmu.tetrad.util.TetradMatrix;
 import org.apache.commons.math3.linear.SingularMatrixException;
 
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static edu.cmu.tetrad.util.StatUtils.skewness;
 import static java.lang.Math.*;
 
 /**
@@ -44,7 +47,7 @@ import static java.lang.Math.*;
  *
  * @author Joseph Ramsey
  */
-public final class Fask implements GraphSearch {
+public final class Fask_B implements GraphSearch {
 
     // The score to be used for the FAS adjacency search.
     private final Score score;
@@ -92,7 +95,7 @@ public final class Fask implements GraphSearch {
     /**
      * @param dataSet These datasets must all have the same variables, in the same order.
      */
-    public Fask(DataSet dataSet, Score score) {
+    public Fask_B(DataSet dataSet, Score score) {
         this.dataSet = dataSet;
         this.score = score;
 
@@ -170,17 +173,54 @@ public final class Fask implements GraphSearch {
                         graph.addDirectedEdge(X, Y);
                     } else if (knowledgeOrients(Y, X)) {
                         graph.addDirectedEdge(Y, X);
-                    } else if (bidirected(x, y, G0, X, Y)) {
+                    }
+                    else if (bidirected(x, y, G0, X, Y)) {
                         Edge edge1 = Edges.directedEdge(X, Y);
                         Edge edge2 = Edges.directedEdge(Y, X);
+
+                        edge1.setLineColor(Color.GREEN);
+                        edge2.setLineColor(Color.GREEN);
+
                         graph.addEdge(edge1);
                         graph.addEdge(edge2);
-                    } else {
-                        if (leftright(x, y)) {
+                    }
+                    else {
+//                        if (leftright(x, y) && leftright(y, x)) {
+//                            Edge edge1 = Edges.directedEdge(X, Y);
+//                            Edge edge2 = Edges.directedEdge(Y, X);
+//
+//                            edge1.setLineColor(Color.MAGENTA);
+//                            edge2.setLineColor(Color.MAGENTA);
+//
+//                            graph.addEdge(edge1);
+//                            graph.addEdge(edge2);
+//                        }
+//                        else if (!leftright(x, y) && !leftright(y, x)) {
+//                            Edge edge1 = Edges.directedEdge(X, Y);
+//                            Edge edge2 = Edges.directedEdge(Y, X);
+//
+//                            edge1.setLineColor(Color.GREEN);
+//                            edge2.setLineColor(Color.GREEN);
+//
+//                            graph.addEdge(edge1);
+//                            graph.addEdge(edge2);
+//                        }
+                         if (leftright(x, y)) {
                             graph.addDirectedEdge(X, Y);
-                        } else {
+                        } else if (leftright(y, x)) {
                             graph.addDirectedEdge(Y, X);
                         }
+//                        else {
+//                            Edge edge1 = Edges.directedEdge(X, Y);
+//                            Edge edge2 = Edges.directedEdge(Y, X);
+//
+//                            edge1.setLineColor(Color.RED);
+//                            edge2.setLineColor(Color.RED);
+//
+//
+//                            graph.addEdge(edge1);
+//                            graph.addEdge(edge2);
+//                        }
                     }
                 }
             }
@@ -262,39 +302,187 @@ public final class Fask implements GraphSearch {
         return true;
     }
 
+//    private boolean bidirected2(double[] x, double[] y, Graph G0, Node X, Node Y) {
+//
+//        final double cxyx = cu(x, y, x, skx, sky);
+//        final double cxxx = cu(x, y, x, skx, sky);
+//        final double cxyy = cu(x, y, y, skx, sky);
+//        final double cxxy = cu(x, x, y, skx, sky);
+//        final double cyyy = cu(y, y, y, skx, sky);
+//        final double cyyx = cu(y, y, x, skx, sky);
+//        double r = StatUtils.correlation(x, y);
+//
+//        if ((cxxx - cxxy) * (cyyy - cyyx) > 0) {
+//            return true;
+//        }
+//
+//        boolean a = cxyx - cxyy > r * (cxxx - cxxy);
+//        boolean b = cxyx - cxyy < r * (cyyy - cyyx);
+//
+//        return false;
+//    }
+
+//    private boolean bidirected3(double[] x, double[] y, Graph G0, Node X, Node Y) {
+//
+//        Set<Node> adjSet = new HashSet<>(G0.getAdjacentNodes(X));
+//        adjSet.addAll(G0.getAdjacentNodes(Y));
+//        List<Node> adj = new ArrayList<>(adjSet);
+//        adj.remove(X);
+//        adj.remove(Y);
+//
+//        DepthChoiceGenerator gen = new DepthChoiceGenerator(adj.size(), Math.min(depth, adj.size()));
+//        int[] choice;
+//
+////        while ((choice = gen.next()) != null) {
+////            List<Node> _adj = GraphUtils.asList(choice, adj);
+////            double[][] _Z = new double[_adj.size()][];
+////
+////            for (int f = 0; f < _adj.size(); f++) {
+////                Node _z = _adj.get(f);
+////                int column = dataSet.getColumn(_z);
+////                _Z[f] = data[column];
+////            }
+//
+//        double pc = cu(x, y, null, skx, sky);
+//        double pc1 = cu(x, y, x, skx, sky);
+//        double pc2 = cu(x, y, y, skx, sky);
+//
+//        double s2 = s2(x, y, null);
+//        double s21 = s2(x, y, x);
+//        double s22 = s2(x, y, y);
+//
+//
+////            try {
+////                pc = partialCorrelation(x, y, _Z, x, Double.NEGATIVE_INFINITY, +1);
+////                pc1 = parti   alCorrelation(x, y, _Z, x, 0, +1);
+////                pc2 = partialCorrelation(x, y, _Z, y, 0, +1);
+////            } catch (SingularMatrixException e) {
+////                System.out.println("Singularity X = " + X + " Y = " + Y + " adj = " + adj);
+////                TetradLogger.getInstance().log("info", "Singularity X = " + X + " Y = " + Y + " adj = " + adj);
+////                continue;
+////            }
+//
+//        int nc = StatUtils.getRows(x, x, Double.NEGATIVE_INFINITY, +1).size();
+//        int nc1 = StatUtils.getRows(x, x, 0, +1).size();
+//        int nc2 = StatUtils.getRows(y, y, 0, +1).size();
+//
+////            double z = 0.5 * (log(1.0 + pc) - log(1.0 - pc));
+////            double z1 = 0.5 * (log(1.0 + pc1) - log(1.0 - pc1));
+////            double z2 = 0.5 * (log(1.0 + pc2) - log(1.0 - pc2));
+//
+////            double z = 0.5 * (log(1.0 + pc) - log(1.0 - pc));
+////            double z1 = 0.5 * (log(1.0 + pc1) - log(1.0 - pc1));
+////            double z2 = 0.5 * (log(1.0 + pc2) - log(1.0 - pc2));
+//
+//        double sp1 = sqrt((s2 + s21) / 2.0);
+//        double sp2 = sqrt((s2 + s22) / 2.0);
+//
+//        double zv1 = (pc - pc1) / (sp1 * sqrt((1.0 / (double) nc) + (1.0 / (double) nc1)));
+//        double zv2 = (pc - pc2) / (sp2 * sqrt((1.0 / (double) nc) + (1.0 / (double) nc2)));
+//
+//        System.out.println("zv1 = " + zv1 + " zv2 = " + zv2);
+//
+//        boolean rejected1 = abs(zv1) > cutoff;
+//        boolean rejected2 = abs(zv2) > cutoff;
+//
+////        return rejected1 && rejected2;
+//
+//        boolean possibleTwoCycle = false;
+//
+//        if (zv1 < 0 && zv2 > 0 && rejected1) {
+//            possibleTwoCycle = true;
+//        } else if (zv1 > 0 && zv2 < 0 && rejected2) {
+//            possibleTwoCycle = true;
+//        } else if (rejected1 && rejected2) {
+//            possibleTwoCycle = true;
+//        }
+//
+//        return possibleTwoCycle;
+//
+////        if (!possibleTwoCycle) {
+////            return false;
+////        }
+////        }
+//
+////        return true;
+//    }
+
+//    private boolean leftright1(double[] x, double[] y) {
+//        final double cxyx = cu(x, y, x, skx, sky);
+//        final double cxyy = cu(x, y, y, skx, sky);
+//
+//        double left = (cxyx * cxyx) / (cu(x, x, x, skx, sky) * cu(y, y, x, skx, sky));
+//        double right = (cxyy * cxyy) / (cu(x, x, y, skx, sky) * cu(y, y, y, skx, sky));
+//
+//        double lr = left - right;
+//
+//        double r = StatUtils.correlation(x, y);
+//        double sx = StatUtils.skewness(x);
+//        double sy = StatUtils.skewness(y);
+//
+//        r *= signum(sx) * signum(sy);
+//        lr *= signum(r);
+//        if (r < getDelta()) lr *= -1;
+//
+//        return lr > 0;
+//    }
+
     private boolean leftright(double[] x, double[] y) {
-        final double cxyx = cu(x, y, x);
-        final double cxyy = cu(x, y, y);
+        double[] z = x;
+        x = y;
+        y = z;
 
-        double left = (cxyx * cxyx) / (cu(x, x, x) * cu(y, y, x));
-        double right = (cxyy * cxyy) / (cu(x, x, y) * cu(y, y, y));
-
-        double lr = left - right;
-
+        double skx = StatUtils.skewness(x);
+        double sky = StatUtils.skewness(y);
         double r = StatUtils.correlation(x, y);
-        double sx = StatUtils.skewness(x);
-        double sy = StatUtils.skewness(y);
 
-        r *= signum(sx) * signum(sy);
-        lr *= signum(r);
-        if (r < getDelta()) lr *= -1;
+        final double cxyx = cu(x, y, x, skx, sky);
+        final double cxxx = cu(x, x, x, skx, sky);
+        final double cxyy = cu(x, y, y, skx, sky);
+        final double cxxy = cu(x, x, y, skx, sky);
+        final double cyyy = cu(y, y, y, skx, sky);
 
-        return lr > 0;
+        boolean a = (cxyx - r * cxxx) > (cxyy - r * cxxy);
+        boolean b = (cxyy - r * cxxy) > (cxyy - (1.0 / r) * cyyy);
+
+        boolean lr = a & b;
+
+//        if (r > -getDelta()) {
+//            lr = !lr;
+//        }
+
+        return !lr;
     }
 
-    private static double cu(double[] x, double[] y, double[] condition) {
+    private double cu(double[] x, double[] y, double[] condition, double skx, double sky) {
         double exy = 0.0;
 
         int n = 0;
 
         for (int k = 0; k < x.length; k++) {
-            if (condition[k] > 0) {
+            if (condition == null || condition[k] > 0) {
                 exy += x[k] * y[k];
                 n++;
             }
         }
 
+        exy *= signum(skx) * signum(sky);
         return exy / n;
+    }
+
+    private static double s2(double[] x, double[] y, double[] condition) {
+        double s2xy = 0.0;
+
+        int n = 0;
+
+        for (int k = 0; k < x.length; k++) {
+            if (condition == null || condition[k] > 0) {
+                s2xy += x[k] * y[k] * x[k] * y[k];
+                n++;
+            }
+        }
+
+        return (s2xy / n);
     }
 
     private double partialCorrelation(double[] x, double[] y, double[][] z, double[] condition, double threshold, double direction) throws SingularMatrixException {

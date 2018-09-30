@@ -555,7 +555,7 @@ public class Purify {
         if (numImpurities > 0) {
             printlnMessage(clusterName + " -- Original Status: " +
                     numImpurities + " of " + allPValues.size() +
-                    " tetrads fail the FDR test.");
+                    " tetrads fail the StableFDR test.");
         } else {
             printlnMessage(
                     clusterName + " -- Original Status: Needs NO pruning.");
@@ -603,7 +603,7 @@ public class Purify {
             printlnMessage("Dropped " +
                     tetradTest.getVarNames()[cluster[max_index]] +
                     "  Without it, " + numImpurities + " of " + allPValues.size() +
-                    " fail the FDR test.");
+                    " fail the StableFDR test.");
         }
     }
 
@@ -637,7 +637,7 @@ public class Purify {
         if (numImpurities > 0) {
             printlnMessage(clusterName + " -- Original Status: " +
                     numImpurities + " of " + allPValues.size() +
-                    " tetrads fail the FDR test.");
+                    " tetrads fail the StableFDR test.");
         } else {
             printlnMessage(
                     clusterName + " -- Original Status: Needs NO pruning.");
@@ -902,7 +902,7 @@ public class Purify {
 
         if (numImpurities > 0) {
             printlnMessage("Iteration 1   " + numImpurities + " of " +
-                    allPValues.size() + " tetrads fail the FDR test.");
+                    allPValues.size() + " tetrads fail the StableFDR test.");
         } else {
             printlnMessage("Needs NO pruning.");
         }
@@ -950,7 +950,7 @@ public class Purify {
             String var = tetradTest.getVarNames()[(cluster[max_index_i])];
             printlnMessage("Dropped " + var + "  Without it, " +
                     numImpurities + " of " + allPValues.size() +
-                    " tetrads fail the FDR test.");
+                    " tetrads fail the StableFDR test.");
         }
     }
 
@@ -973,7 +973,7 @@ public class Purify {
 
         if (numImpurities > 0) {
             printlnMessage("Iteration 1   " + numImpurities + " of " +
-                    allPValues.size() + " tetrads fail the FDR test.");
+                    allPValues.size() + " tetrads fail the StableFDR test.");
         } else {
             printlnMessage("Needs NO pruning.");
         }

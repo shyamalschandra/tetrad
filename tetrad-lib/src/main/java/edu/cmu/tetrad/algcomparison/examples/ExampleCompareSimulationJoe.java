@@ -256,7 +256,7 @@ public class ExampleCompareSimulationJoe {
         if (problem == 1 || problem == 3) {
             simulations.add(new GeneralSemSimulation(new RandomForward()));
         } else if (problem == 2) {
-            simulations.add(new GeneralSemSimulationRandomPostnonlinear(new RandomForward()));
+            simulations.add(new GeneralSemSimulationDoubleNoninear(new RandomForward()));
         } else if (problem == 4) {
             simulations.add(new GeneralSemSimulationExample4(new RandomForward()));
         }

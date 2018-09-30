@@ -67,8 +67,8 @@ public class PcAll implements Algorithm, TakesInitialGraph, HasKnowledge, TakesI
                 case 3:
                     colliderDiscovery = edu.cmu.tetrad.search.PcAll.ColliderDiscovery.MAX_P;
                     break;
-                default:
-                    throw new IllegalArgumentException("Not a choice.");
+                 default:
+                    throw new IllegalArgumentException("Not a choice: " + parameters.getInt("colliderDiscoveryRule"));
             }
 
             edu.cmu.tetrad.search.PcAll.ConflictRule conflictRule;
@@ -91,10 +91,18 @@ public class PcAll implements Algorithm, TakesInitialGraph, HasKnowledge, TakesI
             search.setDepth(parameters.getInt("depth"));
             search.setKnowledge(knowledge);
 
-            if (parameters.getBoolean("stableFAS")) {
-                search.setFasType(edu.cmu.tetrad.search.PcAll.FasType.STABLE);
+            if (parameters.getInt("fasType") == 4) {
+                search.setFasType(edu.cmu.tetrad.search.PcAll.FasType.Naive);
+            } else if (parameters.getInt("fasType") == 5) {
+                search.setFasType(edu.cmu.tetrad.search.PcAll.FasType.LiWang);
+            } else if (parameters.getBoolean("stableFASFDR")) {
+                search.setFasType(edu.cmu.tetrad.search.PcAll.FasType.StableFDR);
             } else {
-                search.setFasType(edu.cmu.tetrad.search.PcAll.FasType.REGULAR);
+                if (parameters.getBoolean("stableFAS")) {
+                    search.setFasType(edu.cmu.tetrad.search.PcAll.FasType.STABLE);
+                } else {
+                    search.setFasType(edu.cmu.tetrad.search.PcAll.FasType.REGULAR);
+                }
             }
 
             if (parameters.getBoolean("concurrentFAS")) {
@@ -167,7 +175,9 @@ public class PcAll implements Algorithm, TakesInitialGraph, HasKnowledge, TakesI
     @Override
     public List<String> getParameters() {
         List<String> parameters = test.getParameters();
+        parameters.add("StableFDR");
         parameters.add("stableFAS");
+        parameters.add("fasType");
         parameters.add("concurrentFAS");
         parameters.add("colliderDiscoveryRule");
         parameters.add("conflictRule");
