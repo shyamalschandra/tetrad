@@ -427,7 +427,12 @@ public class GeneralAlgorithmEditor extends JPanel implements FinalizingEditor {
             }
             
             // Time-series (TsFci, TsGfci, TsImages) algorithms need lagged data
-            String cmd = algoModel.getAlgorithm().getAnnotation().command();
+            String cmd = "";
+            try {
+				cmd = algoModel.getAlgorithm().getAnnotation().command();
+			} catch (Exception e) {
+				
+			}
             if(cmd.equalsIgnoreCase("ts-fci") ||
             		cmd.equalsIgnoreCase("ts-gfci") ||
             		cmd.equalsIgnoreCase("ts-imgs")) {

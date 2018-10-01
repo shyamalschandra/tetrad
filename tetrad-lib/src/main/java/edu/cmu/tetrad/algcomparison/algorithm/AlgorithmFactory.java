@@ -53,7 +53,7 @@ public class AlgorithmFactory {
         if (scoreRequired && score == null) {
             throw new IllegalArgumentException("Score is required.");
         }
-
+        
         Algorithm algorithm = algoClass.newInstance();
         if (testRequired) {
             ((TakesIndependenceWrapper) algorithm).setIndependenceWrapper(test);

@@ -29,6 +29,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.util.Collections;
 import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -52,7 +53,11 @@ public class AlgorithmModels {
 	private final Map<AlgType, List<AlgorithmModel>> modelMap;
 	// create the plugin manager
 	private final PluginManager pluginManager = new DefaultPluginManager();
-
+	// plugin maps
+	private final Map<Class, String> pluginName = new HashMap<>();
+	private final Map<Class, String> pluginCommand = new HashMap<>();
+	private final Map<Class, AlgType> pluginAlgoType = new HashMap<>();
+	
 	private AlgorithmModels() {
 		// load the plugins
 		pluginManager.loadPlugins();
@@ -80,27 +85,63 @@ public class AlgorithmModels {
 				System.out.println("Algorithm Extension CanonicalName: " + clazz.getCanonicalName());
 				System.out.println("Algorithm Extension SimpleName: " + clazz.getSimpleName());
 				try {
+					boolean isAlgorithm = false;
 					System.out.println("Class Name: " + clazz.getName());
 					AnnotatedType[] annotatedTypes = clazz.getAnnotatedInterfaces();
 					if(annotatedTypes != null) {
 						for(int i=0;i<annotatedTypes.length;i++) {
 							AnnotatedType annotatedType = annotatedTypes[i];
 							System.out.println("AnnotatedType: " + annotatedType.getType());
+							
+							if(annotatedType.getType().toString().contains("edu.cmu.tetrad.algcomparison.algorithm.Algorithm")) {
+								isAlgorithm = true;
+							}
 						}
 					}
 					Annotation[] annotations = clazz.getDeclaredAnnotations();
 					if(annotations != null) {
 						for(int i=0;i<annotations.length;i++) {
 							Annotation annotation = annotations[i];
+						
+							String annotationType = annotation.toString();
+							
 							System.out.println("Annotation: " + annotation.toString());
 							System.out.println("Annotation.getClass: " + annotation.getClass());
-							System.out.println("Annotation.annotationType: " + annotation.annotationType());
+							System.out.println("Annotation.annotationType: " + annotation.annotationType().toGenericString());
 							
-							/*if(annotation.toString().contains("edu.cmu.tetrad.annotation.Algorithm")) {
-								AnnotatedClass<Algorithm> annotatedAlgor = new AnnotatedClass<Algorithm>(clazz, (Algorithm) annotation);
+							if(isAlgorithm && annotationType.contains("edu.cmu.tetrad.annotation.Algorithm")) {
+								int left_paraphase = annotationType.indexOf("(");
+								if(left_paraphase > -1) {
+									annotationType = annotationType.substring(left_paraphase + 1);
+								}
+								int right_paraphase = annotationType.indexOf(")");
+								if(right_paraphase > -1) {
+									annotationType = annotationType.substring(0, right_paraphase);
+								}
+								System.out.println(annotationType);
+								String[] tags = annotationType.split(",");
+								if(tags != null) {
+									for(int j=0;j<tags.length;j++) {
+										String[] tokens = tags[j].split("=");
+										String name = tokens[0].trim();
+										String value = tokens[1].trim();
+										System.out.println(name + " : " + value);
+										
+										if(name.equalsIgnoreCase("name")) {
+											pluginName.put(clazz, value);
+										}
+										if(name.equalsIgnoreCase("command")) {
+											pluginCommand.put(clazz, value);
+										}
+										if(name.equalsIgnoreCase("algoType")) {
+											pluginAlgoType.put(clazz, AlgType.valueOf(value));
+										}
+									}
+								}
+								AnnotatedClass<Algorithm> annotatedAlgor = new AnnotatedClass<Algorithm>(clazz, null);
 								AlgorithmModel algorPlugin = new AlgorithmModel(annotatedAlgor);
 								list.add(algorPlugin);
-							}*/
+							}
 						}
 					}
 					
@@ -139,7 +180,15 @@ public class AlgorithmModels {
 
 		// group by datatype
 		models.stream().forEach(e -> {
-			map.get(e.getAlgorithm().getAnnotation().algoType()).add(e);
+			AlgType algType = AlgType.allow_latent_common_causes;
+			try {
+				algType = e.getAlgorithm().getAnnotation().algoType();
+			} catch (Exception e1) {
+				if(pluginAlgoType.containsKey(e.getClass())) {
+					algType = pluginAlgoType.get(e.getClass());
+				}
+			}
+			map.get(algType).add(e);
 		});
 
 		// make it unmodifiable
