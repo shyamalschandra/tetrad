@@ -26,17 +26,13 @@ import edu.cmu.tetrad.data.DataUtils;
 import edu.cmu.tetrad.data.IKnowledge;
 import edu.cmu.tetrad.data.Knowledge2;
 import edu.cmu.tetrad.graph.*;
-import edu.cmu.tetrad.util.DepthChoiceGenerator;
 import edu.cmu.tetrad.util.StatUtils;
 import edu.cmu.tetrad.util.TetradLogger;
 import edu.cmu.tetrad.util.TetradMatrix;
+import org.apache.commons.math3.distribution.TDistribution;
 import org.apache.commons.math3.linear.SingularMatrixException;
 
-import java.awt.*;
-import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import static java.lang.Math.*;
 
@@ -163,8 +159,8 @@ public final class Fask_B implements GraphSearch {
                 final double[] x = colData[i];
                 final double[] y = colData[j];
 
-                double c1 = StatUtils.cov(x, y, x, 0, +1)[1];
-                double c2 = StatUtils.cov(x, y, y, 0, +1)[1];
+//                double c1 = StatUtils.cov(x, y, x, 0, +1)[1];
+//                double c2 = StatUtils.cov(x, y, y, 0, +1)[1];
 
                 boolean adjacentSkew = adjacent(x, y);
 
@@ -280,27 +276,43 @@ public final class Fask_B implements GraphSearch {
 
     private boolean adjacent(double[] x, double[] y) {
 
-        double pc1;
-        double pc2;
+        double x1 = cu(x, y, x, 1, 1, 1);
+        double x2 = cu(x, y, y, 1, 1, 1);
 
-        try {
-            pc1 = partialCorrelation(x, y, new double[0][], x, 0, +1);
-            pc2 = partialCorrelation(x, y, new double[0][], y, 0, +1);
-        } catch (SingularMatrixException e) {
-            System.out.println("Singularity");
-            TetradLogger.getInstance().log("info", "Singularity");
-            return false;
-        }
+        double s1 = s2(x, y, x);
+        double s2 = s2(x, y, y);
 
-        int nc1 = StatUtils.getRows(x, x, 0, +1).size();
-        int nc2 = StatUtils.getRows(y, y, 0, +1).size();
+//        try {
+//            pc1 = cu(x, y, x, 1, 1, 1) / sqrt(s2(x, y, x));
+//            pc2 = cu(x, y, y, 1, 1, 1) / sqrt(s2(x, y, y));
+//
+////            pc1 = partialCorrelation(x, y, new double[0][], x, 0, +1);
+////            pc2 = partialCorrelation(x, y, new double[0][], y, 0, +1);
+//        } catch (SingularMatrixException e) {
+//            System.out.println("Singularity");
+//            TetradLogger.getInstance().log("info", "Singularity");
+//            return false;
+//        }
 
-        double z1 = 0.5 * (log(1.0 + pc1) - log(1.0 - pc1));
-        double z2 = 0.5 * (log(1.0 + pc2) - log(1.0 - pc2));
+        int n1 = StatUtils.getRows(x, x, 0, +1).size();
+        int n2 = StatUtils.getRows(y, y, 0, +1).size();
 
-        double zv1 = (z1 - z2) / sqrt((1.0 / ((double) nc1 - 3) + 1.0 / ((double) nc2 - 3)));
+//        double z1 = 0.5 * (log(1.0 + pc1) - log(1.0 - pc1));
+//        double z2 = 0.5 * (log(1.0 + pc2) - log(1.0 - pc2));
 
-        return abs(zv1) > cutoff;
+        final double q1 = s1 / n1;
+        final double q2 = s2 / n2;
+        double sd = sqrt(q1 + q2);
+
+        double t = (x1 - x2) / sd;
+
+        double df = ((q1 + q2) * (q1 + q2)) / ((q1 * q1) / (n1 - 1) + (q2 * q2) / (n2 - 1));
+
+//        double zv1 = (z1 - z2) / sqrt((1.0 / ((double) n1 - 3) + 1.0 / ((double) n2 - 3)));
+
+        return 2.0 * (1.0 - new TDistribution(df).cumulativeProbability(t)) > cutoff;
+
+//        return abs(zv1) > cutoff;
     }
 
 
@@ -314,12 +326,12 @@ public final class Fask_B implements GraphSearch {
         double sky = StatUtils.skewness(y);
         double r = (StatUtils.correlation(x, y));
 
-        final double cxyx = cu(x, y, x, skx, sky);
-        final double cxxx = cu(x, x, x, skx, sky);
-        final double cxyy = cu(x, y, y, skx, sky);
-        final double cxxy = cu(x, x, y, skx, sky);
-        final double cyyy = cu(y, y, y, skx, sky);
-        final double cyyx = cu(y, y, x, skx, sky);
+        final double cxyx = cu(x, y, x, skx, sky, 1.0);
+        final double cxxx = cu(x, x, x, skx, sky, 1.0);
+        final double cxyy = cu(x, y, y, skx, sky, 1.0);
+        final double cxxy = cu(x, x, y, skx, sky, 1.0);
+        final double cyyy = cu(y, y, y, skx, sky, 1.0);
+        final double cyyx = cu(y, y, x, skx, sky, 1.0);
 
         boolean a = (cxyx - r * cxxx) > (cxyy - r * cxxy);
         boolean b = (cxyx - (1.0 / r) * cyyx) > (cxyy - (1.0 / r) * cyyy);
@@ -328,20 +340,42 @@ public final class Fask_B implements GraphSearch {
         return !lr;
     }
 
-    private double cu(double[] x, double[] y, double[] condition, double skx, double sky) {
+    private double cu(double[] x, double[] y, double[] condition, double skx, double sky, double direction) {
         double exy = 0.0;
 
         int n = 0;
 
         for (int k = 0; k < x.length; k++) {
-            if (condition == null || condition[k] > 0) {
-                exy += x[k] * y[k];
-                n++;
+            if (direction > 0) {
+                if (condition == null || condition[k] > 0) {
+                    exy += x[k] * y[k];
+                    n++;
+                }
+            } else if (direction < 0) {
+                if (condition == null || condition[k] < 0) {
+                    exy += x[k] * y[k];
+                    n++;
+                }
             }
         }
 
         exy *= signum(skx) * signum(sky);
         return exy / n;
+    }
+
+    private static double s2(double[] x, double[] y, double[] condition) {
+        double s2xy = 0.0;
+
+        int n = 0;
+
+        for (int k = 0; k < x.length; k++) {
+            if (condition == null || condition[k] > 0) {
+                s2xy += x[k] * y[k] * x[k] * y[k];
+                n++;
+            }
+        }
+
+        return (s2xy / n);
     }
 
     private double partialCorrelation(double[] x, double[] y, double[][] z, double[] condition, double threshold, double direction) throws SingularMatrixException {
