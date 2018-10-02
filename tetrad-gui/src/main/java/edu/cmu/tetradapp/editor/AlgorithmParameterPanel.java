@@ -19,6 +19,7 @@
 package edu.cmu.tetradapp.editor;
 
 import edu.cmu.tetrad.annotation.Algorithm;
+import edu.cmu.tetrad.plugin.algorithm.PluginAlgorithmWrapper;
 import edu.cmu.tetrad.util.ParamDescriptions;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetradapp.model.GeneralAlgorithmRunner;
@@ -27,6 +28,7 @@ import edu.cmu.tetradapp.util.DoubleTextField;
 import edu.cmu.tetradapp.util.IntTextField;
 import edu.cmu.tetradapp.util.StringTextField;
 import java.awt.BorderLayout;
+import java.lang.annotation.Annotation;
 import java.text.DecimalFormat;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -49,7 +51,7 @@ public class AlgorithmParameterPanel extends JPanel {
 
     private static final long serialVersionUID = 274638263704283474L;
 
-    private static final String DEFAULT_TITLE_BORDER = "Algorithm Parameters";
+    private static final String DEFAULT_TITLE_BORDER = "Algorithm";
 
     public AlgorithmParameterPanel() {
         initComponents();
@@ -64,9 +66,52 @@ public class AlgorithmParameterPanel extends JPanel {
         Parameters parameters = runner.getParameters();
 
         Algorithm algoAnno = runner.getAlgorithm().getClass().getAnnotation(Algorithm.class);
-        String title = (algoAnno == null)
-                ? DEFAULT_TITLE_BORDER
-                : String.format("%s Parameters", algoAnno.name());
+        String algorName = DEFAULT_TITLE_BORDER;
+        try {
+        	if(algoAnno == null) {
+    			if(runner.getAlgorithm() instanceof PluginAlgorithmWrapper) {
+    				Class clazz = ((PluginAlgorithmWrapper)runner.getAlgorithm()).getExtensionClass();
+    				Annotation[] annotations = clazz.getDeclaredAnnotations();
+    				if (annotations != null) {
+    					for (int i = 0; i < annotations.length; i++) {
+    						Annotation annotation = annotations[i];
+    						String annotationType = annotation.toString();
+
+    						if (annotationType.contains("edu.cmu.tetrad.annotation.Algorithm")) {
+    							int left_paraphase = annotationType.indexOf("(");
+    							if (left_paraphase > -1) {
+    								annotationType = annotationType.substring(left_paraphase + 1);
+    							}
+    							int right_paraphase = annotationType.indexOf(")");
+    							if (right_paraphase > -1) {
+    								annotationType = annotationType.substring(0, right_paraphase);
+    							}
+    							String[] tags = annotationType.split(",");
+    							if (tags != null) {
+    								for (int j = 0; j < tags.length; j++) {
+    									String[] tokens = tags[j].split("=");
+    									String tag_name = tokens[0].trim();
+    									String value = tokens[1].trim();
+
+    									if (tag_name.equalsIgnoreCase("name")) {
+    										algorName = value;
+    										break;
+    									}
+    								}
+    							}
+    							break;
+    						}
+    					}
+    				}
+    			}
+        	}else {
+    			algorName = algoAnno.name();
+        	}
+		} catch (Exception e) {
+			
+		}
+        
+        String title = String.format("%s Parameters", algorName);
         setBorder(BorderFactory.createTitledBorder(title));
 
         removeAll();

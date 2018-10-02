@@ -22,6 +22,7 @@ import edu.cmu.tetrad.annotation.AlgType;
 import edu.cmu.tetrad.annotation.Algorithm;
 import edu.cmu.tetrad.annotation.AlgorithmAnnotations;
 import edu.cmu.tetrad.annotation.AnnotatedClass;
+import edu.cmu.tetrad.plugin.algorithm.PluginAlgorithmInitialGraphKnowledgeScoreWrapper;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedType;
@@ -76,22 +77,19 @@ public class AlgorithmModels {
 		List<PluginWrapper> startedPlugins = pluginManager.getStartedPlugins();
 		for (PluginWrapper plugin : startedPlugins) {
 			String pluginId = plugin.getDescriptor().getPluginId();
-			System.out.println("PluginId: " + pluginId);
+
 			List extensions = pluginManager.getExtensions(pluginId);
 			for (Object extension : extensions) {
 
 				Class clazz = extension.getClass();
 				
-				System.out.println("Algorithm Extension CanonicalName: " + clazz.getCanonicalName());
-				System.out.println("Algorithm Extension SimpleName: " + clazz.getSimpleName());
 				try {
 					boolean isAlgorithm = false;
-					System.out.println("Class Name: " + clazz.getName());
+
 					AnnotatedType[] annotatedTypes = clazz.getAnnotatedInterfaces();
 					if(annotatedTypes != null) {
 						for(int i=0;i<annotatedTypes.length;i++) {
 							AnnotatedType annotatedType = annotatedTypes[i];
-							System.out.println("AnnotatedType: " + annotatedType.getType());
 							
 							if(annotatedType.getType().toString().contains("edu.cmu.tetrad.algcomparison.algorithm.Algorithm")) {
 								isAlgorithm = true;
@@ -105,11 +103,8 @@ public class AlgorithmModels {
 						
 							String annotationType = annotation.toString();
 							
-							System.out.println("Annotation: " + annotation.toString());
-							System.out.println("Annotation.getClass: " + annotation.getClass());
-							System.out.println("Annotation.annotationType: " + annotation.annotationType().toGenericString());
-							
 							if(isAlgorithm && annotationType.contains("edu.cmu.tetrad.annotation.Algorithm")) {
+								
 								int left_paraphase = annotationType.indexOf("(");
 								if(left_paraphase > -1) {
 									annotationType = annotationType.substring(left_paraphase + 1);
@@ -118,14 +113,13 @@ public class AlgorithmModels {
 								if(right_paraphase > -1) {
 									annotationType = annotationType.substring(0, right_paraphase);
 								}
-								System.out.println(annotationType);
+
 								String[] tags = annotationType.split(",");
 								if(tags != null) {
 									for(int j=0;j<tags.length;j++) {
 										String[] tokens = tags[j].split("=");
 										String name = tokens[0].trim();
 										String value = tokens[1].trim();
-										System.out.println(name + " : " + value);
 										
 										if(name.equalsIgnoreCase("name")) {
 											pluginName.put(clazz, value);
@@ -138,29 +132,14 @@ public class AlgorithmModels {
 										}
 									}
 								}
+
 								AnnotatedClass<Algorithm> annotatedAlgor = new AnnotatedClass<Algorithm>(clazz, null);
 								AlgorithmModel algorPlugin = new AlgorithmModel(annotatedAlgor);
 								list.add(algorPlugin);
+								
 							}
 						}
 					}
-					
-					Method[] mothods = clazz.getDeclaredMethods();
-					if(mothods != null) {
-						for(int i=0;i<mothods.length;i++) {
-							Method method = mothods[i];
-							System.out.println("Method: " + method.getName());
-							Type[] types = method.getGenericParameterTypes();
-							if(types != null) {
-								for(int j=0;j<types.length;j++) {
-									System.out.println("Method.getGenericParameterType: " + types[j].getTypeName());
-								}
-							}
-							System.out.println("Method.getGenericReturnType: " + method.getGenericReturnType());
-						}
-					}
-					
-					
 					
 				} catch (SecurityException e) {
 					// TODO Auto-generated catch block
@@ -184,8 +163,9 @@ public class AlgorithmModels {
 			try {
 				algType = e.getAlgorithm().getAnnotation().algoType();
 			} catch (Exception e1) {
-				if(pluginAlgoType.containsKey(e.getClass())) {
-					algType = pluginAlgoType.get(e.getClass());
+				Class clazz = e.getAlgorithm().getClazz();
+				if(pluginAlgoType.containsKey(clazz)) {
+					algType = pluginAlgoType.get(clazz);
 				}
 			}
 			map.get(algType).add(e);

@@ -1,8 +1,8 @@
 ///////////////////////////////////////////////////////////////////////////////
 // For information as to what this class does, see the Javadoc, below.       //
 // Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,       //
-// 2007, 2008, 2009, 2010, 2014, 2015 by Peter Spirtes, Richard Scheines, Joseph   //
-// Ramsey, and Clark Glymour.                                                //
+// 2007, 2008, 2009, 2010, 2014, 2015 by Peter Spirtes, Richard Scheines,    //
+// Joseph Ramsey, and Clark Glymour.                                         //
 //                                                                           //
 // This program is free software; you can redistribute it and/or modify      //
 // it under the terms of the GNU General Public License as published by      //
@@ -35,6 +35,7 @@ import edu.cmu.tetrad.annotation.Nonexecutable;
 import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.Node;
+import edu.cmu.tetrad.plugin.algorithm.PluginAlgorithmInitialGraphKnowledgeScoreWrapper;
 import edu.cmu.tetrad.util.JOptionUtils;
 import edu.cmu.tetrad.util.JsonUtils;
 import edu.cmu.tetrad.util.Parameters;
@@ -75,6 +76,7 @@ import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URL;
@@ -248,7 +250,47 @@ public class GeneralAlgorithmEditor extends JPanel implements FinalizingEditor {
                     models.put(ALGO_PARAM, model);
                     algorithmList.setSelectedValue(model, true);
 
-                    String title = String.format("Algorithm: %s", model.getAlgorithm().getAnnotation().name());
+                    String algorName = "";
+                    
+                    try {
+						algorName = model.getAlgorithm().getAnnotation().name();
+					} catch (Exception e) {
+						Annotation[] annotations = model.getAlgorithm().getClazz().getDeclaredAnnotations();
+						if (annotations != null) {
+							for (int i = 0; i < annotations.length; i++) {
+								Annotation annotation = annotations[i];
+								String annotationType = annotation.toString();
+
+								if (annotationType.contains("edu.cmu.tetrad.annotation.Algorithm")) {
+									int left_paraphase = annotationType.indexOf("(");
+									if (left_paraphase > -1) {
+										annotationType = annotationType.substring(left_paraphase + 1);
+									}
+									int right_paraphase = annotationType.indexOf(")");
+									if (right_paraphase > -1) {
+										annotationType = annotationType.substring(0, right_paraphase);
+									}
+									String[] tags = annotationType.split(",");
+									if (tags != null) {
+										for (int j = 0; j < tags.length; j++) {
+											String[] tokens = tags[j].split("=");
+											String tag_name = tokens[0].trim();
+											String _value = tokens[1].trim();
+
+											if (tag_name.equalsIgnoreCase("name")) {
+												algorName = _value;
+												break;
+											}
+
+										}
+									}
+									break;
+								}
+							}
+						}
+					}
+					
+                    String title = String.format("Algorithm: %s", algorName);
                     algorithmGraphTitle.setText(title);
                     break;
                 }
@@ -357,21 +399,62 @@ public class GeneralAlgorithmEditor extends JPanel implements FinalizingEditor {
     private boolean isValid(AlgorithmModel algoModel, IndependenceTestModel indTestModel, ScoreModel scoreModel) {
         boolean missingTest = algoModel.isRequiredTest() && (indTestModel == null);
         boolean missingScore = algoModel.isRequiredScore() && (scoreModel == null);
+        
+        String algorName = "";
+        
+        try {
+			algorName = algoModel.getAlgorithm().getAnnotation().name();
+		} catch (Exception e) {
+			Annotation[] annotations = algoModel.getAlgorithm().getClazz().getDeclaredAnnotations();
+			if (annotations != null) {
+				for (int i = 0; i < annotations.length; i++) {
+					Annotation annotation = annotations[i];
+					String annotationType = annotation.toString();
+
+					if (annotationType.contains("edu.cmu.tetrad.annotation.Algorithm")) {
+						int left_paraphase = annotationType.indexOf("(");
+						if (left_paraphase > -1) {
+							annotationType = annotationType.substring(left_paraphase + 1);
+						}
+						int right_paraphase = annotationType.indexOf(")");
+						if (right_paraphase > -1) {
+							annotationType = annotationType.substring(0, right_paraphase);
+						}
+						String[] tags = annotationType.split(",");
+						if (tags != null) {
+							for (int j = 0; j < tags.length; j++) {
+								String[] tokens = tags[j].split("=");
+								String tag_name = tokens[0].trim();
+								String value = tokens[1].trim();
+
+								if (tag_name.equalsIgnoreCase("name")) {
+									algorName = value;
+									break;
+								}
+								
+							}
+						}
+						break;
+					}
+				}
+			}
+		}
+        
         if (missingTest && missingScore) {
             String msg = String.format("%s requires both test and score.",
-                    algoModel.getAlgorithm().getAnnotation().name());
+            		algorName);
             JOptionPane.showMessageDialog(desktop, msg, "Please Note", JOptionPane.INFORMATION_MESSAGE);
 
             return false;
         } else if (missingTest) {
             String msg = String.format("%s requires independence test.",
-                    algoModel.getAlgorithm().getAnnotation().name());
+            		algorName);
             JOptionPane.showMessageDialog(desktop, msg, "Please Note", JOptionPane.INFORMATION_MESSAGE);
 
             return false;
         } else if (missingScore) {
             String msg = String.format("%s requires score.",
-                    algoModel.getAlgorithm().getAnnotation().name());
+            		algorName);
             JOptionPane.showMessageDialog(desktop, msg, "Please Note", JOptionPane.INFORMATION_MESSAGE);
 
             return false;
@@ -431,7 +514,38 @@ public class GeneralAlgorithmEditor extends JPanel implements FinalizingEditor {
             try {
 				cmd = algoModel.getAlgorithm().getAnnotation().command();
 			} catch (Exception e) {
-				
+				Annotation[] annotations = algoModel.getAlgorithm().getClazz().getDeclaredAnnotations();
+				if (annotations != null) {
+					for (int i = 0; i < annotations.length; i++) {
+						Annotation annotation = annotations[i];
+						String annotationType = annotation.toString();
+
+						if (annotationType.contains("edu.cmu.tetrad.annotation.Algorithm")) {
+							int left_paraphase = annotationType.indexOf("(");
+							if (left_paraphase > -1) {
+								annotationType = annotationType.substring(left_paraphase + 1);
+							}
+							int right_paraphase = annotationType.indexOf(")");
+							if (right_paraphase > -1) {
+								annotationType = annotationType.substring(0, right_paraphase);
+							}
+							String[] tags = annotationType.split(",");
+							if (tags != null) {
+								for (int j = 0; j < tags.length; j++) {
+									String[] tokens = tags[j].split("=");
+									String tag_name = tokens[0].trim();
+									String value = tokens[1].trim();
+
+									if (tag_name.equalsIgnoreCase("command")) {
+										cmd = value;
+										break;
+									}
+								}
+							}
+							break;
+						}
+					}
+				}
 			}
             if(cmd.equalsIgnoreCase("ts-fci") ||
             		cmd.equalsIgnoreCase("ts-gfci") ||
@@ -725,6 +839,13 @@ public class GeneralAlgorithmEditor extends JPanel implements FinalizingEditor {
         Algorithm algorithm = null;
 
         try {
+        	if(algoModel.getAlgorithm().getAnnotation() == null) {
+        		// Need more detail on this
+        		Algorithm plugin =
+        				new PluginAlgorithmInitialGraphKnowledgeScoreWrapper(algoClass);
+        		algoClass = plugin.getClass();
+        	}
+        	
             algorithm = AlgorithmFactory.create(algoClass, indTestClass, scoreClass);
         } catch (IllegalAccessException | InstantiationException exception) {
             LOGGER.error("", exception);
@@ -877,7 +998,43 @@ public class GeneralAlgorithmEditor extends JPanel implements FinalizingEditor {
 
             // 3.1 Algorithm Id, Independent Test Id, Score Id
             AlgorithmModel algoModel = algorithmList.getSelectedValue();
-            String algoId = algoModel.getAlgorithm().getAnnotation().command();
+            String algoId = "";
+			try {
+				algoId = algoModel.getAlgorithm().getAnnotation().command();
+			} catch (Exception e) {
+				Annotation[] annotations = algoModel.getAlgorithm().getClazz().getDeclaredAnnotations();
+				if (annotations != null) {
+					for (int i = 0; i < annotations.length; i++) {
+						Annotation annotation = annotations[i];
+						String annotationType = annotation.toString();
+
+						if (annotationType.contains("edu.cmu.tetrad.annotation.Algorithm")) {
+							int left_paraphase = annotationType.indexOf("(");
+							if (left_paraphase > -1) {
+								annotationType = annotationType.substring(left_paraphase + 1);
+							}
+							int right_paraphase = annotationType.indexOf(")");
+							if (right_paraphase > -1) {
+								annotationType = annotationType.substring(0, right_paraphase);
+							}
+							String[] tags = annotationType.split(",");
+							if (tags != null) {
+								for (int j = 0; j < tags.length; j++) {
+									String[] tokens = tags[j].split("=");
+									String tag_name = tokens[0].trim();
+									String value = tokens[1].trim();
+
+									if (tag_name.equalsIgnoreCase("command")) {
+										algoId = value;
+										break;
+									}
+								}
+							}
+							break;
+						}
+					}
+				}
+			}
             // Test
             String testId = null;
             if (indTestComboBox.isEnabled()) {
@@ -1049,16 +1206,55 @@ public class GeneralAlgorithmEditor extends JPanel implements FinalizingEditor {
             public void watch() {
                 AlgorithmModel algoModel = algorithmList.getSelectedValue();
                 if (algoModel != null) {
-                    String title = String.format("Algorithm: %s", algoModel.getAlgorithm().getAnnotation().name());
+                	String algorName = "";
+                	AlgType algoType = AlgType.allow_latent_common_causes;
+                	try {
+						algorName = algoModel.getAlgorithm().getAnnotation().name();
+					} catch (Exception e) {
+						Annotation[] annotations = algoModel.getAlgorithm().getClazz().getDeclaredAnnotations();
+						if (annotations != null) {
+							for (int i = 0; i < annotations.length; i++) {
+								Annotation annotation = annotations[i];
+								String annotationType = annotation.toString();
+
+								if (annotationType.contains("edu.cmu.tetrad.annotation.Algorithm")) {
+									int left_paraphase = annotationType.indexOf("(");
+									if (left_paraphase > -1) {
+										annotationType = annotationType.substring(left_paraphase + 1);
+									}
+									int right_paraphase = annotationType.indexOf(")");
+									if (right_paraphase > -1) {
+										annotationType = annotationType.substring(0, right_paraphase);
+									}
+									String[] tags = annotationType.split(",");
+									if (tags != null) {
+										for (int j = 0; j < tags.length; j++) {
+											String[] tokens = tags[j].split("=");
+											String tag_name = tokens[0].trim();
+											String value = tokens[1].trim();
+
+											if (tag_name.equalsIgnoreCase("name")) {
+												algorName = value;
+												break;
+											}
+											if(tag_name.equalsIgnoreCase("algoType")) {
+												algoType = AlgType.valueOf(value);
+											}
+										}
+									}
+									break;
+								}
+							}
+						}
+					}
+                    String title = String.format("Algorithm: %s", algorName);
                     algorithmGraphTitle.setText(title);
 
                     HpcAccount hpcAccount = null;
 
-                    if (algoModel.getAlgorithm().getAnnotation().algoType() != AlgType.orient_pairwise
+                    if (algoType != AlgType.orient_pairwise
                             && runner.getDataModelList().getModelList().size() == 1) {
-                        String algoName = algoModel.getAlgorithm().getAnnotation().name();
-
-                        hpcAccount = showRemoteComputingOptions(algoName);
+                        hpcAccount = showRemoteComputingOptions(algorName);
                     }
 
                     if (hpcAccount == null) {

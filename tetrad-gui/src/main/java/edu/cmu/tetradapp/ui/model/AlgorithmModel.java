@@ -23,9 +23,12 @@ import edu.cmu.tetrad.algcomparison.utils.UsesScoreWrapper;
 import edu.cmu.tetrad.annotation.Algorithm;
 import edu.cmu.tetrad.annotation.AnnotatedClass;
 import edu.cmu.tetrad.util.AlgorithmDescriptions;
+
 import java.io.Serializable;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedType;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
 /**
  *
@@ -35,82 +38,98 @@ import java.lang.reflect.AnnotatedType;
  */
 public class AlgorithmModel implements Serializable, Comparable<AlgorithmModel> {
 
-    private static final long serialVersionUID = 8599854464475682558L;
+	private static final long serialVersionUID = 8599854464475682558L;
 
-    private final AnnotatedClass<Algorithm> algorithm;
-    private final boolean requiredScore;
-    private final boolean requiredTest;
-    private final String description;
+	private final AnnotatedClass<Algorithm> algorithm;
+	private final boolean requiredScore;
+	private final boolean requiredTest;
+	private final String description;
 
-    public AlgorithmModel(AnnotatedClass<Algorithm> algorithm) {
-        if (algorithm == null) {
-            throw new IllegalArgumentException("Algorithm annotation cannot be null.");
-        }
+	public AlgorithmModel(AnnotatedClass<Algorithm> algorithm) {
+		if (algorithm == null) {
+			throw new IllegalArgumentException("Algorithm annotation cannot be null.");
+		}
 
-        this.algorithm = algorithm;
-        if(algorithm.getAnnotation() == null) {
-        	AnnotatedType[] annotatedTypes = algorithm.getClazz().getAnnotatedInterfaces();
-    		boolean requiredScore = false;
-    		boolean requiredTest = false;
-        	if(annotatedTypes != null) {
-				for(int i=0;i<annotatedTypes.length;i++) {
+		this.algorithm = algorithm;
+		if (algorithm.getAnnotation() == null) {
+			AnnotatedType[] annotatedTypes = algorithm.getClazz().getAnnotatedInterfaces();
+			boolean requiredScore = false;
+			boolean requiredTest = false;
+			if (annotatedTypes != null) {
+				for (int i = 0; i < annotatedTypes.length; i++) {
 					AnnotatedType annotatedType = annotatedTypes[i];
 					String strAnnotatedType = annotatedType.getType().toString();
-					
-					if(strAnnotatedType.contains("edu.cmu.tetrad.algcomparison.utils.UsesScoreWrapper")) {
+
+					if (strAnnotatedType.contains("edu.cmu.tetrad.algcomparison.utils.UsesScoreWrapper")) {
 						requiredScore = true;
 					}
-					if(strAnnotatedType.contains("edu.cmu.tetrad.algcomparison.utils.TakesIndependenceWrapper")) {
+					if (strAnnotatedType.contains("edu.cmu.tetrad.algcomparison.utils.TakesIndependenceWrapper")) {
 						requiredTest = true;
 					}
 				}
 			}
-        	
-            this.requiredScore = requiredScore;
-            this.requiredTest = requiredTest;
-        }else {
-            this.requiredScore = UsesScoreWrapper.class.isAssignableFrom(algorithm.getClazz());
-            this.requiredTest = TakesIndependenceWrapper.class.isAssignableFrom(algorithm.getClazz());
-        }
-        String description = "";
-        try {
+
+			this.requiredScore = requiredScore;
+			this.requiredTest = requiredTest;
+		} else {
+			this.requiredScore = UsesScoreWrapper.class.isAssignableFrom(algorithm.getClazz());
+			this.requiredTest = TakesIndependenceWrapper.class.isAssignableFrom(algorithm.getClazz());
+		}
+		String description = "";
+		try {
 			description = AlgorithmDescriptions.getInstance().get(algorithm.getAnnotation().command());
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			//e.printStackTrace();
+			Class clazz = algorithm.getClazz();
+			Method[] mothods = clazz.getDeclaredMethods();
+			if (mothods != null) {
+				for (int i = 0; i < mothods.length; i++) {
+					Method method = mothods[i];
+					String methodName = method.getName();
+					if (methodName.equalsIgnoreCase("getAlgorithmDescriptions")) {
+						try {
+							Object plugin = clazz.newInstance();
+							description = (String) method.invoke(plugin);
+						} catch (InstantiationException | IllegalAccessException | IllegalArgumentException
+								| InvocationTargetException e1) {
+							// TODO Auto-generated catch block
+							e1.printStackTrace();
+						}
+					}
+				}
+			}
 		}
-        this.description = description;
-    }
+		this.description = description;
+	}
 
-    @Override
-    public int compareTo(AlgorithmModel other) {
-    	String name = "";
-    	try {
+	@Override
+	public int compareTo(AlgorithmModel other) {
+		String name = "";
+		try {
 			name = algorithm.getAnnotation().name();
 		} catch (Exception e) {
 			Annotation[] annotations = algorithm.getClazz().getDeclaredAnnotations();
-			if(annotations != null) {
-				for(int i=0;i<annotations.length;i++) {
+			if (annotations != null) {
+				for (int i = 0; i < annotations.length; i++) {
 					Annotation annotation = annotations[i];
 					String annotationType = annotation.toString();
-					
-					if(annotationType.contains("edu.cmu.tetrad.annotation.Algorithm")) {
+
+					if (annotationType.contains("edu.cmu.tetrad.annotation.Algorithm")) {
 						int left_paraphase = annotationType.indexOf("(");
-						if(left_paraphase > -1) {
+						if (left_paraphase > -1) {
 							annotationType = annotationType.substring(left_paraphase + 1);
 						}
 						int right_paraphase = annotationType.indexOf(")");
-						if(right_paraphase > -1) {
+						if (right_paraphase > -1) {
 							annotationType = annotationType.substring(0, right_paraphase);
 						}
 						String[] tags = annotationType.split(",");
-						if(tags != null) {
-							for(int j=0;j<tags.length;j++) {
+						if (tags != null) {
+							for (int j = 0; j < tags.length; j++) {
 								String[] tokens = tags[j].split("=");
 								String tag_name = tokens[0].trim();
 								String value = tokens[1].trim();
-								
-								if(tag_name.equalsIgnoreCase("name")) {
+
+								if (tag_name.equalsIgnoreCase("name")) {
 									name = value;
 									break;
 								}
@@ -121,75 +140,33 @@ public class AlgorithmModel implements Serializable, Comparable<AlgorithmModel> 
 				}
 			}
 		}
-    	String otherName = "";
-    	try {
+		String otherName = "";
+		try {
 			otherName = other.algorithm.getAnnotation().name();
 		} catch (Exception e) {
 			Annotation[] annotations = other.algorithm.getClazz().getDeclaredAnnotations();
-			if(annotations != null) {
-				for(int i=0;i<annotations.length;i++) {
+			if (annotations != null) {
+				for (int i = 0; i < annotations.length; i++) {
 					Annotation annotation = annotations[i];
 					String annotationType = annotation.toString();
-					
-					if(annotationType.contains("edu.cmu.tetrad.annotation.Algorithm")) {
-						int left_paraphase = annotationType.indexOf("(");
-						if(left_paraphase > -1) {
-							annotationType = annotationType.substring(left_paraphase + 1);
-						}
-						int right_paraphase = annotationType.indexOf(")");
-						if(right_paraphase > -1) {
-							annotationType = annotationType.substring(0, right_paraphase);
-						}
-						String[] tags = annotationType.split(",");
-						if(tags != null) {
-							for(int j=0;j<tags.length;j++) {
-								String[] tokens = tags[j].split("=");
-								String tag_name = tokens[0].trim();
-								String value = tokens[1].trim();
-								
-								if(tag_name.equalsIgnoreCase("name")) {
-									name = value;
-									break;
-								}
-							}
-						}
-						break;
-					}
-				}
-			}
-		} 
-        return name.compareTo(otherName);
-    }
 
-    @Override
-    public String toString() {
-    	String name = "";
-    	try {
-			name = algorithm.getAnnotation().name();
-		} catch (Exception e) {
-			Annotation[] annotations = algorithm.getClazz().getDeclaredAnnotations();
-			if(annotations != null) {
-				for(int i=0;i<annotations.length;i++) {
-					Annotation annotation = annotations[i];
-					String annotationType = annotation.toString();
-					
-					if(annotationType.contains("edu.cmu.tetrad.annotation.Algorithm")) {
+					if (annotationType.contains("edu.cmu.tetrad.annotation.Algorithm")) {
 						int left_paraphase = annotationType.indexOf("(");
-						if(left_paraphase > -1) {
+						if (left_paraphase > -1) {
 							annotationType = annotationType.substring(left_paraphase + 1);
 						}
 						int right_paraphase = annotationType.indexOf(")");
-						if(right_paraphase > -1) {
+						if (right_paraphase > -1) {
 							annotationType = annotationType.substring(0, right_paraphase);
 						}
 						String[] tags = annotationType.split(",");
-						if(tags != null) {
-							for(int j=0;j<tags.length;j++) {
+						if (tags != null) {
+							for (int j = 0; j < tags.length; j++) {
 								String[] tokens = tags[j].split("=");
 								String tag_name = tokens[0].trim();
 								String value = tokens[1].trim();
-								
-								if(tag_name.equalsIgnoreCase("name")) {
+
+								if (tag_name.equalsIgnoreCase("name")) {
 									name = value;
 									break;
 								}
@@ -200,23 +177,65 @@ public class AlgorithmModel implements Serializable, Comparable<AlgorithmModel> 
 				}
 			}
 		}
-        return name;
-    }
+		return name.compareTo(otherName);
+	}
 
-    public AnnotatedClass<Algorithm> getAlgorithm() {
-        return algorithm;
-    }
+	@Override
+	public String toString() {
+		String name = "";
+		try {
+			name = algorithm.getAnnotation().name();
+		} catch (Exception e) {
+			Annotation[] annotations = algorithm.getClazz().getDeclaredAnnotations();
+			if (annotations != null) {
+				for (int i = 0; i < annotations.length; i++) {
+					Annotation annotation = annotations[i];
+					String annotationType = annotation.toString();
 
-    public boolean isRequiredScore() {
-        return requiredScore;
-    }
+					if (annotationType.contains("edu.cmu.tetrad.annotation.Algorithm")) {
+						int left_paraphase = annotationType.indexOf("(");
+						if (left_paraphase > -1) {
+							annotationType = annotationType.substring(left_paraphase + 1);
+						}
+						int right_paraphase = annotationType.indexOf(")");
+						if (right_paraphase > -1) {
+							annotationType = annotationType.substring(0, right_paraphase);
+						}
+						String[] tags = annotationType.split(",");
+						if (tags != null) {
+							for (int j = 0; j < tags.length; j++) {
+								String[] tokens = tags[j].split("=");
+								String tag_name = tokens[0].trim();
+								String value = tokens[1].trim();
 
-    public boolean isRequiredTest() {
-        return requiredTest;
-    }
+								if (tag_name.equalsIgnoreCase("name")) {
+									name = value;
+									break;
+								}
+							}
+						}
+						break;
+					}
+				}
+			}
+		}
+		return name;
+	}
 
-    public String getDescription() {
-        return description;
-    }
+	public AnnotatedClass<Algorithm> getAlgorithm() {
+		return algorithm;
+	}
+
+	public boolean isRequiredScore() {
+		return requiredScore;
+	}
+
+	public boolean isRequiredTest() {
+		return requiredTest;
+	}
+
+	public String getDescription() {
+		return description;
+	}
 
 }

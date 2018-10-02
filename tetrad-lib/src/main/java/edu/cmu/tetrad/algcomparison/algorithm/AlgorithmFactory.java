@@ -37,6 +37,8 @@ public class AlgorithmFactory {
     private AlgorithmFactory() {
     }
 
+    
+    
     public static Algorithm create(Class<? extends Algorithm> algoClass, IndependenceWrapper test, ScoreWrapper score)
             throws IllegalAccessException, InstantiationException {
         if (algoClass == null) {
