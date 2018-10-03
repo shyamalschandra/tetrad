@@ -286,7 +286,6 @@ public final class Fask_B implements GraphSearch {
         double sy = StatUtils.skewness(y);
         double r = (StatUtils.correlation(x, y));
 
-
         // 1. Y > 0, X < 0 > Y < 0, X > 0 for a > 0, a < 0, all cases. Need eX, eY ~ pos skew
 //        final double cxy_xy = cu2(x, y, sx, sy, x, y);
 //        final double cxx_xy = cu2(x, x, sx, sy, x, y);
