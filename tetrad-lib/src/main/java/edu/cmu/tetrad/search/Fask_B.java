@@ -284,19 +284,19 @@ public final class Fask_B implements GraphSearch {
 
         // 1. Y > 0, X < 0 > Y < 0, X > 0 for a > 0, a < 0, all cases. Need eY ~ pos skew.
         // Perfect on DAG problems with mixed coefficients.
-        double r = (StatUtils.correlation(x, y));
-
-        final double cxy_xy = cu2(x, y, x, y);
-        final double cxx_xy = cu2(x, x, x, y);
-
-        final double cxy_yx = cu2(x, y, y, x);
-        final double cxx_yx = cu2(x, x, y, x);
-
-        boolean a = cxy_yx - r * cxx_yx > cxy_xy - r * cxx_xy;
-        boolean b = cxy_yx - (1.0 / r) * cxx_yx < cxy_xy - (1.0 / r) * cxx_xy;
-
-        boolean lr = a & b;
-        return !lr;
+//        double r = StatUtils.correlation(x, y);
+//
+//        final double cxy_xy = cu2(x, y, x, y);
+//        final double cxx_xy = cu2(x, x, x, y);
+//
+//        final double cxy_yx = cu2(x, y, y, x);
+//        final double cxx_yx = cu2(x, x, y, x);
+//
+//        boolean a = cxy_yx - r * cxx_yx > cxy_xy - r * cxx_xy;
+//        boolean b = cxy_yx - (1.0 / r) * cxx_yx < cxy_xy - (1.0 / r) * cxx_xy;
+//
+//        boolean lr = a & b;
+//        return !lr;
 
 
         // 2 X > 0 > Y > 0. Perfect on DAG problems with mixed coefficients. Requires X or eY ~ pos. skew
@@ -344,25 +344,25 @@ public final class Fask_B implements GraphSearch {
 
         // 4 Bryan's rule. Perfect for a > 0. For mixed coefficients, some false positive orientations.
         // Need to check the coding.
-//        double sx = StatUtils.skewness(x);
-//        double sy = StatUtils.skewness(y);
-//        double r = (StatUtils.correlation(x, y));
-//
-//        final double c0xyy = cu(x, y, y, sx, sy, -1.0);
-//        final double c0xxy = cu(x, x, y, sx, sy, -1.0);
-//        final double c0xyx = cu(x, y, x, sx, sy, 1.0);
-//        final double c0xxx = cu(x, x, x, sx, sy, 1.0);
-//
-//        final double c1xyy = cu(x, y, y, sx, sy, -1.0);
-//        final double c1yyy = cu(y, y, y, sx, sy, -1.0);
-//        final double c1xyx = cu(x, y, x, sx, sy, 1.0);
-//        final double c1yyx = cu(y, y, x, sx, sy, 1.0);
-//
-//        boolean a = (c0xyy - r * c0xxy) > (c0xyx - r * c0xxx);
-//        boolean b = (c1xyy - (1.0 / r) * c1yyy) < (c1xyx - (1.0 / r) * c1yyx);
-//
-//        boolean lr = a & b;
-//        return !lr;
+        double sx = StatUtils.skewness(x);
+        double sy = StatUtils.skewness(y);
+        double r = (StatUtils.correlation(x, y));
+
+        final double c0xyy = cu(x, y, y, sx, sy, -1.0);
+        final double c0xxy = cu(x, x, y, sx, sy, -1.0);
+        final double c0xyx = cu(x, y, x, sx, sy, 1.0);
+        final double c0xxx = cu(x, x, x, sx, sy, 1.0);
+
+        final double c1xyy = cu(x, y, y, sx, sy, -1.0);
+        final double c1yyy = cu(y, y, y, sx, sy, -1.0);
+        final double c1xyx = cu(x, y, x, sx, sy, 1.0);
+        final double c1yyx = cu(y, y, x, sx, sy, 1.0);
+
+        boolean a = (c0xyy - r * c0xxy) > (c0xyx - r * c0xxx);
+        boolean b = (c1xyy - (1.0 / r) * c1yyy) < (c1xyx - (1.0 / r) * c1yyx);
+
+        boolean lr = a & b;
+        return !lr;
     }
 
     private static double cu0(double[] x, double[] y, double[] condition) {
