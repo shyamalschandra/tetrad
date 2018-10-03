@@ -282,27 +282,29 @@ public final class Fask_B implements GraphSearch {
         x = y;
         y = z;
 
-        double sx = StatUtils.skewness(x);
-        double sy = StatUtils.skewness(y);
+        // 1. Y > 0, X < 0 > Y < 0, X > 0 for a > 0, a < 0, all cases. Need eY ~ pos skew.
+        // Perfect on DAG problems with mixed coefficients.
         double r = (StatUtils.correlation(x, y));
 
-        // 1. Y > 0, X < 0 > Y < 0, X > 0 for a > 0, a < 0, all cases. Need eX, eY ~ pos skew.
-        // Perfect on DAG problems with mixed coefficients.
-//        final double cxy_xy = cu2(x, y, sx, sy, x, y);
-//        final double cxx_xy = cu2(x, x, sx, sy, x, y);
-//
-//        final double cxy_yx = cu2(x, y, sx, sy, y, x);
-//        final double cxx_yx = cu2(x, x, sx, sy, y, x);
-//
-//        boolean a = cxy_yx - r * cxx_yx > cxy_xy - r * cxx_xy;
-//        boolean b = cxy_yx - (1.0 / r) * cxx_yx < cxy_xy - (1.0 / r) * cxx_xy;
-//
-//        boolean lr = a & b;
-//        return !lr;
+        final double cxy_xy = cu2(x, y, x, y);
+        final double cxx_xy = cu2(x, x, x, y);
+
+        final double cxy_yx = cu2(x, y, y, x);
+        final double cxx_yx = cu2(x, x, y, x);
+
+        boolean a = cxy_yx - r * cxx_yx > cxy_xy - r * cxx_xy;
+        boolean b = cxy_yx - (1.0 / r) * cxx_yx < cxy_xy - (1.0 / r) * cxx_xy;
+
+        boolean lr = a & b;
+        return !lr;
 
 
-        // 2 X > 0 > Y > 0. Perfect on DAG problems with mixed coefficients.
+        // 2 X > 0 > Y > 0. Perfect on DAG problems with mixed coefficients. Requires X or eY ~ pos. skew
 
+//        double sx = StatUtils.skewness(x);
+//        double sy = StatUtils.skewness(y);
+//        double r = (StatUtils.correlation(x, y));
+//
 //        final double cxyx = cu(x, y, x, sx, sy, 1.0);
 //        final double cxxx = cu(x, x, x, sx, sy, 1.0);
 //        final double cxyy = cu(x, y, y, sx, sy, 1.0);
@@ -316,8 +318,12 @@ public final class Fask_B implements GraphSearch {
 //        boolean lr = a & b;
 //        return !lr;
 
-        // 3 Original rule. Perfect on DAG problems with mixed coefficients.
+        // 3 Original rule. Perfect on DAG problems with mixed coefficients. Requires X or eY ~ pos. skew
 
+//        double sx = StatUtils.skewness(x);
+//        double sy = StatUtils.skewness(y);
+//        double r = (StatUtils.correlation(x, y));
+//
 //        final double cxyx = cu0(x, y, x);
 //        final double cxyy = cu0(x, y, y);
 //
@@ -338,21 +344,25 @@ public final class Fask_B implements GraphSearch {
 
         // 4 Bryan's rule. Perfect for a > 0. For mixed coefficients, some false positive orientations.
         // Need to check the coding.
-        final double c0xyy = cu(x, y, y, sx, sy, -1.0);
-        final double c0xxy = cu(x, x, y, sx, sy, -1.0);
-        final double c0xyx = cu(x, y, x, sx, sy, 1.0);
-        final double c0xxx = cu(x, x, x, sx, sy, 1.0);
-
-        final double c1xyy = cu(x, y, y, sx, sy, -1.0);
-        final double c1yyy = cu(y, y, y, sx, sy, -1.0);
-        final double c1xyx = cu(x, y, x, sx, sy, 1.0);
-        final double c1yyx = cu(y, y, x, sx, sy, 1.0);
-        
-        boolean a = (c0xyy - r * c0xxy) > (c0xyx - r * c0xxx);
-        boolean b = (c1xyy - (1.0 / r) * c1yyy) < (c1xyx - (1.0 / r) * c1yyx);
-
-        boolean lr = a & b;
-        return !lr;
+//        double sx = StatUtils.skewness(x);
+//        double sy = StatUtils.skewness(y);
+//        double r = (StatUtils.correlation(x, y));
+//
+//        final double c0xyy = cu(x, y, y, sx, sy, -1.0);
+//        final double c0xxy = cu(x, x, y, sx, sy, -1.0);
+//        final double c0xyx = cu(x, y, x, sx, sy, 1.0);
+//        final double c0xxx = cu(x, x, x, sx, sy, 1.0);
+//
+//        final double c1xyy = cu(x, y, y, sx, sy, -1.0);
+//        final double c1yyy = cu(y, y, y, sx, sy, -1.0);
+//        final double c1xyx = cu(x, y, x, sx, sy, 1.0);
+//        final double c1yyx = cu(y, y, x, sx, sy, 1.0);
+//
+//        boolean a = (c0xyy - r * c0xxy) > (c0xyx - r * c0xxx);
+//        boolean b = (c1xyy - (1.0 / r) * c1yyy) < (c1xyx - (1.0 / r) * c1yyx);
+//
+//        boolean lr = a & b;
+//        return !lr;
     }
 
     private static double cu0(double[] x, double[] y, double[] condition) {
@@ -393,7 +403,7 @@ public final class Fask_B implements GraphSearch {
         return exy / n;
     }
 
-    private double cu2(double[] x, double[] y, double sx, double sy, double[] c1, double[] c2) {
+    private double cu2(double[] x, double[] y, double[] c1, double[] c2) {
         double exy = 0.0;
 
         int n = 0;
@@ -405,7 +415,6 @@ public final class Fask_B implements GraphSearch {
             }
         }
 
-        exy *= signum(sx) * signum(sy);
         return exy / n;
     }
 
