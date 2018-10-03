@@ -282,22 +282,23 @@ public final class Fask_B implements GraphSearch {
         x = y;
         y = z;
 
-        // 1
-
         double sx = StatUtils.skewness(x);
         double sy = StatUtils.skewness(y);
         double r = (StatUtils.correlation(x, y));
+
+
+        // 1. Y > 0, X < 0 > Y < 0, X > 0 for a > 0, a < 0, all cases. Need eX, eY ~ pos skew
+//        final double cxy_xy = cu2(x, y, sx, sy, x, y);
+//        final double cxx_xy = cu2(x, x, sx, sy, x, y);
 //
-//        final double cxyx1 = cu2(x, y, sx, sy, x, y);
-//        final double cxxx1 = cu2(x, x, sx, sy, x, y);
+//        final double cxy_yx = cu2(x, y, sx, sy, y, x);
+//        final double cxx_yx = cu2(x, x, sx, sy, y, x);
 //
-//        final double cxyx2 = cu2(x, y, sx, sy, y, x);
-//        final double cxxx2 = cu2(x, x, sx, sy, y, x);
+//        boolean a = cxy_yx - r * cxx_yx > cxy_xy - r * cxx_xy;
+//        boolean b = cxy_yx - (1.0 / r) * cxx_yx < cxy_xy - (1.0 / r) * cxx_xy;
 //
-//        boolean a = cxyx1 - r * cxxx1 > cxyx2 - r * cxxx2;
-//        boolean b = (cxyx1 - (1.0 / r) * cxxx1) < (cxyx2 - (1.0 / r) * cxxx2);
-//
-//        boolean lr = a;// & b;
+//        boolean lr = a & b;
+//        return !lr;
 
 
         // 2
