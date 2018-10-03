@@ -316,42 +316,42 @@ public final class Fask_B implements GraphSearch {
 
         // 3 Original rule.
 
-        final double cxyx = cu0(x, y, x);
-        final double cxyy = cu0(x, y, y);
-
-        double left = (cxyx * cxyx) / (cu0(x, x, x) * cu0(y, y, x));
-        double right = (cxyy * cxyy) / (cu0(x, x, y) * cu0(y, y, y));
-
-        double lr = left - right;
-
-//        double r = StatUtils.correlation(x, y);
-//        double sx = StatUtils.skewness(x);
-//        double sy = StatUtils.skewness(y);
-
-        r *= signum(sx) * signum(sy);
-        lr *= signum(r);
-        if (r < getDelta()) lr *= -1;
-
-        return lr < 0;
+//        final double cxyx = cu0(x, y, x);
+//        final double cxyy = cu0(x, y, y);
+//
+//        double left = (cxyx * cxyx) / (cu0(x, x, x) * cu0(y, y, x));
+//        double right = (cxyy * cxyy) / (cu0(x, x, y) * cu0(y, y, y));
+//
+//        double lr = left - right;
+//
+////        double r = StatUtils.correlation(x, y);
+////        double sx = StatUtils.skewness(x);
+////        double sy = StatUtils.skewness(y);
+//
+//        r *= signum(sx) * signum(sy);
+//        lr *= signum(r);
+//        if (r < getDelta()) lr *= -1;
+//
+//        return lr < 0;
 
         // 4 Bryan's rule.
-//        boolean a;
-//        boolean b;
-//
-//        final double c0xyy = cu(x, y, y, sx, sy, -1.0);
-//        final double c0xxy = cu(x, x, y, sx, sy, -1.0);
-//        final double c0xyx = cu(x, y, x, sx, sy, 1.0);
-//        final double c0xxx = cu(x, x, x, sx, sy, 1.0);
-//
-//        final double c1xyy = cu(x, y, y, sx, sy, -1.0);
-//        final double c1yyy = cu(y, y, y, sx, sy, -1.0);
-//        final double c1xyx = cu(x, y, x, sx, sy, 1.0);
-//        final double c1yyx = cu(y, y, x, sx, sy, 1.0);
-//        a = (c0xyy - r * c0xxy) > (c0xyx - r * c0xxx);
-//        b = (c1xyy - (1.0 / r) * c1yyy) > (c1xyx - (1.0 / r) * c1yyx);
-//
-//        boolean lr = a & b;
-//        return !lr;
+        boolean a;
+        boolean b;
+
+        final double c0xyy = cu(x, y, y, sx, sy, -1.0);
+        final double c0xxy = cu(x, x, y, sx, sy, -1.0);
+        final double c0xyx = cu(x, y, x, sx, sy, 1.0);
+        final double c0xxx = cu(x, x, x, sx, sy, 1.0);
+
+        final double c1xyy = cu(x, y, y, sx, sy, -1.0);
+        final double c1yyy = cu(y, y, y, sx, sy, -1.0);
+        final double c1xyx = cu(x, y, x, sx, sy, 1.0);
+        final double c1yyx = cu(y, y, x, sx, sy, 1.0);
+        a = (c0xyy - r * c0xxy) > (c0xyx - r * c0xxx);
+        b = (c1xyy - (1.0 / r) * c1yyy) > (c1xyx - (1.0 / r) * c1yyx);
+
+        boolean lr = a & b;
+        return !lr;
     }
 
     private static double cu0(double[] x, double[] y, double[] condition) {
