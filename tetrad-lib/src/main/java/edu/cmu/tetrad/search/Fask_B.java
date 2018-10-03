@@ -286,7 +286,8 @@ public final class Fask_B implements GraphSearch {
         double sy = StatUtils.skewness(y);
         double r = (StatUtils.correlation(x, y));
 
-        // 1. Y > 0, X < 0 > Y < 0, X > 0 for a > 0, a < 0, all cases. Need eX, eY ~ pos skew
+        // 1. Y > 0, X < 0 > Y < 0, X > 0 for a > 0, a < 0, all cases. Need eX, eY ~ pos skew.
+        // Perfect on DAG problems with mixed coefficients.
 //        final double cxy_xy = cu2(x, y, sx, sy, x, y);
 //        final double cxx_xy = cu2(x, x, sx, sy, x, y);
 //
@@ -300,7 +301,7 @@ public final class Fask_B implements GraphSearch {
 //        return !lr;
 
 
-        // 2
+        // 2 X > 0 > Y > 0. Perfect on DAG problems with mixed coefficients.
 
 //        final double cxyx = cu(x, y, x, sx, sy, 1.0);
 //        final double cxxx = cu(x, x, x, sx, sy, 1.0);
@@ -310,11 +311,12 @@ public final class Fask_B implements GraphSearch {
 //        final double cyyx = cu(y, y, x, sx, sy, 1.0);
 //
 //        boolean a = (cxyx - r * cxxx) > (cxyy - r * cxxy);
-//        boolean b = (cxyx - (1.0 / r) * cyyx) < (cxyy - (1.0 / r) * cyyy);
+//        boolean b = (cxyx - (1.0 / r) * cyyx) > (cxyy - (1.0 / r) * cyyy);
 //
 //        boolean lr = a & b;
+//        return !lr;
 
-        // 3 Original rule.
+        // 3 Original rule. Perfect on DAG problems with mixed coefficients.
 
 //        final double cxyx = cu0(x, y, x);
 //        final double cxyy = cu0(x, y, y);
@@ -332,12 +334,10 @@ public final class Fask_B implements GraphSearch {
 //        lr *= signum(r);
 //        if (r < getDelta()) lr *= -1;
 //
-//        return lr < 0;
+//        return !(lr > 0);
 
-        // 4 Bryan's rule.
-        boolean a;
-        boolean b;
-
+        // 4 Bryan's rule. Perfect for a > 0. For mixed coefficients, some false positive orientations.
+        // Need to check the coding.
         final double c0xyy = cu(x, y, y, sx, sy, -1.0);
         final double c0xxy = cu(x, x, y, sx, sy, -1.0);
         final double c0xyx = cu(x, y, x, sx, sy, 1.0);
@@ -347,8 +347,8 @@ public final class Fask_B implements GraphSearch {
         final double c1yyy = cu(y, y, y, sx, sy, -1.0);
         final double c1xyx = cu(x, y, x, sx, sy, 1.0);
         final double c1yyx = cu(y, y, x, sx, sy, 1.0);
-        a = (c0xyy - r * c0xxy) > (c0xyx - r * c0xxx);
-        b = (c1xyy - (1.0 / r) * c1yyy) > (c1xyx - (1.0 / r) * c1yyx);
+        boolean a = (c0xyy - r * c0xxy) > (c0xyx - r * c0xxx);
+        boolean b = (c1xyy - (1.0 / r) * c1yyy) < (c1xyx - (1.0 / r) * c1yyx);
 
         boolean lr = a & b;
         return !lr;
