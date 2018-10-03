@@ -347,6 +347,7 @@ public final class Fask_B implements GraphSearch {
         final double c1yyy = cu(y, y, y, sx, sy, -1.0);
         final double c1xyx = cu(x, y, x, sx, sy, 1.0);
         final double c1yyx = cu(y, y, x, sx, sy, 1.0);
+        
         boolean a = (c0xyy - r * c0xxy) > (c0xyx - r * c0xxx);
         boolean b = (c1xyy - (1.0 / r) * c1yyy) < (c1xyx - (1.0 / r) * c1yyx);
 
