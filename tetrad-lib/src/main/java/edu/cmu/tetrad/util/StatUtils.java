@@ -2098,8 +2098,13 @@ public final class StatUtils {
                 if (condition[k] > threshold) {
                     rows.add(k);
                 }
+            } else {
+                if (condition[k] > threshold) {
+                    rows.add(k);
+                }
             }
         }
+
         return rows;
     }
 

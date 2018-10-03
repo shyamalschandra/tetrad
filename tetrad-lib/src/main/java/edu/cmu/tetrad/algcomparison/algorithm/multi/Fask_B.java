@@ -56,6 +56,9 @@ public class Fask_B implements Algorithm, HasKnowledge, UsesScoreWrapper {
             search.setAlpha(parameters.getDouble("twoCycleAlpha"));
             search.setDelta(parameters.getDouble("faskDelta"));
 
+            search.setUseFasAdjacencies(parameters.getBoolean("useFasAdjacencies"));
+            search.setUseSkewAdjacencies(parameters.getBoolean("useCorrDiffAdjacencies"));
+
 //            search.setPercentBootstrapForLinearityTest(parameters.getDouble("percentBootstrapForLinearityTest"));
 //            search.setNumBootstrapForLinearityTest(parameters.getInt("numBootstrapForLinearityTest"));
 //            search.setCutoffForLinearityTest(parameters.getDouble("cutoffForLinearityTest"));
