@@ -30,7 +30,6 @@ import edu.cmu.tetrad.util.DepthChoiceGenerator;
 import edu.cmu.tetrad.util.StatUtils;
 import edu.cmu.tetrad.util.TetradLogger;
 import edu.cmu.tetrad.util.TetradMatrix;
-import org.apache.commons.math3.distribution.TDistribution;
 import org.apache.commons.math3.linear.SingularMatrixException;
 
 import java.util.ArrayList;
@@ -166,12 +165,6 @@ public final class Fask_B implements GraphSearch {
                 double c1 = StatUtils.cov(x, y, x, 0, +1)[1];
                 double c2 = StatUtils.cov(x, y, y, 0, +1)[1];
 
-//                boolean adjacentSkew = adjacent(x, y);
-//
-//                if (adjacentSkew) {
-//                    System.out.println("Adding edge " + X + "---" + Y);
-//                }
-
                 if ((isUseFasAdjacencies() && G0.isAdjacentTo(X, Y)) || (isUseSkewAdjacencies() && Math.abs(c1 - c2) > getExtraEdgeThreshold())) {
                     if (edgeForbiddenByKnowledge(X, Y)) {
                         // Don't add an edge.
@@ -190,14 +183,16 @@ public final class Fask_B implements GraphSearch {
                         final boolean xy = leftright(x, y);
                         final boolean yx = leftright(y, x);
 
-                        if (xy && yx) {
-                            Edge edge1 = Edges.directedEdge(X, Y);
-                            Edge edge2 = Edges.directedEdge(Y, X);
-                            graph.addEdge(edge1);
-                            graph.addEdge(edge2);
-                        } else if (xy) {
+//                        if (xy && yx) {
+//                            Edge edge1 = Edges.directedEdge(X, Y);
+//                            Edge edge2 = Edges.directedEdge(Y, X);
+//                            graph.addEdge(edge1);
+//                            graph.addEdge(edge2);
+//                        } else
+
+                        if (xy) {
                             graph.addDirectedEdge(X, Y);
-                        } else if (yx) {
+                        } else {
                             graph.addDirectedEdge(Y, X);
                         }
                     }
@@ -281,85 +276,27 @@ public final class Fask_B implements GraphSearch {
         return true;
     }
 
-//    public boolean bidirecteed2(double[] x, double[] y) {
-//        double s0 = sxy2(x, y, x, 0);
-//        double s1 = sxy2(x, y, x, 1);
-//        double s2 = sxy2(x, y, y, 1);
-//
-//        double x0 = cu2(x, y, x, x, 1, 1, 0) / s0;
-//        double x1 = cu2(x, y, x, x, 1, 1, 1) / s1;
-//        double x2 = cu2(x, y, y, x, 1, 1, 1) / s2;
-//
-//        int n0 = StatUtils.getRows(x, x, 0, 0).size();
-//        int n1 = StatUtils.getRows(x, x, 0, +1).size();
-//        int n2 = StatUtils.getRows(y, y, 0, +1).size();
-//
-//        final double q0 = s0 / n0;
-//        final double q1 = s1 / n1;
-//        final double q2 = s2 / n2;
-//        double sd1 = sqrt(q0 + q1);
-//        double sd2 = sqrt(q0 + q2);
-//
-//        double t1 = (x1 - x0) / sd1;
-//        double t2 = (x2 - x0) / sd2;
-//
-//        double df = ((q1 + q2) * (q1 + q2)) / ((q1 * q1) / (n1 - 1) + (q2 * q2) / (n2 - 1));
-//
-//        final double p1 = 2.0 * (1.0 - new TDistribution(df).cumulativeProbability(abs(t1)));
-//        final double p2 = 2.0 * (1.0 - new TDistribution(df).cumulativeProbability(abs(t2)));
-//
-//        System.out.println("sd1 = " + sd1 + " sd2 = " + sd2 + "p1 = " + p1 + " p2 = " + p2);
-//
-//        return p2 < alpha && p2 < alpha;
-//    }
-
-//    private boolean adjacent(double[] x, double[] y) {
-//        return (nonzero(x, y, 1, 0) || nonzero(x, y, 0, 1));// || nonzero(x, y, 1, 1));
-//    }
-
-    // Returns true if the hypothesis that E(XY | dir1) / E(X^2 | dir1) == E(XY | dir1) / E(X^2 | dir2)
-    // cannot be rejected.
-//    private boolean nonzero(double[] x, double[] y, int dir1, int dir2) {
-//        double exx1 = cu2(x, x, x, x, 1, 1, dir1);
-//        double exx2 = cu2(x, x, x, x, 1, 1, dir2);
-//
-//        double skx = 1;//StatUtils.skewness(x);
-//        double sky = 1;//StatUtils.skewness(y);
-//
-//        double s1 = sxy2(x, y, x, dir1) / sqrt(exx2);
-//        double s2 = sxy2(x, y, x, dir2) / sqrt(exx2);
-//
-//        double exy1 = cu2(x, y, x, x, skx, sky, dir1) / sqrt(exx1);
-//        double exy2 = cu2(x, y, x, x, skx, sky, dir2) / sqrt(exx2);
-//
-//        int n1 = StatUtils.getRows(x, x, 0, dir1).size();
-//        int n2 = StatUtils.getRows(x, x, 0, dir2).size();
-//
-//        final double q1 = s1 / n1;
-//        final double q2 = s2 / n2;
-//        double sd = sqrt(q1 + q2);
-//
-//        double t = (exy1 - exy2) / sd;
-//
-//        double df = ((q1 + q2) * (q1 + q2)) / ((q1 * q1) / (n1 - 1) + (q2 * q2) / (n2 - 1));
-//
-//        final double p = 2.0 * (1.0 - new TDistribution(df).cumulativeProbability(abs(t)));
-//
-//        System.out.println("sd = " + sd + " p = " + p + " df = " + df + " t = " + t);
-//
-//        return p < alpha;
-//    }
-
-
     // Returns true just in case either X->Y or X <=> Y--i.e. not Y->X
     private boolean leftright(double[] x, double[] y) {
-        double[] z = x;
-        x = y;
-        y = z;
+//        double[] z = x;
+//        x = y;
+//        y = z;
 
-        double skx = StatUtils.skewness(x);
-        double sky = StatUtils.skewness(y);
-        double r = (StatUtils.correlation(x, y));
+//        double skx = StatUtils.skewness(x);
+//        double sky = StatUtils.skewness(y);
+//        double r = (StatUtils.correlation(x, y));
+
+//        final double cxyx1 = cu2(x, y, skx, sky, x, y);
+//        final double cxxx1 = cu2(x, x, skx, sky, x, y);
+//
+//        final double cxyx2 = cu2(x, y, skx, sky, y, x);
+//        final double cxxx2 = cu2(x, x, skx, sky, y, x);
+//
+//        boolean a = cxyx1 - r * cxxx1 > cxyx2 - r * cxxx2;
+//        boolean b = (cxyx1 - (1.0 / r) * cxxx1) < (cxyx2 - (1.0 / r) * cxxx2);
+//
+//        boolean lr = a;// & b;
+
 
 //        final double cxyx = cu(x, y, x, skx, sky, 1.0);
 //        final double cxxx = cu(x, x, x, skx, sky, 1.0);
@@ -370,24 +307,73 @@ public final class Fask_B implements GraphSearch {
 //
 //        boolean a = (cxyx - r * cxxx) > (cxyy - r * cxxy);
 //        boolean b = (cxyx - (1.0 / r) * cyyx) > (cxyy - (1.0 / r) * cyyy);
+//
+//        boolean lr = a & b;
+//
+        final double cxyx = cu0(x, y, x);
+        final double cxyy = cu0(x, y, y);
 
-        final double c0xyy = cu(x, y, y, skx, sky, -1.0);
-        final double c0xxy = cu(x, x, y, skx, sky, -1.0);
-        final double c0xyx = cu(x, y, x, skx, sky, 1.0);
-        final double c0xxx = cu(x, x, x, skx, sky, 1.0);
+        double left = (cxyx * cxyx) / (cu0(x, x, x) * cu0(y, y, x));
+        double right = (cxyy * cxyy) / (cu0(x, x, y) * cu0(y, y, y));
 
+        double lr = left - right;
 
-        final double c1xyy = cu(x, y, y, skx, sky, -1.0);
-        final double c1yyy = cu(y, y, y, skx, sky, -1.0);
-        final double c1xyx = cu(x, y, x, skx, sky, 1.0);
-        final double c1yyx = cu(y, y, x, skx, sky, 1.0);
-        boolean a = (c0xyy - r * c0xxy) > (c0xyx - r * c0xxx);
-        boolean b = (c1xyy - (1.0 / r) * c1yyy) > (c1xyx - (1.0 / r) * c1yyx);
+        double r = StatUtils.correlation(x, y);
+        double sx = StatUtils.skewness(x);
+        double sy = StatUtils.skewness(y);
 
+        r *= signum(sx) * signum(sy);
+        lr *= signum(r);
+        if (r < getDelta()) lr *= -1;
 
+        return lr > 0;
 
-        boolean lr = a & b;
-        return !lr;
+//        boolean a;
+//        boolean b;
+//
+////        if (r > 0) {
+//            final double c0xyy = cu(x, y, y, skx, sky, -1.0);
+//            final double c0xxy = cu(x, x, y, skx, sky, -1.0);
+//            final double c0xyx = cu(x, y, x, skx, sky, 1.0);
+//            final double c0xxx = cu(x, x, x, skx, sky, 1.0);
+//
+//            final double c1xyy = cu(x, y, y, skx, sky, -1.0);
+//            final double c1yyy = cu(y, y, y, skx, sky, -1.0);
+//            final double c1xyx = cu(x, y, x, skx, sky, 1.0);
+//            final double c1yyx = cu(y, y, x, skx, sky, 1.0);
+//            a = (c0xyy - r * c0xxy) > (c0xyx - r * c0xxx);
+//            b = (c1xyy - (1.0 / r) * c1yyy) > (c1xyx - (1.0 / r) * c1yyx);
+////        } else {
+////            final double c0xyy = cu(x, y, y, skx, sky, -1.0);
+////            final double c0xxy = cu(x, x, y, skx, sky, -1.0);
+////            final double c0xyx = cu(x, y, x, skx, sky, 1.0);
+////            final double c0xxx = cu(x, x, x, skx, sky, 1.0);
+////
+////            final double c1xyy = cu(x, y, y, skx, sky, -1.0);
+////            final double c1yyy = cu(y, y, y, skx, sky, -1.0);
+////            final double c1xyx = cu(x, y, x, skx, sky, 1.0);
+////            final double c1yyx = cu(y, y, x, skx, sky, 1.0);
+////            a = (c0xyy - r * c0xxy) > (c0xyx - r * c0xxx);
+////            b = (c1xyy - (1.0 / r) * c1yyy) > (c1xyx - (1.0 / r) * c1yyx);
+////        }
+//
+//        boolean lr = a & b;
+//        return !lr;
+    }
+
+    private static double cu0(double[] x, double[] y, double[] condition) {
+        double exy = 0.0;
+
+        int n = 0;
+
+        for (int k = 0; k < x.length; k++) {
+            if (condition[k] > 0) {
+                exy += x[k] * y[k];
+                n++;
+            }
+        }
+
+        return exy / n;
     }
 
     private double cu(double[] x, double[] y, double[] condition, double skx, double sky, double direction) {
@@ -413,30 +399,20 @@ public final class Fask_B implements GraphSearch {
         return exy / n;
     }
 
-    // The variance of XY.
-    private static double sxy2(double[] x, double[] y, double[] condition, double direction) {
-        double s2xy = 0.0;
+    private double cu2(double[] x, double[] y, double skx, double sky, double[] c1, double[] c2) {
+        double exy = 0.0;
 
         int n = 0;
 
         for (int k = 0; k < x.length; k++) {
-            if (direction > 0) {
-                if (condition == null || condition[k] > 0) {
-                    s2xy += x[k] * y[k] * x[k] * y[k];
-                    n++;
-                }
-            } else if (condition == null || direction < 0) {
-                if (condition == null || condition[k] < 0) {
-                    s2xy += x[k] * y[k] * x[k] * y[k];
-                    n++;
-                }
-            } else {
-                s2xy += x[k] * y[k] * x[k] * y[k];
+            if ((c1[k] > 0 && c2[k] < 0)) {
+                exy += x[k] * y[k];
                 n++;
             }
         }
 
-        return (s2xy / n);
+        exy *= signum(skx) * signum(sky);
+        return exy / n;
     }
 
     private double partialCorrelation(double[] x, double[] y, double[][] z, double[] condition, double threshold, double direction) throws SingularMatrixException {
