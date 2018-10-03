@@ -278,19 +278,21 @@ public final class Fask_B implements GraphSearch {
 
     // Returns true just in case either X->Y or X <=> Y--i.e. not Y->X
     private boolean leftright(double[] x, double[] y) {
-//        double[] z = x;
-//        x = y;
-//        y = z;
+        double[] z = x;
+        x = y;
+        y = z;
 
-//        double skx = StatUtils.skewness(x);
-//        double sky = StatUtils.skewness(y);
-//        double r = (StatUtils.correlation(x, y));
+        // 1
 
-//        final double cxyx1 = cu2(x, y, skx, sky, x, y);
-//        final double cxxx1 = cu2(x, x, skx, sky, x, y);
+        double sx = StatUtils.skewness(x);
+        double sy = StatUtils.skewness(y);
+        double r = (StatUtils.correlation(x, y));
 //
-//        final double cxyx2 = cu2(x, y, skx, sky, y, x);
-//        final double cxxx2 = cu2(x, x, skx, sky, y, x);
+//        final double cxyx1 = cu2(x, y, sx, sy, x, y);
+//        final double cxxx1 = cu2(x, x, sx, sy, x, y);
+//
+//        final double cxyx2 = cu2(x, y, sx, sy, y, x);
+//        final double cxxx2 = cu2(x, x, sx, sy, y, x);
 //
 //        boolean a = cxyx1 - r * cxxx1 > cxyx2 - r * cxxx2;
 //        boolean b = (cxyx1 - (1.0 / r) * cxxx1) < (cxyx2 - (1.0 / r) * cxxx2);
@@ -298,18 +300,22 @@ public final class Fask_B implements GraphSearch {
 //        boolean lr = a;// & b;
 
 
-//        final double cxyx = cu(x, y, x, skx, sky, 1.0);
-//        final double cxxx = cu(x, x, x, skx, sky, 1.0);
-//        final double cxyy = cu(x, y, y, skx, sky, 1.0);
-//        final double cxxy = cu(x, x, y, skx, sky, 1.0);
-//        final double cyyy = cu(y, y, y, skx, sky, 1.0);
-//        final double cyyx = cu(y, y, x, skx, sky, 1.0);
+        // 2
+
+//        final double cxyx = cu(x, y, x, sx, sy, 1.0);
+//        final double cxxx = cu(x, x, x, sx, sy, 1.0);
+//        final double cxyy = cu(x, y, y, sx, sy, 1.0);
+//        final double cxxy = cu(x, x, y, sx, sy, 1.0);
+//        final double cyyy = cu(y, y, y, sx, sy, 1.0);
+//        final double cyyx = cu(y, y, x, sx, sy, 1.0);
 //
 //        boolean a = (cxyx - r * cxxx) > (cxyy - r * cxxy);
-//        boolean b = (cxyx - (1.0 / r) * cyyx) > (cxyy - (1.0 / r) * cyyy);
+//        boolean b = (cxyx - (1.0 / r) * cyyx) < (cxyy - (1.0 / r) * cyyy);
 //
 //        boolean lr = a & b;
-//
+
+        // 3 Original rule.
+
         final double cxyx = cu0(x, y, x);
         final double cxyy = cu0(x, y, y);
 
@@ -318,44 +324,31 @@ public final class Fask_B implements GraphSearch {
 
         double lr = left - right;
 
-        double r = StatUtils.correlation(x, y);
-        double sx = StatUtils.skewness(x);
-        double sy = StatUtils.skewness(y);
+//        double r = StatUtils.correlation(x, y);
+//        double sx = StatUtils.skewness(x);
+//        double sy = StatUtils.skewness(y);
 
         r *= signum(sx) * signum(sy);
         lr *= signum(r);
         if (r < getDelta()) lr *= -1;
 
-        return lr > 0;
+        return lr < 0;
 
+        // 4 Bryan's rule.
 //        boolean a;
 //        boolean b;
 //
-////        if (r > 0) {
-//            final double c0xyy = cu(x, y, y, skx, sky, -1.0);
-//            final double c0xxy = cu(x, x, y, skx, sky, -1.0);
-//            final double c0xyx = cu(x, y, x, skx, sky, 1.0);
-//            final double c0xxx = cu(x, x, x, skx, sky, 1.0);
+//        final double c0xyy = cu(x, y, y, sx, sy, -1.0);
+//        final double c0xxy = cu(x, x, y, sx, sy, -1.0);
+//        final double c0xyx = cu(x, y, x, sx, sy, 1.0);
+//        final double c0xxx = cu(x, x, x, sx, sy, 1.0);
 //
-//            final double c1xyy = cu(x, y, y, skx, sky, -1.0);
-//            final double c1yyy = cu(y, y, y, skx, sky, -1.0);
-//            final double c1xyx = cu(x, y, x, skx, sky, 1.0);
-//            final double c1yyx = cu(y, y, x, skx, sky, 1.0);
-//            a = (c0xyy - r * c0xxy) > (c0xyx - r * c0xxx);
-//            b = (c1xyy - (1.0 / r) * c1yyy) > (c1xyx - (1.0 / r) * c1yyx);
-////        } else {
-////            final double c0xyy = cu(x, y, y, skx, sky, -1.0);
-////            final double c0xxy = cu(x, x, y, skx, sky, -1.0);
-////            final double c0xyx = cu(x, y, x, skx, sky, 1.0);
-////            final double c0xxx = cu(x, x, x, skx, sky, 1.0);
-////
-////            final double c1xyy = cu(x, y, y, skx, sky, -1.0);
-////            final double c1yyy = cu(y, y, y, skx, sky, -1.0);
-////            final double c1xyx = cu(x, y, x, skx, sky, 1.0);
-////            final double c1yyx = cu(y, y, x, skx, sky, 1.0);
-////            a = (c0xyy - r * c0xxy) > (c0xyx - r * c0xxx);
-////            b = (c1xyy - (1.0 / r) * c1yyy) > (c1xyx - (1.0 / r) * c1yyx);
-////        }
+//        final double c1xyy = cu(x, y, y, sx, sy, -1.0);
+//        final double c1yyy = cu(y, y, y, sx, sy, -1.0);
+//        final double c1xyx = cu(x, y, x, sx, sy, 1.0);
+//        final double c1yyx = cu(y, y, x, sx, sy, 1.0);
+//        a = (c0xyy - r * c0xxy) > (c0xyx - r * c0xxx);
+//        b = (c1xyy - (1.0 / r) * c1yyy) > (c1xyx - (1.0 / r) * c1yyx);
 //
 //        boolean lr = a & b;
 //        return !lr;
@@ -376,7 +369,7 @@ public final class Fask_B implements GraphSearch {
         return exy / n;
     }
 
-    private double cu(double[] x, double[] y, double[] condition, double skx, double sky, double direction) {
+    private double cu(double[] x, double[] y, double[] condition, double sx, double sy, double direction) {
         double exy = 0.0;
 
         int n = 0;
@@ -395,11 +388,11 @@ public final class Fask_B implements GraphSearch {
             }
         }
 
-        exy *= signum(skx) * signum(sky);
+        exy *= signum(sx) * signum(sy);
         return exy / n;
     }
 
-    private double cu2(double[] x, double[] y, double skx, double sky, double[] c1, double[] c2) {
+    private double cu2(double[] x, double[] y, double sx, double sy, double[] c1, double[] c2) {
         double exy = 0.0;
 
         int n = 0;
@@ -411,7 +404,7 @@ public final class Fask_B implements GraphSearch {
             }
         }
 
-        exy *= signum(skx) * signum(sky);
+        exy *= signum(sx) * signum(sy);
         return exy / n;
     }
 
