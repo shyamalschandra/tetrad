@@ -49,7 +49,7 @@ public class CpcStable implements Algorithm, HasKnowledge, TakesIndependenceWrap
         if (parameters.getInt("bootstrapSampleSize") < 1) {
             Graph init = null;
             if (algorithm != null) {
-//                init = algorithm.search(dataSet, parameters);
+                init = algorithm.search(dataSet, parameters);
             }
             edu.cmu.tetrad.search.PcAll search = new edu.cmu.tetrad.search.PcAll(test.getTest(dataSet, parameters), init);
             search.setDepth(parameters.getInt("depth"));

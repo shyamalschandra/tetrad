@@ -23,82 +23,185 @@ package edu.cmu.tetrad.search;
 
 import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.Node;
+import edu.cmu.tetrad.util.TetradMatrix;
 
 import java.util.*;
 
+import static java.lang.Math.log;
+
 /**
- * Implements a conditional Gaussian BIC score for FGS.
+ * Implements a discrete Gaussian BIC score for FGS.
  *
- * @author Joseph Ramsey
+ * @author Bryan Andrews
  */
-public class ConditionalGaussianScore implements Score {
+public class DiscreteGaussianScore implements Score {
+
+    private int N;
+
+    private double structurePrior = 1.0;
+
+    private DataSet mixedDataSet;
+
+    private List<Node> mixedVariables;
 
     private DataSet dataSet;
 
-    // The variables of the continuousData set.
-    private List<Node> variables;
+    private TetradMatrix cov;
 
-    // Likelihood function
-    private ConditionalGaussianLikelihood likelihood;
+    private Map<Integer, List<Integer>> map;
 
-    private double penaltyDiscount = 1;
-    private int numCategoriesToDiscretize = 3;
-    private double sp;
+    private static double LOG2PI = log(2.0 * Math.PI);
 
     /**
      * Constructs the score using a covariance matrix.
      */
-    public ConditionalGaussianScore(DataSet dataSet, double sp, boolean discretize) {
+    public DiscreteGaussianScore(DataSet dataSet, double structurePrior) {
         if (dataSet == null) {
             throw new NullPointerException();
         }
 
-        this.dataSet = dataSet;
-        this.variables = dataSet.getVariables();
-        this.sp = sp;
+        this.N = dataSet.getNumRows();
+        this.structurePrior = structurePrior;
+        this.mixedDataSet = dataSet;
+        this.mixedVariables = dataSet.getVariables();
+        this.map = new HashMap<>();
 
-        this.likelihood = new ConditionalGaussianLikelihood(dataSet);
-        this.likelihood.setDiscretize(discretize);
+        List<Node> A = new ArrayList<>();
+        List<double[]> B = new ArrayList<>();
+
+        int i = 0;
+        int i_ = 0;
+        while (i_ < dataSet.getNumColumns()) {
+
+            Node v = dataSet.getVariable(i_);
+
+            if (v instanceof DiscreteVariable) {
+
+                Map<String, Integer> keys = new HashMap<>();
+                for (int j = 0; j < N; j++) {
+                    String key = v.getName().concat("_");
+                    key = key.concat(Integer.toString(dataSet.getInt(j, i_)));
+                    if (!keys.containsKey(key)) {
+                        keys.put(key, i);
+                        Node v_ = new ContinuousVariable(key);
+                        A.add(v_);
+                        B.add(new double[N]);
+                        i++;
+                    }
+                    B.get(keys.get(key))[j] = 1;
+                }
+
+                i--;
+                keys.remove(A.get(i).getName());
+                A.remove(i);
+                B.remove(i);
+
+                List<Integer> index = new ArrayList<>();
+                index.addAll(keys.values());
+                map.put(i_, index);
+                i_++;
+
+            } else {
+
+                A.add(v);
+                double[] b = new double[N];
+                for (int j = 0; j < N; j++) {
+                    b[j] = dataSet.getDouble(j,i_);
+                }
+                B.add(b);
+
+                List<Integer> index = new ArrayList<>();
+                index.add(i);
+                map.put(i_, index);
+                i++;
+                i_++;
+            }
+        }
+
+        double[][] B_ = new double[N][B.size()];
+        for (int j = 0; j < B.size(); j++) {
+            for (int k = 0; k < N; k++) {
+                B_[k][j] = B.get(j)[k];
+            }
+        }
+
+
+        TetradMatrix D = new TetradMatrix(B_);
+        TetradMatrix D_ = DataUtils.standardizeData(D);
+        this.dataSet = new BoxDataSet(new DoubleDataBox(D_.toArray()),A);
+        this.cov = this.dataSet.getCovarianceMatrix();
+
     }
+
 
     /**
-     * Calculates the sample likelihood and BIC score for i given its parents in a simple SEM model
+     * Calculates the sample likelihood and BIC score.
      */
     public double localScore(int i, int... parents) {
-        likelihood.setNumCategoriesToDiscretize(numCategoriesToDiscretize);
-        likelihood.setPenaltyDiscount(penaltyDiscount);
 
-        ConditionalGaussianLikelihood.Ret ret = likelihood.getLikelihood(i, parents);
-
-        int N = dataSet.getNumRows();
-        double lik = ret.getLik();
-        int k = ret.getDof();
-
-        double strucPrior = getStructurePrior(parents);
-        if (strucPrior > 0) {
-            strucPrior = -2 * k * strucPrior;
+        List<Integer> num = new ArrayList<>();
+        List<Integer> den = new ArrayList<>();
+        List current = map.get(i);
+        for (int j = 0; j < current.size(); j++) {
+            num.add((Integer) current.get(j));
+        }
+        for (int j : parents) {
+            current = map.get(j);
+            for (int k = 0; k < current.size(); k++) {
+                num.add((Integer) current.get(k));
+                den.add((Integer) current.get(k));
+            }
+        }
+        int[] num_ = new int[num.size()];
+        int[] den_ = new int[den.size()];
+        for (int j = 0; j < num.size(); j++) {
+            num_[j] = num.get(j);
+        }
+        for (int j = 0; j < den.size(); j++) {
+            den_[j] = den.get(j);
         }
 
-        return 2.0 * lik - /*getPenaltyDiscount() **/ k * Math.log(N) + strucPrior;
+        double lik = getLik(num_, den_);
+        int dof = getDof(num_.length, den_.length);
+
+        return lik - dof / 2.0 * Math.log(N) + getStructurePrior(parents.length);
     }
 
-    private double getStructurePrior(int[] parents) {
-        if (sp < 0) { return getEBICprior(); }
-        else if (sp == 0) { return 0; }
-        else {
-            int i = parents.length;
-            int c = dataSet.getNumColumns() - 1;
-            double p = sp / (double) c;
-            return i * Math.log(p) + (c - i) * Math.log(1.0 - p);
+    private double getLik(int[] num, int[] den) {
+
+        double num_ = -N / 2.0 * log(cov.getSelection(num, num).det()) + num.length * (1 + LOG2PI);
+        double den_ = -N / 2.0 * log(cov.getSelection(den, den).det()) + den.length * (1 + LOG2PI);
+
+        return num_ - den_;
+    }
+
+    private int getDof(int num, int den) {
+
+        int num_= (num * (num + 1)) / 2;
+        int den_ = (den * (den + 1)) / 2;
+
+        return num_ - den_;
+    }
+
+    private double getStructurePrior(int k) {
+        if (structurePrior <= 0) {
+            return 0;
+        } else {
+            int n = mixedVariables.size() - 1;
+            double p = structurePrior / (double) n;
+            return k * Math.log(p) + (n - k) * Math.log(1.0 - p);
         }
     }
 
-    private double getEBICprior() {
+//    private TetradMatrix cov(TetradMatrix x) {
+//        return new TetradMatrix(new Covariance(x.getRealMatrix(), true).getCovarianceMatrix());
+//    }
 
-        double n = dataSet.getNumColumns();
-        double gamma = -sp;
-        return gamma * Math.log(n);
-
+    private int[] append(int[] parents, int extra) {
+        int[] all = new int[parents.length + 1];
+        System.arraycopy(parents, 0, all, 0, parents.length);
+        all[parents.length] = extra;
+        return all;
     }
 
     public double localScoreDiff(int x, int y, int[] z) {
@@ -108,13 +211,6 @@ public class ConditionalGaussianScore implements Score {
     @Override
     public double localScoreDiff(int x, int y) {
         return localScore(y, x) - localScore(y);
-    }
-
-    private int[] append(int[] parents, int extra) {
-        int[] all = new int[parents.length + 1];
-        System.arraycopy(parents, 0, all, 0, parents.length);
-        all[parents.length] = extra;
-        return all;
     }
 
     /**
@@ -132,7 +228,7 @@ public class ConditionalGaussianScore implements Score {
     }
 
     public int getSampleSize() {
-        return dataSet.getNumRows();
+        return N;
     }
 
     @Override
@@ -142,17 +238,16 @@ public class ConditionalGaussianScore implements Score {
 
     @Override
     public List<Node> getVariables() {
-        return variables;
+        return mixedVariables;
     }
 
     @Override
     public Node getVariable(String targetName) {
-        for (Node node : variables) {
+        for (Node node : mixedVariables) {
             if (node.getName().equals(targetName)) {
                 return node;
             }
         }
-
         return null;
     }
 
@@ -166,17 +261,6 @@ public class ConditionalGaussianScore implements Score {
         return false;
     }
 
-    public double getPenaltyDiscount() {
-        return penaltyDiscount;
-    }
-
-    public void setPenaltyDiscount(double penaltyDiscount) {
-        this.penaltyDiscount = penaltyDiscount;
-    }
-
-    public void setNumCategoriesToDiscretize(int numCategoriesToDiscretize) {
-        this.numCategoriesToDiscretize = numCategoriesToDiscretize;
-    }
 }
 
 

@@ -23,67 +23,89 @@ package edu.cmu.tetrad.algcomparison.examples;
 
 import edu.cmu.tetrad.algcomparison.Comparison;
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithms;
+import edu.cmu.tetrad.algcomparison.algorithm.mixed.Mgm;
+import edu.cmu.tetrad.algcomparison.algorithm.oracle.pag.Fci;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.*;
 import edu.cmu.tetrad.algcomparison.graph.RandomForward;
+import edu.cmu.tetrad.algcomparison.independence.DSeparationTest;
 import edu.cmu.tetrad.algcomparison.independence.FisherZ;
-import edu.cmu.tetrad.algcomparison.score.MVPBicScore;
+import edu.cmu.tetrad.algcomparison.independence.MNLRLRT;
+import edu.cmu.tetrad.algcomparison.independence.MultinomialLogisticRegressionWald;
+import edu.cmu.tetrad.algcomparison.score.ConditionalGaussianBicScore;
+import edu.cmu.tetrad.algcomparison.score.DiscreteGaussianBicScore;
 import edu.cmu.tetrad.algcomparison.score.SemBicScore;
+import edu.cmu.tetrad.algcomparison.simulation.ConditionalGaussianSimulation;
+import edu.cmu.tetrad.algcomparison.simulation.LeeHastieSimulation;
 import edu.cmu.tetrad.algcomparison.simulation.SemSimulation;
 import edu.cmu.tetrad.algcomparison.simulation.Simulations;
 import edu.cmu.tetrad.algcomparison.statistic.*;
+import edu.cmu.tetrad.data.DataSet;
+import edu.cmu.tetrad.graph.EdgeListGraph;
+import edu.cmu.tetrad.graph.Graph;
+import edu.cmu.tetrad.graph.NodeType;
+import edu.cmu.tetrad.search.DagToPag;
+import edu.cmu.tetrad.search.DagToPag2;
+import edu.cmu.tetrad.search.FciOrient;
+import edu.cmu.tetrad.search.IndTestMultinomialLogisticRegression;
 import edu.cmu.tetrad.util.Parameters;
+import edu.pitt.dbmi.data.ContinuousTabularDataset;
+
+import static edu.cmu.tetrad.algcomparison.Comparison.ComparisonGraph.Pattern_of_the_true_DAG;
 
 /**
  * An example script to simulate data and run a comparison analysis on it.
  *
- * @author jdramsey
+ * @author Bryan Andrews
  */
-public class ExampleCompareSimulation {
+public class TestDiscreteGaussianScore {
     public static void main(String... args) {
         Parameters parameters = new Parameters();
-        https://arxiv.org/abs/1607.08110
-        parameters.set("numRuns", 10);
+        parameters.set("numRuns", 20);
         parameters.set("numMeasures", 100);
-        parameters.set("avgDegree", 4, 6);
-        parameters.set("sampleSize", 500);
-        parameters.set("alpha", 1e-4, 1e-3, 1e-2);
-
+        parameters.set("avgDegree", 6);
+        parameters.set("sampleSize", 100, 500);
+        parameters.set("differentGraphs", true);
+        parameters.set("connected", false);
+        parameters.set("percentDiscrete", 50);
+        parameters.set("minCategories", 4);
+        parameters.set("maxCategories", 4);
+        parameters.set("verbose", false);
+        parameters.set("structurePrior", 1.0);
+        parameters.set("alpha", 0.01);
+        parameters.set("mgmParam1",0.2);
+        parameters.set("mgmParam2",0.2);
+        parameters.set("mgmParam3",0.2);
         Statistics statistics = new Statistics();
 
         statistics.add(new AdjacencyPrecision());
         statistics.add(new AdjacencyRecall());
         statistics.add(new ArrowheadPrecision());
         statistics.add(new ArrowheadRecall());
-        statistics.add(new MathewsCorrAdj());
-        statistics.add(new MathewsCorrArrow());
-        statistics.add(new F1Adj());
-        statistics.add(new F1Arrow());
-        statistics.add(new SHD());
         statistics.add(new ElapsedTime());
-
-        statistics.setWeight("AP", 1.0);
-        statistics.setWeight("AR", 0.5);
 
         Algorithms algorithms = new Algorithms();
 
-        algorithms.add(new Pc(new FisherZ()));
-        algorithms.add(new Cpc(new FisherZ(), new Fges(new SemBicScore(), false)));
-        algorithms.add(new PcStable(new FisherZ()));
-        algorithms.add(new CpcStable(new FisherZ()));
+        algorithms.add(new Fges(new DiscreteGaussianBicScore()));
+        algorithms.add(new Fges(new ConditionalGaussianBicScore()));
+        algorithms.add(new CpcStable(new MultinomialLogisticRegressionWald(), new Mgm()));
+        algorithms.add(new PcStable(new MultinomialLogisticRegressionWald(), new Mgm()));
+
 
         Simulations simulations = new Simulations();
 
-        simulations.add(new SemSimulation(new RandomForward()));
+//        simulations.add(new ConditionalGaussianSimulation(new RandomForward()));
+        simulations.add(new LeeHastieSimulation(new RandomForward()));
 
         Comparison comparison = new Comparison();
 
         comparison.setShowAlgorithmIndices(true);
         comparison.setShowSimulationIndices(true);
-        comparison.setSortByUtility(true);
-        comparison.setShowUtilities(true);
-        comparison.setParallelized(true);
+        comparison.setSortByUtility(false);
+        comparison.setShowUtilities(false);
+        comparison.setParallelized(false);
 
-        comparison.compareFromSimulations("comparison", simulations, algorithms, statistics, parameters);
+        comparison.compareFromSimulations("comparison2", simulations, algorithms, statistics, parameters);
+
     }
 }
 

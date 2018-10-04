@@ -49,7 +49,7 @@ public class PcStable implements Algorithm, TakesInitialGraph, HasKnowledge, Tak
     public Graph search(DataModel dataSet, Parameters parameters) {
         if (parameters.getInt("bootstrapSampleSize") < 1) {
             if (algorithm != null) {
-//            	initialGraph = algorithm.search(dataSet, parameters);
+            	initialGraph = algorithm.search(dataSet, parameters);
             }
             edu.cmu.tetrad.search.PcAll search = new edu.cmu.tetrad.search.PcAll(test.getTest(dataSet, parameters), initialGraph);
             search.setDepth(parameters.getInt("depth"));

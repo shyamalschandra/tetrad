@@ -5,22 +5,24 @@ import edu.cmu.tetrad.data.DataType;
 import edu.cmu.tetrad.data.DataUtils;
 import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.search.ConditionalGaussianScore;
+import edu.cmu.tetrad.search.DiscreteGaussianScore;
 import edu.cmu.tetrad.search.Score;
 import edu.cmu.tetrad.util.Parameters;
+
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Wrapper for Fisher Z test.
+ * Wrapper for the Discrete Gaussian score
  *
- * @author jdramsey
+ * @author Bryan Andrews
  */
 @edu.cmu.tetrad.annotation.Score(
-        name = "Conditional Gaussian BIC Score",
-        command = "cond-gauss-bic",
+        name = "Discrete Gaussian BIC Score",
+        command = "disc-gauss-bic",
         dataType = DataType.Mixed
 )
-public class ConditionalGaussianBicScore implements ScoreWrapper {
+public class DiscreteGaussianBicScore implements ScoreWrapper {
 
     static final long serialVersionUID = 23L;
     private DataModel dataSet;
@@ -28,16 +30,15 @@ public class ConditionalGaussianBicScore implements ScoreWrapper {
     @Override
     public Score getScore(DataModel dataSet, Parameters parameters) {
         this.dataSet = dataSet;
-        final ConditionalGaussianScore conditionalGaussianScore
-                = new ConditionalGaussianScore(DataUtils.getMixedDataSet(dataSet), parameters.getDouble("structurePrior"), parameters.getBoolean("discretize"));
+        final DiscreteGaussianScore discreteGaussianScore
+                = new DiscreteGaussianScore(DataUtils.getMixedDataSet(dataSet), parameters.getDouble("structurePrior"));
 
-        conditionalGaussianScore.setNumCategoriesToDiscretize(parameters.getInt("numCategoriesToDiscretize"));
-        return conditionalGaussianScore;
+        return discreteGaussianScore;
     }
 
     @Override
     public String getDescription() {
-        return "Conditional Gaussian BIC Score";
+        return "Discrete Gaussian BIC Score";
     }
 
     @Override
@@ -50,7 +51,6 @@ public class ConditionalGaussianBicScore implements ScoreWrapper {
         List<String> parameters = new ArrayList<>();
 
         parameters.add("structurePrior");
-        parameters.add("discretize");
         return parameters;
     }
 
