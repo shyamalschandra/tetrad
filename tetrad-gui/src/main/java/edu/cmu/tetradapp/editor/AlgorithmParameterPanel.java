@@ -19,6 +19,7 @@
 package edu.cmu.tetradapp.editor;
 
 import edu.cmu.tetrad.annotation.Algorithm;
+import edu.cmu.tetrad.plugin.PluginExtension;
 import edu.cmu.tetrad.plugin.algorithm.PluginAlgorithmWrapper;
 import edu.cmu.tetrad.util.ParamDescriptions;
 import edu.cmu.tetrad.util.Parameters;
@@ -69,8 +70,8 @@ public class AlgorithmParameterPanel extends JPanel {
         String algorName = DEFAULT_TITLE_BORDER;
         try {
         	if(algoAnno == null) {
-    			if(runner.getAlgorithm() instanceof PluginAlgorithmWrapper) {
-    				Class clazz = ((PluginAlgorithmWrapper)runner.getAlgorithm()).getExtensionClass();
+    			if(runner.getAlgorithm() instanceof PluginExtension) {
+    				Class clazz = ((PluginExtension)runner.getAlgorithm()).getExtensionClass();
     				Annotation[] annotations = clazz.getDeclaredAnnotations();
     				if (annotations != null) {
     					for (int i = 0; i < annotations.length; i++) {

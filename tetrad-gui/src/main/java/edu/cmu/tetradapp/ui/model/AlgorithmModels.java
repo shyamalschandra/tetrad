@@ -22,12 +22,9 @@ import edu.cmu.tetrad.annotation.AlgType;
 import edu.cmu.tetrad.annotation.Algorithm;
 import edu.cmu.tetrad.annotation.AlgorithmAnnotations;
 import edu.cmu.tetrad.annotation.AnnotatedClass;
-import edu.cmu.tetrad.plugin.algorithm.PluginAlgorithmInitialGraphKnowledgeScoreWrapper;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedType;
-import java.lang.reflect.Method;
-import java.lang.reflect.Type;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.HashMap;
@@ -82,6 +79,8 @@ public class AlgorithmModels {
 			for (Object extension : extensions) {
 
 				Class clazz = extension.getClass();
+				// edu.pitt.dbmi.causal.plugin.algorithm.CausalPluginAlgorithm.AlgorithmExtension
+				System.out.println("Extension class: " + clazz.getCanonicalName());
 				
 				try {
 					boolean isAlgorithm = false;

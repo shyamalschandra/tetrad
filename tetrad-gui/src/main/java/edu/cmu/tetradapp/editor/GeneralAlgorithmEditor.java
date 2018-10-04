@@ -22,6 +22,7 @@ package edu.cmu.tetradapp.editor;
 
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithm;
 import edu.cmu.tetrad.algcomparison.algorithm.AlgorithmFactory;
+import edu.cmu.tetrad.algcomparison.algorithm.PluginAlgorithmFactory;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pag.TsImages;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.SingleGraphAlg;
 import edu.cmu.tetrad.algcomparison.score.BdeuScore;
@@ -35,7 +36,6 @@ import edu.cmu.tetrad.annotation.Nonexecutable;
 import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.Node;
-import edu.cmu.tetrad.plugin.algorithm.PluginAlgorithmInitialGraphKnowledgeScoreWrapper;
 import edu.cmu.tetrad.util.JOptionUtils;
 import edu.cmu.tetrad.util.JsonUtils;
 import edu.cmu.tetrad.util.Parameters;
@@ -838,24 +838,22 @@ public class GeneralAlgorithmEditor extends JPanel implements FinalizingEditor {
 
         Algorithm algorithm = null;
 
+        
         try {
-        	if(algoModel.getAlgorithm().getAnnotation() == null) {
-        		// Need more detail on this
-        		Algorithm plugin =
-        				new PluginAlgorithmInitialGraphKnowledgeScoreWrapper(algoClass);
-        		algoClass = plugin.getClass();
-        	}
-        	
-            algorithm = AlgorithmFactory.create(algoClass, indTestClass, scoreClass);
+            if(Algorithm.class.isAssignableFrom(algoClass)) {
+            	algorithm = AlgorithmFactory.create(algoClass, indTestClass, scoreClass);
+                // Those pairwise algos (R3, RShew, Skew..) require source graph to initialize - Zhou
+                if (algorithm != null && algorithm instanceof TakesInitialGraph && runner.getSourceGraph() != null && !runner.getDataModelList().isEmpty()) {
+                    Algorithm initialGraph = new SingleGraphAlg(runner.getSourceGraph());
+                    ((TakesInitialGraph) algorithm).setInitialGraph(initialGraph);
+                }
+            }else {
+            	algorithm = PluginAlgorithmFactory.create(algoClass, indTestClass, scoreClass);
+            }
         } catch (IllegalAccessException | InstantiationException exception) {
             LOGGER.error("", exception);
         }
 
-        // Those pairwise algos (R3, RShew, Skew..) require source graph to initialize - Zhou
-        if (algorithm != null && algorithm instanceof TakesInitialGraph && runner.getSourceGraph() != null && !runner.getDataModelList().isEmpty()) {
-            Algorithm initialGraph = new SingleGraphAlg(runner.getSourceGraph());
-            ((TakesInitialGraph) algorithm).setInitialGraph(initialGraph);
-        }
 
         return algorithm;
     }

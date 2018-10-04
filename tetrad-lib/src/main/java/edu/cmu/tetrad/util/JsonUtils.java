@@ -10,6 +10,11 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import edu.cmu.tetrad.data.BoxDataSet;
+import edu.cmu.tetrad.data.DataSet;
+import edu.cmu.tetrad.data.DataType;
+import edu.cmu.tetrad.data.DiscreteVariable;
+import edu.cmu.tetrad.data.VerticalIntDataBox;
 import edu.cmu.tetrad.graph.Edge;
 import edu.cmu.tetrad.graph.EdgeListGraphSingleConnections;
 import edu.cmu.tetrad.graph.EdgeTypeProbability;
@@ -212,5 +217,74 @@ public class JsonUtils {
 
 		return graphNode;
 	}
+	
+	public static DataSet parseJSONObjectToDataSet(String dataSetJson, DataType dataType) {
+		return parseJSONObjectToDataSet(new JSONObject(dataSetJson), dataType);
+	}
 
+	public static DataSet parseJSONObjectToDataSet(JSONObject jObj, DataType dataType) {
+		//Name
+		String name = jObj.getString("name");
+		
+		//Variables
+		List<Node> nodes = parseJSONArrayToTetradNodes(jObj.getJSONArray("variables"));
+		int columns = nodes.size();
+		
+		
+		//DataBox
+		BoxDataSet boxDataSet = null;
+		int datapoints = jObj.getJSONObject("dataBox").getJSONArray("data").length();
+		int rows = datapoints/columns;
+		
+		switch(dataType) {
+		case Continuous:
+			
+			
+			break;
+		case Discrete:
+			VerticalIntDataBox dataBox = new VerticalIntDataBox(rows, columns);
+			List<Node> node_list = new ArrayList<>();
+			for(Node node : nodes) {
+				Node discreteVar = new DiscreteVariable(node.getName());
+				node_list.add(discreteVar);
+			}
+			int column = 0;
+			int row = 0;
+			for(int i=0;i<datapoints;i++) {
+				int value = jObj.getJSONObject("dataBox").getJSONArray("data").getInt(i);
+				dataBox.set(row, column, value);
+				column++;
+				if(column == columns) {
+					row++;
+					column = 0;
+				}
+			}
+			boxDataSet = new BoxDataSet(dataBox, node_list);
+			
+			break;
+			
+		case Mixed:
+			
+			break;
+			
+		
+		default:
+			break;
+		}
+		
+		//Selection
+		
+		//CaseIds
+		
+		//multipliers
+		
+		//knowledge
+		
+		//outputDelimiter
+		
+		
+		
+		return boxDataSet;
+	}
+	
 }

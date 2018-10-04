@@ -8,6 +8,7 @@ import edu.cmu.tetrad.algcomparison.algorithm.Algorithm;
 import edu.cmu.tetrad.data.DataModel;
 import edu.cmu.tetrad.data.DataType;
 import edu.cmu.tetrad.graph.Graph;
+import edu.cmu.tetrad.plugin.PluginExtension;
 import edu.cmu.tetrad.util.Parameters;
 
 /**
@@ -16,7 +17,7 @@ import edu.cmu.tetrad.util.Parameters;
  * @author Chirayu Kong Wongchokprasitti, PhD (chw20@pitt.edu)
  *
  */
-public class PluginAlgorithmWrapper implements Algorithm {
+public class PluginAlgorithmWrapper implements PluginExtension, Algorithm {
 
 	private static final long serialVersionUID = 1L;
 	
@@ -98,11 +99,8 @@ public class PluginAlgorithmWrapper implements Algorithm {
 		return result;
 	}
 
+	@Override
 	public Class<?> getExtensionClass() {
 		return extensionClass;
-	}
-
-	protected Object getAlgorithm() {
-		return algorithm;
 	}
 }
