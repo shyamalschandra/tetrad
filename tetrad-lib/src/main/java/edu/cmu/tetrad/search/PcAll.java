@@ -299,25 +299,25 @@ public final class PcAll implements GraphSearch {
 
         IFas fas;
 
-        if (fasType == FasType.Naive) {
-            fas = new FasStableFdrNaive(initialGraph, getIndependenceTest());
-        } else if (fasType == FasType.LiWang) {
-            fas = new FasStableLiAndWang(initialGraph, getIndependenceTest());
-        } else if (fasType == FasType.REGULAR) {
-            if (concurrent == Concurrent.NO) {
+//        if (fasType == FasType.Naive) {
+//            fas = new FasStableFdrNaive(initialGraph, getIndependenceTest());
+//        } else if (fasType == FasType.LiWang) {
+//            fas = new FasStableLiAndWang(initialGraph, getIndependenceTest());
+//        } else if (fasType == FasType.REGULAR) {
+//            if (concurrent == Concurrent.NO) {
                 fas = new Fas(initialGraph, getIndependenceTest());
-            } else {
-                fas = new FasConcurrent(initialGraph, getIndependenceTest());
-                ((FasConcurrent) fas).setStable(false);
-            }
-        } else {
-            if (concurrent == Concurrent.NO) {
-                fas = new FasStableLiAndWang(initialGraph, getIndependenceTest());
-            } else {
-                fas = new FasConcurrent(initialGraph, getIndependenceTest());
-                ((FasConcurrent) fas).setStable(true);
-            }
-        }
+//            } else {
+//                fas = new FasConcurrent(initialGraph, getIndependenceTest());
+//                ((FasConcurrent) fas).setStable(false);
+//            }
+//        } else {
+//            if (concurrent == Concurrent.NO) {
+//                fas = new FasStable(initialGraph, getIndependenceTest());
+//            } else {
+//                fas = new FasConcurrent(initialGraph, getIndependenceTest());
+//                ((FasConcurrent) fas).setStable(true);
+//            }
+//        }
 
         fas.setKnowledge(getKnowledge());
         fas.setDepth(getDepth());
@@ -356,13 +356,13 @@ public final class PcAll implements GraphSearch {
 
         graph = GraphUtils.replaceNodes(graph, nodes);
 
-        for (Edge edge : graph.getEdges()) {
-            if (Edges.isUndirectedEdge(edge)) {
-                Edge unoriented = Edges.nondirectedEdge(edge.getNode1(), edge.getNode2());
-                graph.removeEdge(edge);
-                graph.addEdge(unoriented);
-            }
-        }
+//        for (Edge edge : graph.getEdges()) {
+//            if (Edges.isUndirectedEdge(edge)) {
+//                Edge unoriented = Edges.nondirectedEdge(edge.getNode1(), edge.getNode2());
+//                graph.removeEdge(edge);
+//                graph.addEdge(unoriented);
+//            }
+//        }
 
         MeekRules meekRules = new MeekRules();
 //        meekRules.setAggressivelyPreventCycles(this.aggressivelyPreventCycles);

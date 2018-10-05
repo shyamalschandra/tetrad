@@ -266,8 +266,8 @@ public final class Fask implements GraphSearch {
         final double cxyx = cu(x, y, x);
         final double cxyy = cu(x, y, y);
 
-        double left = (cxyx * cxyx) / (cu(x, x, x) * cu(y, y, x));
-        double right = (cxyy * cxyy) / (cu(x, x, y) * cu(y, y, y));
+        double left = cxyx / sqrt(cu(x, x, x) * cu(y, y, x));
+        double right = cxyy / sqrt(cu(x, x, y) * cu(y, y, y));
 
         double lr = left - right;
 

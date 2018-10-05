@@ -32,6 +32,7 @@ import edu.cmu.tetrad.util.TetradLogger;
 import edu.cmu.tetrad.util.TetradMatrix;
 import org.apache.commons.math3.linear.SingularMatrixException;
 
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -49,7 +50,7 @@ import static java.lang.Math.*;
 public final class Fask_B implements GraphSearch {
 
     // The score to be used for the FAS adjacency search.
-    private final Score score;
+    private final IndependenceTest test;
 
     // An initial graph to orient, skipping the adjacency step.
     private Graph initialGraph = null;
@@ -94,9 +95,9 @@ public final class Fask_B implements GraphSearch {
     /**
      * @param dataSet These datasets must all have the same variables, in the same order.
      */
-    public Fask_B(DataSet dataSet, Score score) {
+    public Fask_B(DataSet dataSet, IndependenceTest test) {
         this.dataSet = dataSet;
-        this.score = score;
+        this.test = test;
 
         data = dataSet.getDoubleData().transpose().toArray();
     }
@@ -137,7 +138,6 @@ public final class Fask_B implements GraphSearch {
 
             G0 = g1;
         } else {
-            IndependenceTest test = new IndTestScore(score, dataSet);
             System.out.println("FAS");
 
             FasStable fas = new FasStable(test);
@@ -173,27 +173,32 @@ public final class Fask_B implements GraphSearch {
                     } else if (knowledgeOrients(Y, X)) {
                         graph.addDirectedEdge(Y, X);
                     }
-//                    else if (adjacent(x, y) && bidirected(x, y, G0, X, Y)) {
-//                        Edge edge1 = Edges.directedEdge(X, Y);
-//                        Edge edge2 = Edges.directedEdge(Y, X);
-//                        graph.addEdge(edge1);
-//                        graph.addEdge(edge2);
-//                    }
+                    else if (bidirected(x, y, G0, X, Y)) {
+                        Edge edge1 = Edges.directedEdge(X, Y);
+                        Edge edge2 = Edges.directedEdge(Y, X);
+                        graph.addEdge(edge1);
+                        graph.addEdge(edge2);
+                    }
                     else {
                         final boolean xy = leftright(x, y);
                         final boolean yx = leftright(y, x);
 
-//                        if (xy && yx) {
+                        if (xy && yx) {
 //                            Edge edge1 = Edges.directedEdge(X, Y);
 //                            Edge edge2 = Edges.directedEdge(Y, X);
+//                            edge1.setLineColor(Color.GREEN);
+//                            edge2.setLineColor(Color.GREEN);
 //                            graph.addEdge(edge1);
 //                            graph.addEdge(edge2);
-//                        } else
-
-                        if (xy) {
+                        }
+                        else if (xy) {
                             graph.addDirectedEdge(X, Y);
-                        } else {
+                        } else if (yx){
                             graph.addDirectedEdge(Y, X);
+                        } else {
+                            Edge edge1 = Edges.undirectedEdge(X, Y);
+                            edge1.setLineColor(Color.MAGENTA);
+                            graph.addEdge(edge1);
                         }
                     }
                 }
@@ -258,17 +263,17 @@ public final class Fask_B implements GraphSearch {
             boolean rejected1 = abs(zv1) > cutoff;
             boolean rejected2 = abs(zv2) > cutoff;
 
-            boolean possibleTwoCycle = false;
+            boolean possibleCycle = false;
 
             if (zv1 < 0 && zv2 > 0 && rejected1) {
-                possibleTwoCycle = true;
+                possibleCycle = true;
             } else if (zv1 > 0 && zv2 < 0 && rejected2) {
-                possibleTwoCycle = true;
+                possibleCycle = true;
             } else if (rejected1 && rejected2) {
-                possibleTwoCycle = true;
+                possibleCycle = true;
             }
 
-            if (!possibleTwoCycle) {
+            if (!possibleCycle) {
                 return false;
             }
         }
@@ -282,24 +287,30 @@ public final class Fask_B implements GraphSearch {
         x = y;
         y = z;
 
-        // 1. Y > 0, X < 0 > Y < 0, X > 0 for a > 0, a < 0, all cases. Need eY ~ pos skew.
-        // Perfect on DAG problems with mixed coefficients.
+        // 1. Y > 0, X < 0 > Y < 0, X > 0 for a > 0, a < 0, all cases.
+        // Requires X, Y not neg skew, eY ~ pos skew.
+        // Weak on DAG problems with mixed coefficients.
+        // Orients many 2-cycles.
 //        double r = StatUtils.correlation(x, y);
 //
 //        final double cxy_xy = cu2(x, y, x, y);
 //        final double cxx_xy = cu2(x, x, x, y);
+//        final double cyy_xy = cu2(y, y, x, y);
 //
 //        final double cxy_yx = cu2(x, y, y, x);
 //        final double cxx_yx = cu2(x, x, y, x);
+//        final double cyy_yx = cu2(y, y, y, x);
 //
-//        boolean a = cxy_yx - r * cxx_yx > cxy_xy - r * cxx_xy;
-//        boolean b = cxy_yx - (1.0 / r) * cxx_yx < cxy_xy - (1.0 / r) * cxx_xy;
+//        boolean a = cxy_xy - r * cxx_xy > cxy_yx - r * cxx_yx;
+//        boolean b = cxy_xy - (1.0 / r) * cyy_xy > cxy_yx - (1.0 / r) * cyy_yx;
 //
-//        boolean lr = a & b;
+//        boolean lr = a && b;
 //        return !lr;
 
 
-        // 2 X > 0 > Y > 0. Perfect on DAG problems with mixed coefficients. Requires X or eY ~ pos. skew
+        // 2 X > 0 > Y > 0. Perfect on a > 0 DAG problems with mixed coefficients.
+        // Many 2-cycles on a < 0.
+        // Requires X, Y, eY ~ pos skew
 
 //        double sx = StatUtils.skewness(x);
 //        double sy = StatUtils.skewness(y);
@@ -318,7 +329,58 @@ public final class Fask_B implements GraphSearch {
 //        boolean lr = a & b;
 //        return !lr;
 
-        // 3 Original rule. Perfect on DAG problems with mixed coefficients. Requires X or eY ~ pos. skew
+        // 3 Original rule. Perfect on DAG problems with mixed coefficients.
+        // Requires X or eY, Y or eX ~ pos skew
+        // For a < 0 requires a threshold.
+
+        double sx = StatUtils.skewness(x);
+        double sy = StatUtils.skewness(y);
+        double r = (StatUtils.correlation(x, y));
+
+        final double cxyx = cu0(x, y, x);
+        final double cxyy = cu0(x, y, y);
+
+        double left = cxyx / sqrt(cu0(x, x, x) * cu0(y, y, x));
+        double right = cxyy / sqrt(cu0(x, x, y) * cu0(y, y, y));
+
+        double lr = left - right;
+
+        r *= signum(sx) * signum(sy);
+        lr *= signum(r);
+        if (r < getDelta()) lr *= -1;
+
+        return !(lr > 0);
+
+        // 3b Modified Original rule. Perfect on DAG problems with mixed coefficients.
+        // Requires X or eY, Y or eX ~ pos skew
+        // For a < 0 requires a threshold.
+
+
+//        double sx = StatUtils.skewness(x);
+//        double sy = StatUtils.skewness(y);
+//        double r = (StatUtils.correlation(x, y));
+//
+//        final double cxyx = cu0(x, y, x);
+//        final double cxyy = cu0(x, y, y);
+//        final double cxxx = cu0(x, y, x);
+//        final double cyyy = cu0(x, y, y);
+//
+//        double lr = cxyx /  - cxyy;
+
+//        double left = (cxyx * cxyx) / (cu0(x, x, x) * cu0(y, y, x));
+//        double right = (cxyy * cxyy) / (cu0(x, x, y) * cu0(y, y, y));
+//
+//        double lr = left - right;
+//
+//        r *= signum(sx) * signum(sy);
+//        lr *= signum(r);
+//        if (r < getDelta()) lr *= -1;
+//
+//        return !(lr > 0);
+
+        // 3b Modified Original rule. Perfect on DAG problems with mixed coefficients.
+        // Requires X or eY, Y or eX ~ pos skew
+        // For a < 0 requires a threshold.
 
 //        double sx = StatUtils.skewness(x);
 //        double sy = StatUtils.skewness(y);
@@ -332,37 +394,35 @@ public final class Fask_B implements GraphSearch {
 //
 //        double lr = left - right;
 //
-////        double r = StatUtils.correlation(x, y);
-////        double sx = StatUtils.skewness(x);
-////        double sy = StatUtils.skewness(y);
-//
 //        r *= signum(sx) * signum(sy);
 //        lr *= signum(r);
 //        if (r < getDelta()) lr *= -1;
 //
 //        return !(lr > 0);
 
-        // 4 Bryan's rule. Perfect for a > 0. For mixed coefficients, some false positive orientations.
+        // 4 Bryan's rule.
+        // Excellent precision, low adjacency recall. For mixed coefficients, some false positive orientations.
+        // Ie many bidirected edges false oriented.
         // Need to check the coding.
-        double sx = StatUtils.skewness(x);
-        double sy = StatUtils.skewness(y);
-        double r = (StatUtils.correlation(x, y));
-
-        final double c0xyy = cu(x, y, y, sx, sy, -1.0);
-        final double c0xxy = cu(x, x, y, sx, sy, -1.0);
-        final double c0xyx = cu(x, y, x, sx, sy, 1.0);
-        final double c0xxx = cu(x, x, x, sx, sy, 1.0);
-
-        final double c1xyy = cu(x, y, y, sx, sy, -1.0);
-        final double c1yyy = cu(y, y, y, sx, sy, -1.0);
-        final double c1xyx = cu(x, y, x, sx, sy, 1.0);
-        final double c1yyx = cu(y, y, x, sx, sy, 1.0);
-
-        boolean a = (c0xyy - r * c0xxy) > (c0xyx - r * c0xxx);
-        boolean b = (c1xyy - (1.0 / r) * c1yyy) < (c1xyx - (1.0 / r) * c1yyx);
-
-        boolean lr = a & b;
-        return !lr;
+//        double sx = StatUtils.skewness(x);
+//        double sy = StatUtils.skewness(y);
+//        double r = (StatUtils.correlation(x, y));
+//
+//        final double c0xyy = cu(x, y, y, sx, sy, -1.0);
+//        final double c0xxy = cu(x, x, y, sx, sy, -1.0);
+//        final double c0xyx = cu(x, y, x, sx, sy, 1.0);
+//        final double c0xxx = cu(x, x, x, sx, sy, 1.0);
+//
+//        final double c1xyy = cu(x, y, y, sx, sy, -1.0);
+//        final double c1yyy = cu(y, y, y, sx, sy, -1.0);
+//        final double c1xyx = cu(x, y, x, sx, sy, 1.0);
+//        final double c1yyx = cu(y, y, x, sx, sy, 1.0);
+//
+//        boolean a = (c0xyy - r * c0xxy) > (c0xyx - r * c0xxx);
+//        boolean b = (c1xyy - (1.0 / r) * c1yyy) > (c1xyx - (1.0 / r) * c1yyx);
+//
+//        boolean lr = a;// & b;
+//        return !lr;
     }
 
     private static double cu0(double[] x, double[] y, double[] condition) {

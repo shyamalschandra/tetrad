@@ -1,8 +1,10 @@
 package edu.cmu.tetrad.algcomparison.algorithm.multi;
 
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithm;
+import edu.cmu.tetrad.algcomparison.independence.IndependenceWrapper;
 import edu.cmu.tetrad.algcomparison.score.ScoreWrapper;
 import edu.cmu.tetrad.algcomparison.utils.HasKnowledge;
+import edu.cmu.tetrad.algcomparison.utils.TakesIndependenceWrapper;
 import edu.cmu.tetrad.algcomparison.utils.UsesScoreWrapper;
 import edu.cmu.tetrad.annotation.AlgType;
 import edu.cmu.tetrad.data.*;
@@ -24,20 +26,20 @@ import java.util.List;
  */
 @edu.cmu.tetrad.annotation.Algorithm(
         name = "FASK_B",
-        command = "fask_bx",
+        command = "fask_b",
         algoType = AlgType.forbid_latent_common_causes
 )
-public class Fask_B implements Algorithm, HasKnowledge, UsesScoreWrapper {
+public class Fask_B implements Algorithm, HasKnowledge, TakesIndependenceWrapper {
     static final long serialVersionUID = 23L;
-    private ScoreWrapper score;
+    private IndependenceWrapper test;
     private IKnowledge knowledge = new Knowledge2();
 
     public Fask_B() {
 
     }
 
-    public Fask_B(ScoreWrapper score) {
-        this.score = score;
+    public Fask_B(IndependenceWrapper test) {
+        this.test = test;
     }
 
     private Graph getGraph(edu.cmu.tetrad.search.Fask_B search) {
@@ -47,7 +49,7 @@ public class Fask_B implements Algorithm, HasKnowledge, UsesScoreWrapper {
     @Override
     public Graph search(DataModel dataSet, Parameters parameters) {
         if (parameters.getInt("bootstrapSampleSize") < 1) {
-            edu.cmu.tetrad.search.Fask_B search = new edu.cmu.tetrad.search.Fask_B((DataSet) dataSet, score.getScore(dataSet, parameters));
+            edu.cmu.tetrad.search.Fask_B search = new edu.cmu.tetrad.search.Fask_B((DataSet) dataSet, test.getTest(dataSet, parameters));
             search.setDepth(parameters.getInt("depth"));
             search.setPenaltyDiscount(parameters.getDouble("penaltyDiscount"));
             search.setExtraEdgeThreshold(parameters.getDouble("extraEdgeThreshold"));
@@ -66,7 +68,7 @@ public class Fask_B implements Algorithm, HasKnowledge, UsesScoreWrapper {
             search.setKnowledge(knowledge);
             return getGraph(search);
         } else {
-            Fask_B fask = new Fask_B(score);
+            Fask_B fask = new Fask_B(test);
             fask.setKnowledge(knowledge);
 
             DataSet data = (DataSet) dataSet;
@@ -97,17 +99,17 @@ public class Fask_B implements Algorithm, HasKnowledge, UsesScoreWrapper {
 
     @Override
     public String getDescription() {
-        return "FASK using " + score.getDescription();
+        return "FASK using " + test.getDescription();
     }
 
     @Override
     public DataType getDataType() {
-        return DataType.Mixed;
+        return DataType.Continuous;
     }
 
     @Override
     public List<String> getParameters() {
-        List<String> parameters = score.getParameters();
+        List<String> parameters = test.getParameters();
         parameters.add("depth");
         parameters.add("twoCycleAlpha");
         parameters.add("extraEdgeThreshold");
@@ -115,6 +117,7 @@ public class Fask_B implements Algorithm, HasKnowledge, UsesScoreWrapper {
 
         parameters.add("useFasAdjacencies");
         parameters.add("useCorrDiffAdjacencies");
+
         // Bootstrapping
         parameters.add("bootstrapSampleSize");
         parameters.add("bootstrapEnsemble");
@@ -134,7 +137,7 @@ public class Fask_B implements Algorithm, HasKnowledge, UsesScoreWrapper {
     }
 
     @Override
-    public void setScoreWrapper(ScoreWrapper score) {
-        this.score = score;
+    public void setIndependenceWrapper(IndependenceWrapper independenceWrapper) {
+        this.test = independenceWrapper;
     }
 }
