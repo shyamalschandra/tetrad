@@ -10,10 +10,14 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.google.gson.Gson;
+
 import edu.cmu.tetrad.data.BoxDataSet;
 import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.data.DataType;
 import edu.cmu.tetrad.data.DiscreteVariable;
+import edu.cmu.tetrad.data.IKnowledge;
+import edu.cmu.tetrad.data.Knowledge2;
 import edu.cmu.tetrad.data.VerticalIntDataBox;
 import edu.cmu.tetrad.graph.Edge;
 import edu.cmu.tetrad.graph.EdgeListGraphSingleConnections;
@@ -229,12 +233,12 @@ public class JsonUtils {
 		//Variables
 		List<Node> nodes = parseJSONArrayToTetradNodes(jObj.getJSONArray("variables"));
 		int columns = nodes.size();
-		
+		System.out.println("columns: " + columns);
 		
 		//DataBox
 		BoxDataSet boxDataSet = null;
-		int datapoints = jObj.getJSONObject("dataBox").getJSONArray("data").length();
-		int rows = datapoints/columns;
+		int rows = jObj.getJSONObject("dataBox").getJSONArray("data").getJSONArray(0).length();
+		System.out.println("rows: " + rows);
 		
 		switch(dataType) {
 		case Continuous:
@@ -248,15 +252,11 @@ public class JsonUtils {
 				Node discreteVar = new DiscreteVariable(node.getName());
 				node_list.add(discreteVar);
 			}
-			int column = 0;
-			int row = 0;
-			for(int i=0;i<datapoints;i++) {
-				int value = jObj.getJSONObject("dataBox").getJSONArray("data").getInt(i);
-				dataBox.set(row, column, value);
-				column++;
-				if(column == columns) {
-					row++;
-					column = 0;
+			for(int column=0;column<columns;column++) {
+				JSONArray jArray = jObj.getJSONObject("dataBox").getJSONArray("data").getJSONArray(column);
+				for(int row=0;row<jArray.length();row++) {
+					int value = jArray.getInt(row);
+					dataBox.set(row, column, value);
 				}
 			}
 			boxDataSet = new BoxDataSet(dataBox, node_list);
@@ -272,17 +272,27 @@ public class JsonUtils {
 			break;
 		}
 		
+		boxDataSet.setName(name);
+		
 		//Selection
+		List<Node> selections = parseJSONArrayToTetradNodes(jObj.getJSONArray("variables"));
+		if(!selections.isEmpty()) {
+			for(Node node : selections) {
+				boxDataSet.setSelected(node, true);
+			}
+		}
 		
 		//CaseIds
 		
 		//multipliers
 		
 		//knowledge
+		String knowledgeJson = jObj.getJSONObject("knowledge").toString();
+		Gson gson = new Gson();
+		IKnowledge iknowledge = gson.fromJson(knowledgeJson, Knowledge2.class);
+		boxDataSet.setKnowledge(iknowledge);
 		
 		//outputDelimiter
-		
-		
 		
 		return boxDataSet;
 	}
