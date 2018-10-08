@@ -27,8 +27,8 @@ import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.util.NumberFormatUtil;
 import edu.cmu.tetrad.util.TetradLogger;
 import edu.cmu.tetrad.util.TetradMatrix;
-import org.rosuda.JRI.REXP;
-import org.rosuda.JRI.Rengine;
+//import org.rosuda.JRI.REXP;
+//import org.rosuda.JRI.Rengine;
 
 import java.text.NumberFormat;
 import java.util.*;
@@ -69,7 +69,7 @@ public final class IndTestGcmJRI implements IndependenceTest {
     private Map<Node, Integer> nodeMap;
     private int numTests;
     private boolean verbose = false;
-    private static Rengine r;
+//    private static Rengine r;
     private boolean fastFDR = false;
 
     //==========================CONSTRUCTORS=============================//
@@ -104,17 +104,17 @@ public final class IndTestGcmJRI implements IndependenceTest {
 
         numTests = 0;
 
-        r = RInstance.getInstance().getEngine();
-        r.eval("library(kernlab)");
-        r.eval("library(CVST)");
-        r.eval("library(xgboost)");
-        r.eval("setwd(\"/Users/user/downloads/gcm-test\")");
-        r.eval("source(\"./gcm.R\")");
+//        r = RInstance.getInstance().getEngine();
+//        r.eval("library(kernlab)");
+//        r.eval("library(CVST)");
+//        r.eval("library(xgboost)");
+//        r.eval("setwd(\"/Users/user/downloads/gcm-test\")");
+//        r.eval("source(\"./gcm.R\")");
     }
 
     //==========================PUBLIC METHODS=============================//
 
-    /**
+    /**2
      * Creates a new IndTestCramerT instance for a subset of the variables.
      */
     public IndependenceTest indTestSubset(List<Node> vars) {
@@ -123,33 +123,34 @@ public final class IndTestGcmJRI implements IndependenceTest {
 
     public boolean isIndependent(Node x, Node y, List<Node> z) {
 
-        r.assign("X", _data[nodeMap.get(x)]);
-        r.assign("Y", _data[nodeMap.get(y)]);
-
-        r.eval("Z<-NULL");
-
-        for (Node aZ : z) {
-            double[] col = _data[nodeMap.get(aZ)];
-            IndTestGcmJRI.r.assign("Z0", col);
-            r.eval("if (!is.null(Z)) Z = Z0");
-            IndTestGcmJRI.r.eval("if (is.null(Z)) {Z <- rbind(Z0)} else {Z<-rbind(Z, Z0)}");
-        }
-
-        r.eval("if (!is.null(Z)) Z <- t(Z)");
-
-        double p = r.eval("gcm.test(X, Y, Z, alpha = 0.05, regr.method = \"kernel.ridge\")$p.value").asDouble();
-        System.out.println(SearchLogUtils.independenceFact(x, y, z) + " p = " + p);
-
-        if (fastFDR) {
-            final int d1 = 0; // reference
-            final int d2 = z.size();
-            final int v = variables.size() - 2;
-
-            double alpha2 = (exp(log(alpha) + logChoose(v, d1) - logChoose(v, d2)));
-            return p > alpha2;
-        } else {
-            return p > alpha;
-        }
+//        r.assign("X", _data[nodeMap.get(x)]);
+//        r.assign("Y", _data[nodeMap.get(y)]);
+//
+//        r.eval("Z<-NULL");
+//
+//        for (Node aZ : z) {
+//            double[] col = _data[nodeMap.get(aZ)];
+//            IndTestGcmJRI.r.assign("Z0", col);
+//            r.eval("if (!is.null(Z)) Z = Z0");
+//            IndTestGcmJRI.r.eval("if (is.null(Z)) {Z <- rbind(Z0)} else {Z<-rbind(Z, Z0)}");
+//        }
+//
+//        r.eval("if (!is.null(Z)) Z <- t(Z)");
+//
+//        double p = r.eval("gcm.test(X, Y, Z, alpha = 0.05, regr.method = \"kernel.ridge\")$p.value").asDouble();
+//        System.out.println(SearchLogUtils.independenceFact(x, y, z) + " p = " + p);
+//
+//        if (fastFDR) {
+//            final int d1 = 0; // reference
+//            final int d2 = z.size();
+//            final int v = variables.size() - 2;
+//
+//            double alpha2 = (exp(log(alpha) + logChoose(v, d1) - logChoose(v, d2)));
+//            return p > alpha2;
+//        } else {
+//            return p > alpha;
+//        }
+        return false;
     }
 
     public boolean isIndependent(Node x, Node y, Node... z) {

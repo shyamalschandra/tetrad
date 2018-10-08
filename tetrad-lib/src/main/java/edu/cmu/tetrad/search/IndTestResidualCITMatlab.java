@@ -21,8 +21,8 @@
 
 package edu.cmu.tetrad.search;
 
-import com.mathworks.toolbox.javabuilder.MWException;
-import com.mathworks.toolbox.javabuilder.MWNumericArray;
+//import com.mathworks.toolbox.javabuilder.MWException;
+//import com.mathworks.toolbox.javabuilder.MWNumericArray;
 import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.data.ICovarianceMatrix;
 import edu.cmu.tetrad.graph.IndependenceFact;
@@ -309,71 +309,73 @@ public final class IndTestResidualCITMatlab implements IndependenceTest {
     //==================================PRIVATE METHODS================================
 
     private boolean checkIndependent(Node x, Node y, List<Node> z) {
-        numTests++;
-        RCI_test.Class1 test = null;
+//        numTests++;
+//        RCI_test.Class1 test = null;
+//
+//        try {
+//            test = new RCI_test.Class1();
+//
+//            MWNumericArray _x = new MWNumericArray(new TetradVector(_data[nodeMap.get(x)]).toColumnMatrix().toArray());
+//            MWNumericArray _y = new MWNumericArray(new TetradVector(_data[nodeMap.get(y)]).toColumnMatrix().toArray());
+//
+//            double[][] ___z = new double[z.size()][];
+//
+//
+//            for (int c = 0; c < z.size(); c++) {
+//                ___z[c] = _data[nodeMap.get(z.get(c))];
+//            }
+//
+//            MWNumericArray _z = new MWNumericArray(new TetradMatrix(___z).transpose().toArray());
+//
+//            Object[] out = test.RCI_test(1, _x, _y, _z);
+//
+//            MWNumericArray _p = (MWNumericArray) out[0];
+//
+//            double p = _p.getDouble();
+//
+//            if(fastFDR) {
+//                final int d1 = 0; // reference
+//                final int d2 = z.size();
+//                final int v = variables.size() - 2;
+//
+//                double alpha2 = (exp(log(alpha) + logChoose(v, d1) - logChoose(v, d2)));
+//                final boolean independent = p > alpha2;
+//                IndependenceFact fact = new IndependenceFact(x, y, z);
+//
+//                if (independent) {
+//                    System.out.println(fact + " INDEPENDENT p = " + p);
+//                    TetradLogger.getInstance().log("info", fact + " Independent");
+//
+//                } else {
+//                    System.out.println(fact + " dependent p = " + p);
+//                    TetradLogger.getInstance().log("info", fact.toString());
+//                }
+//
+//                return independent;
+//            } else {
+//                final boolean independent = p > alpha;
+//                IndependenceFact fact = new IndependenceFact(x, y, z);
+//
+//                if (independent) {
+//                    System.out.println(fact + " INDEPENDENT p = " + p);
+//                    TetradLogger.getInstance().log("info", fact + " Independent");
+//
+//                } else {
+//                    System.out.println(fact + " dependent p = " + p);
+//                    TetradLogger.getInstance().log("info", fact.toString());
+//                }
+//
+//                return independent;
+//            }
+//        } catch (MWException e) {
+//            throw new RuntimeException(e);
+//        } finally {
+//            if (test != null) {
+//                test.dispose();
+//            }
+//        }
 
-        try {
-            test = new RCI_test.Class1();
-
-            MWNumericArray _x = new MWNumericArray(new TetradVector(_data[nodeMap.get(x)]).toColumnMatrix().toArray());
-            MWNumericArray _y = new MWNumericArray(new TetradVector(_data[nodeMap.get(y)]).toColumnMatrix().toArray());
-
-            double[][] ___z = new double[z.size()][];
-
-
-            for (int c = 0; c < z.size(); c++) {
-                ___z[c] = _data[nodeMap.get(z.get(c))];
-            }
-
-            MWNumericArray _z = new MWNumericArray(new TetradMatrix(___z).transpose().toArray());
-
-            Object[] out = test.RCI_test(1, _x, _y, _z);
-
-            MWNumericArray _p = (MWNumericArray) out[0];
-
-            double p = _p.getDouble();
-
-            if(fastFDR) {
-                final int d1 = 0; // reference
-                final int d2 = z.size();
-                final int v = variables.size() - 2;
-
-                double alpha2 = (exp(log(alpha) + logChoose(v, d1) - logChoose(v, d2)));
-                final boolean independent = p > alpha2;
-                IndependenceFact fact = new IndependenceFact(x, y, z);
-
-                if (independent) {
-                    System.out.println(fact + " INDEPENDENT p = " + p);
-                    TetradLogger.getInstance().log("info", fact + " Independent");
-
-                } else {
-                    System.out.println(fact + " dependent p = " + p);
-                    TetradLogger.getInstance().log("info", fact.toString());
-                }
-
-                return independent;
-            } else {
-                final boolean independent = p > alpha;
-                IndependenceFact fact = new IndependenceFact(x, y, z);
-
-                if (independent) {
-                    System.out.println(fact + " INDEPENDENT p = " + p);
-                    TetradLogger.getInstance().log("info", fact + " Independent");
-
-                } else {
-                    System.out.println(fact + " dependent p = " + p);
-                    TetradLogger.getInstance().log("info", fact.toString());
-                }
-
-                return independent;
-            }
-        } catch (MWException e) {
-            throw new RuntimeException(e);
-        } finally {
-            if (test != null) {
-                test.dispose();
-            }
-        }
+        return false;
     }
 
     private double[][] columns(double[][] data, List<Node> z) {

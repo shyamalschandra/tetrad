@@ -28,7 +28,7 @@ import edu.cmu.tetrad.util.NumberFormatUtil;
 import edu.cmu.tetrad.util.TetradLogger;
 import edu.cmu.tetrad.util.TetradMatrix;
 import org.python.util.PythonInterpreter;
-import org.rosuda.JRI.Rengine;
+//import org.rosuda.JRI.Rengine;
 
 import java.text.NumberFormat;
 import java.util.*;
@@ -65,7 +65,7 @@ public final class IndTestFitPython implements IndependenceTest {
     private Map<Node, Integer> nodeMap;
     private int numTests;
     private boolean verbose = false;
-    private static Rengine r;
+//    private static Rengine r;
 
     //==========================CONSTRUCTORS=============================//
 

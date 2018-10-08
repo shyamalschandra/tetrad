@@ -26,7 +26,7 @@ import edu.cmu.tetrad.data.ICovarianceMatrix;
 import edu.cmu.tetrad.graph.IndependenceFact;
 import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.util.*;
-import org.rosuda.JRI.Rengine;
+//import org.rosuda.JRI.Rengine;
 
 import java.text.NumberFormat;
 import java.util.*;
@@ -67,7 +67,7 @@ public final class IndTestFcitJRI implements IndependenceTest {
     private Map<Node, Integer> nodeMap;
     private int numTests;
     private boolean verbose = false;
-    private static Rengine r;
+//    private static Rengine r;
     private boolean fastFDR = false;
     private boolean fdrCutoffCalculated = false;
     private double adjustedAlpha;
@@ -103,13 +103,13 @@ public final class IndTestFcitJRI implements IndependenceTest {
         }
 
         numTests = 0;
-
-        r = RInstance.getInstance().getEngine();
-
-        r.eval("library(reticulate)");
-        r.eval("os<-import(\"os\")");
-        r.eval("os$chdir(\"/Users/user/Downloads/fcit-master/fcit\")");
-        r.eval("fcit<-source_python(\"fcit.py\")");
+//
+//        r = RInstance.getInstance().getEngine();
+//
+//        r.eval("library(reticulate)");
+//        r.eval("os<-import(\"os\")");
+//        r.eval("os$chdir(\"/Users/user/Downloads/fcit-master/fcit\")");
+//        r.eval("fcit<-source_python(\"fcit.py\")");
     }
 
 
@@ -363,24 +363,25 @@ public final class IndTestFcitJRI implements IndependenceTest {
         double[] _x = _data[nodeMap.get(x)];
         double[] _y = _data[nodeMap.get(y)];
 
-        r.assign("x", _x);
-        r.assign("y", _y);
-
-        r.eval("x <- as.matrix(x)");
-        r.eval("y <- as.matrix(y)");
-
-        r.eval("z<-NULL");
-
-        for (int s = 0; s < z.size(); s++) {
-            double[] col = _data[nodeMap.get(z.get(s))];
-
-            IndTestFcitJRI.r.assign("z0", col);
-            IndTestFcitJRI.r.eval("if (is.null(z)) {z <- rbind(z0)} else {z<-rbind(z, z0)}");
-        }
-
-        r.eval("if (!is.null(z)) z = t(z)");
-
-        return r.eval("test(x,y,z)").asDouble();
+//        r.assign("x", _x);
+//        r.assign("y", _y);
+//
+//        r.eval("x <- as.matrix(x)");
+//        r.eval("y <- as.matrix(y)");
+//
+//        r.eval("z<-NULL");
+//
+//        for (int s = 0; s < z.size(); s++) {
+//            double[] col = _data[nodeMap.get(z.get(s))];
+//
+//            IndTestFcitJRI.r.assign("z0", col);
+//            IndTestFcitJRI.r.eval("if (is.null(z)) {z <- rbind(z0)} else {z<-rbind(z, z0)}");
+//        }
+//
+//        r.eval("if (!is.null(z)) z = t(z)");
+//
+//        return r.eval("test(x,y,z)").asDouble();
+        return 0;
     }
 }
 

@@ -26,7 +26,7 @@ import edu.cmu.tetrad.data.ICovarianceMatrix;
 import edu.cmu.tetrad.graph.IndependenceFact;
 import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.util.*;
-import org.rosuda.JRI.Rengine;
+//import org.rosuda.JRI.Rengine;
 
 import java.text.NumberFormat;
 import java.util.*;
@@ -68,7 +68,7 @@ public final class IndTestRcotJRI implements IndependenceTest {
     private Map<Node, Integer> nodeMap;
     private int numTests;
     private boolean verbose = false;
-    private static Rengine r;
+//    private static Rengine r;
     private boolean fastFDR = false;
     private boolean fdrCutoffCalculated = false;
     private double adjustedAlpha;
@@ -106,12 +106,12 @@ public final class IndTestRcotJRI implements IndependenceTest {
 
         numTests = 0;
 
-        r = RInstance.getInstance().getEngine();
-        r.eval("library(MASS)");
-        r.eval("library(momentchi2)");
-        r.eval("library(devtools)");
-//        engine.eval("install_github(\"ericstrobl/RCIT\")");
-        r.eval("library(RCIT)");
+//        r = RInstance.getInstance().getEngine();
+//        r.eval("library(MASS)");
+//        r.eval("library(momentchi2)");
+//        r.eval("library(devtools)");
+////        engine.eval("install_github(\"ericstrobl/RCIT\")");
+//        r.eval("library(RCIT)");
 
     }
 
@@ -194,25 +194,26 @@ public final class IndTestRcotJRI implements IndependenceTest {
     }
 
     private double getP(Node x, Node y, List<Node> z) {
-        double[] _x = _data[nodeMap.get(x)];
-        double[] _y = _data[nodeMap.get(y)];
-
-        r.assign("x", _x);
-        r.assign("y", _y);
-
-        r.eval("z<-NULL");
-
-        for (int s = 0; s < z.size(); s++) {
-            double[] col = _data[nodeMap.get(z.get(s))];
-
-            IndTestRcotJRI.r.assign("z0", col);
-            IndTestRcotJRI.r.eval("if (is.null(z)) {z <- rbind(z0)} else {z<-rbind(z, z0)}");
-        }
-
-        r.eval("if (!is.null(z)) z = t(z)");
-
-//        double p = r.eval("RCoT(x,y,z,approx=\"lpd4\")$p").asDouble();
-        return r.eval("RCoT(x,y,z,num_f=50)$p").asDouble();
+//        double[] _x = _data[nodeMap.get(x)];
+//        double[] _y = _data[nodeMap.get(y)];
+//
+//        r.assign("x", _x);
+//        r.assign("y", _y);
+//
+//        r.eval("z<-NULL");
+//
+//        for (int s = 0; s < z.size(); s++) {
+//            double[] col = _data[nodeMap.get(z.get(s))];
+//
+//            IndTestRcotJRI.r.assign("z0", col);
+//            IndTestRcotJRI.r.eval("if (is.null(z)) {z <- rbind(z0)} else {z<-rbind(z, z0)}");
+//        }
+//
+//        r.eval("if (!is.null(z)) z = t(z)");
+//
+////        double p = r.eval("RCoT(x,y,z,approx=\"lpd4\")$p").asDouble();
+//        return r.eval("RCoT(x,y,z,num_f=50)$p").asDouble();
+        return 0;
     }
 
     public boolean isIndependent(Node x, Node y, Node... z) {
