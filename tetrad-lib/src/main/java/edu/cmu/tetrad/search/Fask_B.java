@@ -314,21 +314,11 @@ public final class Fask_B implements GraphSearch {
         final double cxxy = cu0(x, x, y);
         final double cyyy = cu0(y, y, y);
 
-        double Q = (cxyx / cxxx) / (cxyy / cxxy);
-        double R = (cxyy / cyyy) / (cxyx / cyyx);
-        double lr = 0;
+        double left = cxyx / sqrt(cxxx * cyyx);
+        double right =  cxyy / sqrt(cxxy * cyyy);
 
-        if (Q > 1 == R < 1) {
-            double left = cxyx / sqrt(cxxx * cyyx);
-            double right = cxyy / sqrt(cxxy * cyyy);
-            lr = left - right;
-        } else if (abs(Q) < 1 && abs(R) < 1) {
-            lr = cxyx * cxyy;
-        }
-
-        r *= signum(sx) * signum(sy);
-        lr *= signum(r);
-        if (r < getDelta()) lr *= -1;
+        double lr = r * (left - right);
+        lr *= signum(sx) * signum(sy);
 
         return lr > 0;
     }
