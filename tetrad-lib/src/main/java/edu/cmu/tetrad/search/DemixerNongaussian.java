@@ -5,6 +5,7 @@ import edu.cmu.tetrad.data.DelimiterType;
 import edu.cmu.tetrad.util.RandomUtil;
 import edu.cmu.tetrad.util.TetradMatrix;
 import edu.cmu.tetrad.util.TetradVector;
+import edu.pitt.dbmi.data.Dataset;
 
 import java.io.File;
 import java.io.IOException;
@@ -39,25 +40,30 @@ public class DemixerNongaussian {
         TetradMatrix kurtosisMatrix;
         TetradVector vector;
 
-        FastIca ica = new FastIca(dataMatrix, numVars);
+        FastIca ica = new FastIca(dataMatrix, K);
         FastIca.IcaResult result = ica.findComponents();
-        TetradMatrix baseMatrix = result.getA();
+        TetradMatrix A = result.getA();
 
         for (int I = 0; I < K; I++) {
             weights[I] = 1.0 / K;
 
             matrix = new TetradMatrix(numVars, numVars); // MxM
             vector = new TetradVector(numVars); // 1xM
-            kurtosisMatrix = new TetradMatrix(numVars, numVars); // MxM
+            kurtosisMatrix = new TetradMatrix(K, numVars); // MxM
 
-            for (int c1 = 0; c1 < numVars; c1++) {
-                for (int c2 = 0; c2 < numVars; c2++) {
-                    matrix.set(c1, c2, baseMatrix.get(c1, c2) + RandomUtil.getInstance().nextNormal(0, 1));
-                    kurtosisMatrix.set(c1, c2, 0);
+            for (int r = 0; r < A.rows(); r++) {
+                for (int c = 0; c < A.columns(); c++) {
+                    matrix.set(r, c, A.get(r, c) + RandomUtil.getInstance().nextNormal(0, 1));
                 }
 
-                vector.set(c1, 0);
+                vector.set(r, 0);
             }
+
+            for (int c2 = 0; c2 < numVars; c2++) {
+                kurtosisMatrix.set(I, c2, 0);
+            }
+
+            vector.set(I, 0);
 
             mixingMatrices[I] = matrix;
             biasVectors[I] = vector;
@@ -191,7 +197,8 @@ public class DemixerNongaussian {
 
             TetradMatrix minusSquare = identitySquare.minus(sourceSquare);
 
-            TetradMatrix tempMixingMatrix = mixingMatrix.times((minusSquare)).scalarMult(-0.0000001 * gamma); // MxM * (MxM - (MxM * MxM - MxM)) = MxM
+            final double learningRate = 1e-8;
+            TetradMatrix tempMixingMatrix = mixingMatrix.times((minusSquare)).scalarMult(-learningRate * gamma); // MxM * (MxM - (MxM * MxM - MxM)) = MxM
 
             System.out.println(tempMixingMatrix);
 
@@ -486,8 +493,8 @@ public class DemixerNongaussian {
 
     public static void main(String... args) {
         edu.cmu.tetrad.data.DataReader dataReader = new edu.cmu.tetrad.data.DataReader();
-        dataReader.setVariablesSupplied(true);
-        dataReader.setDelimiter(DelimiterType.TAB);
+        dataReader.setVariablesSupplied(false);
+        dataReader.setDelimiter(DelimiterType.WHITESPACE);
 
         DataSet dataSet = null;
         try {
@@ -498,13 +505,25 @@ public class DemixerNongaussian {
 
         DemixerNongaussian pedro = new DemixerNongaussian(dataSet);
         long startTime = System.currentTimeMillis();
-        MixtureModelNongaussian model = pedro.demix(dataSet, 2);
+        MixtureModelNongaussian model = pedro.demix(dataSet, 1);
         long elapsed = System.currentTimeMillis() - startTime;
 
         double[] weights = model.getWeights();
         for (int i = 0; i < weights.length; i++) {
             System.out.print(Double.toString(weights[i]) + "\t");
         }
+
+        DataSet[] datasets = model.getDemixedData();
+
+        System.out.println("\n\nDatasets:");
+
+        int count = 1;
+
+        for (DataSet _dataSet : datasets) {
+            System.out.println("#" + count++ + ": rows = " + _dataSet.getNumRows() + " cols = " + _dataSet.getNumColumns());
+        }
+
+        System.out.println();
 
         System.out.println("Elapsed: " + Long.toString(elapsed / 1000));
     }
