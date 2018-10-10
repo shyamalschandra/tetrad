@@ -758,7 +758,7 @@ public class Pcp implements GraphSearch {
         List<Double> p2 = new ArrayList<>();
 
         for (int d = 0; d <= Math.max(adji.size(), adjk.size()); d++) {
-            if (adji.size() >= 2 && d <= adji.size()) {
+            if (adji.size() >= 1 && d <= adji.size()) {
                 ChoiceGenerator gen = new ChoiceGenerator(adji.size(), d);
                 int[] choice;
 
@@ -772,7 +772,7 @@ public class Pcp implements GraphSearch {
                 }
             }
 
-            if (adjk.size() >= 2 && d <= adjk.size()) {
+            if (adjk.size() >= 1 && d <= adjk.size()) {
                 ChoiceGenerator gen = new ChoiceGenerator(adjk.size(), d);
                 int[] choice;
 
