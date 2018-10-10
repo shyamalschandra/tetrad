@@ -323,6 +323,7 @@ public final class Fask_B implements GraphSearch {
             lr = abs(a1 * b2) - abs(a2 * b1);
         }
 
+        if (StatUtils.correlation(x, y) < getDelta()) lr *= -1;
         lr *= signum(sx) * signum(sy);
         return lr > 0;
     }

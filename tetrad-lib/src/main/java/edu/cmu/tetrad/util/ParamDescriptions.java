@@ -256,6 +256,11 @@ public class ParamDescriptions {
                 "Threshold for judging negative coefficient edges as X->Y (range (-1, 0)",
                 -0.2, -1.0, 1.0));
 
+        map.put("faskDelta2", new ParamDescription(
+                "Threshold for judging negative coefficient edges as X->Y (range (-1, 0)",
+                -1.0, -1.0, 1.0));
+
+
         map.put("numLags", new ParamDescription(
                 "The number of lags in the time lag model",
                 1, 1, Double.POSITIVE_INFINITY));
