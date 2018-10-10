@@ -178,32 +178,26 @@ public final class Fask_B implements GraphSearch {
                         Edge edge2 = Edges.directedEdge(Y, X);
                         edge1.setBold(true);
                         edge2.setBold(true);
-                        edge1.setLineColor(Color.RED);
-                        edge2.setLineColor(Color.RED);
                         graph.addEdge(edge1);
                         graph.addEdge(edge2);
                     } else if (!leftright(x, y) && !leftright(y, x)) {
-                        Edge edge1 = Edges.directedEdge(X, Y);
-                        Edge edge2 = Edges.directedEdge(Y, X);
-                        edge1.setLineColor(Color.GREEN);
-                        edge2.setLineColor(Color.GREEN);
+                        Edge edge1 = Edges.undirectedEdge(X, Y);
+                        edge1.setLineColor(Color.MAGENTA);
                         graph.addEdge(edge1);
-                        graph.addEdge(edge2);
                     } else if (leftright(x, y) && leftright(y, x)) {
-                        Edge edge1 = Edges.directedEdge(X, Y);
-                        Edge edge2 = Edges.directedEdge(Y, X);
-                        edge1.setLineColor(Color.GREEN);
-                        edge2.setLineColor(Color.GREEN);
-//                        edge1.setBold(true);
-//                        edge2.setBold(true);
+                        Edge edge1 = Edges.undirectedEdge(X, Y);
+                        edge1.setLineColor(Color.MAGENTA);
                         graph.addEdge(edge1);
-                        graph.addEdge(edge2);
                     } else if (!leftright(y, x)) {
                         graph.addDirectedEdge(X, Y);
                     } else if (!leftright(x, y)) {
                         graph.addDirectedEdge(Y, X);
-                    }
+                    } else {
+                        Edge edge1 = Edges.undirectedEdge(X, Y);
+                        edge1.setLineColor(Color.MAGENTA);
+                        graph.addEdge(edge1);
 
+                    }
                 }
             }
         }
@@ -305,7 +299,6 @@ public final class Fask_B implements GraphSearch {
 
         double sx = StatUtils.skewness(x);
         double sy = StatUtils.skewness(y);
-        double r = (StatUtils.correlation(x, y));
 
         final double cxyx = cu0(x, y, x);
         final double cxyy = cu0(x, y, y);
@@ -314,12 +307,23 @@ public final class Fask_B implements GraphSearch {
         final double cxxy = cu0(x, x, y);
         final double cyyy = cu0(y, y, y);
 
-        double left = cxyx / sqrt(cxxx * cyyx);
-        double right =  cxyy / sqrt(cxxy * cyyy);
+        double left = (cxyx * cxyx) / (cxxx * cyyx);
+        double right = (cxyy * cxyy) / (cxxy * cyyy);
 
-        double lr = r * (left - right);
+        double lr = (left - right);
+
+        double a1 = cxyx / cxxx;
+        double a2 = cxyy / cxxy;
+        double b1 = cxyy / cyyy;
+        double b2 = cxyx / cyyx;
+
+        if (a1 > 0 != a2 > 0 && abs(a2) > abs(a1) == (b1 > 0 != b2 > 0 && abs(b1) > abs(b2))) {
+            lr = abs(a2 * b1) - abs(a1 * b2);
+        } else if (a1 > 0 != a2 > 0 && abs(a1) > abs(a2) == (b1 > 0 != b2 > 0 && abs(b2) > abs(b1))) {
+            lr = abs(a1 * b2) - abs(a2 * b1);
+        }
+
         lr *= signum(sx) * signum(sy);
-
         return lr > 0;
     }
 
