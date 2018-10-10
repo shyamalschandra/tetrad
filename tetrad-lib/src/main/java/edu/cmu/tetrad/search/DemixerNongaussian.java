@@ -5,7 +5,6 @@ import edu.cmu.tetrad.data.DelimiterType;
 import edu.cmu.tetrad.util.RandomUtil;
 import edu.cmu.tetrad.util.TetradMatrix;
 import edu.cmu.tetrad.util.TetradVector;
-import edu.pitt.dbmi.data.Dataset;
 
 import java.io.File;
 import java.io.IOException;
@@ -40,7 +39,7 @@ public class DemixerNongaussian {
         TetradMatrix kurtosisMatrix;
         TetradVector vector;
 
-        FastIca ica = new FastIca(dataMatrix, K);
+        FastIca ica = new FastIca(dataMatrix, numVars);
         FastIca.IcaResult result = ica.findComponents();
         TetradMatrix A = result.getA();
 
@@ -49,18 +48,20 @@ public class DemixerNongaussian {
 
             matrix = new TetradMatrix(numVars, numVars); // MxM
             vector = new TetradVector(numVars); // 1xM
-            kurtosisMatrix = new TetradMatrix(K, numVars); // MxM
+            kurtosisMatrix = new TetradMatrix(numVars, numVars); // MxM
 
             for (int r = 0; r < A.rows(); r++) {
                 for (int c = 0; c < A.columns(); c++) {
                     matrix.set(r, c, A.get(r, c) + RandomUtil.getInstance().nextNormal(0, 1));
                 }
-
-                vector.set(r, 0);
             }
 
-            for (int c2 = 0; c2 < numVars; c2++) {
-                kurtosisMatrix.set(I, c2, 0);
+            for (int c = 0; c < A.columns(); c++) {
+                vector.set(c, 0);
+            }
+
+            for (int c = 0; c < numVars; c++) {
+                kurtosisMatrix.set(I, c, 0);
             }
 
             vector.set(I, 0);
@@ -94,10 +95,10 @@ public class DemixerNongaussian {
                 sum = 0;
                 tanhSum = 0;
 
-                for (int z = 0; z < numCases; z++) {
-                    sechSum += 1.0 / pow(cosh(matrix.get(z, c)), 2.0);
-                    sum += pow(matrix.get(z, c), 2.0);
-                    tanhSum += tanh(matrix.get(z, c)) * matrix.get(z, c);
+                for (int r = 0; r < numCases; r++) {
+                    sechSum += 1.0 / pow(cosh(matrix.get(r, c)), 2.0);
+                    sum += pow(matrix.get(r, c), 2.0);
+                    tanhSum += tanh(matrix.get(r, c)) * matrix.get(r, c);
                 }
 
                 sechSum /= numCases;
@@ -111,11 +112,7 @@ public class DemixerNongaussian {
             kurtosisMatrices[I] = kurtosisMatrix; // MxM
         }
 
-        double[] tempWeights = new double[K];
-
-        for (int i = 0; i < K; i++) {
-            tempWeights[i] = weights[i];
-        }
+        double[] tempWeights = Arrays.copyOf(weights, weights.length);
 
         boolean weightsUnequal = true;
         ArrayList<Double> diffsList;
@@ -409,13 +406,15 @@ public class DemixerNongaussian {
 
                 gammas.set(r, c1, gamma);
             }
-
-            stats.setGammas(gammas);
-            mixingMatrices = adaptMixingMatrices(stats, r);
-            stats.setMixingMatrices(mixingMatrices);
         }
 
         stats.setGammas(gammas);
+
+        for (int r = 0; r < numCases; r++) {
+            mixingMatrices = adaptMixingMatrices(stats, r);
+        }
+
+        stats.setMixingMatrices(mixingMatrices);
     }
 
     /*
@@ -505,7 +504,7 @@ public class DemixerNongaussian {
 
         DemixerNongaussian pedro = new DemixerNongaussian(dataSet);
         long startTime = System.currentTimeMillis();
-        MixtureModelNongaussian model = pedro.demix(dataSet, 1);
+        MixtureModelNongaussian model = pedro.demix(dataSet, 3);
         long elapsed = System.currentTimeMillis() - startTime;
 
         double[] weights = model.getWeights();

@@ -22,7 +22,7 @@ public class MixtureModelNongaussian {
     private double[][] dataArray;
     private double[][] gammaArray;
 
-    public MixtureModelNongaussian(DataSet data, TetradMatrix gammas, TetradMatrix[] mixingMatrices, TetradMatrix[] sourceVectors, TetradVector[] biasVectors, double[] weights){
+    public MixtureModelNongaussian(DataSet data, TetradMatrix gammas, TetradMatrix[] mixingMatrices, TetradMatrix[] sourceVectors, TetradVector[] biasVectors, double[] weights) {
 
         this.data = data;
         this.dataArray = data.getDoubleData().toArray();
@@ -35,19 +35,19 @@ public class MixtureModelNongaussian {
 
         this.cases = new int[data.getNumRows()];
 
-        for(int i = 0; i < cases.length; i++){
+        for (int i = 0; i < cases.length; i++) {
             cases[i] = getDistribution(i);
         }
 
         this.caseCounts = new int[weights.length];
 
-        for(int i = 0; i < weights.length; i++){
+        for (int i = 0; i < weights.length; i++) {
             caseCounts[i] = 0;
         }
 
-        for(int i = 0; i < cases.length; i++){
-            for(int j = 0; j < weights.length; j++){
-                if(cases[i] == j){
+        for (int i = 0; i < cases.length; i++) {
+            for (int j = 0; j < weights.length; j++) {
+                if (cases[i] == j) {
                     caseCounts[j]++;
                     break;
                 }
@@ -74,12 +74,12 @@ public class MixtureModelNongaussian {
         return dist;
     }
 
-    public DataSet[] getDemixedData(){
+    public DataSet[] getDemixedData() {
         int k = weights.length;
         DoubleDataBox[] dataBoxes = new DoubleDataBox[k];
         int[] caseIndices = new int[k];
 
-        for(int i = 0; i < k; i++){
+        for (int i = 0; i < k; i++) {
             dataBoxes[i] = new DoubleDataBox(caseCounts[i], data.getNumColumns());
             caseIndices[i] = 0;
         }
@@ -87,38 +87,42 @@ public class MixtureModelNongaussian {
         int index;
         DoubleDataBox box;
         int count;
-        for(int i = 0; i < cases.length; i++){
+        for (int i = 0; i < cases.length; i++) {
             index = cases[i];
             box = dataBoxes[index];
             count = caseIndices[index];
-            for(int j = 0; j < data.getNumColumns(); j++){
+            for (int j = 0; j < data.getNumColumns(); j++) {
                 box.set(count, j, data.getDouble(i, j));
             }
             dataBoxes[index] = box;
-            caseIndices[index] = count+1;
+            caseIndices[index] = count + 1;
         }
 
         DataSet[] dataSets = new DataSet[k];
-        for(int i = 0; i < k; i++){
-            dataSets[i] = new BoxDataSet(dataBoxes[i],data.getVariables());
+        for (int i = 0; i < k; i++) {
+            dataSets[i] = new BoxDataSet(dataBoxes[i], data.getVariables());
         }
 
         return dataSets;
     }
 
-    public double[][] getData(){
+    public double[][] getData() {
         return dataArray;
     }
 
-    public double[][] getGammas(){
+    public double[][] getGammas() {
         return gammaArray;
     }
 
-    public double[] getWeights(){
+    public double[] getWeights() {
         return weights;
     }
 
-    public int[] getCaseCounts() { return caseCounts; }
+    public int[] getCaseCounts() {
+        return caseCounts;
+    }
 
-    public int[] getCases() { return cases; }
+    public int[] getCases() {
+        return cases;
+    }
 }
