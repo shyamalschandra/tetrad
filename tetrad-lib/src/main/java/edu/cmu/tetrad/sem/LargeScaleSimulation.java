@@ -26,10 +26,14 @@ import edu.cmu.tetrad.util.*;
 import edu.cmu.tetrad.util.dist.Distribution;
 import edu.cmu.tetrad.util.dist.Split;
 import edu.cmu.tetrad.util.dist.Uniform;
+
 import java.io.PrintStream;
+
 import static java.lang.Math.sqrt;
+
 import java.util.*;
 import java.util.concurrent.RecursiveTask;
+
 import org.apache.commons.collections4.map.HashedMap;
 import org.apache.commons.math3.distribution.*;
 import org.apache.commons.math3.random.Well1024a;
@@ -253,7 +257,7 @@ public final class LargeScaleSimulation {
      * threshold of 1e-5. Uncorrelated Gaussian shocks are used.
      *
      * @param sampleSize The number of samples to be drawn. Must be a positive
-     * integer.
+     *                   integer.
      */
     public DataSet simulateDataFisher(int sampleSize) {
         return simulateDataFisher(getSoCalledPoissonShocks(sampleSize), 50, 1e-5);
@@ -268,11 +272,11 @@ public final class LargeScaleSimulation {
      * for the coefficient matrix must be less than 1, though this is not
      * checked.
      *
-     * @param shocks A matrix of shocks. The value at shocks[i][j] is the shock
-     * for the i'th time step, for the j'th variables.
+     * @param shocks                A matrix of shocks. The value at shocks[i][j] is the shock
+     *                              for the i'th time step, for the j'th variables.
      * @param intervalBetweenShocks External shock is applied every this many
-     * steps. Must be positive integer.
-     * @param epsilon The convergence criterion; |xi.t - xi.t-1| < epsilon.
+     *                              steps. Must be positive integer.
+     * @param epsilon               The convergence criterion; |xi.t - xi.t-1| < epsilon.
      */
     public DataSet simulateDataFisher(double[][] shocks, int intervalBetweenShocks, double epsilon) {
         if (intervalBetweenShocks < 1) {
@@ -457,6 +461,16 @@ public final class LargeScaleSimulation {
             System.arraycopy(coefs, 0, newCoefs, 0, coefs.length);
 
             double coef = edgeCoefDist.nextRandom();
+
+//            if (tail.getName().equals("X") && head.getName().equals("Y")) {
+//                coef = 0.8;
+//            } else if (tail.getName().equals("Y") && head.getName().equals("Z")) {
+//                coef = 0.64;
+//            } else if (tail.getName().equals("Z") && head.getName().equals("X")) {
+//                coef = 0.8;
+//            } else {
+//                throw new IllegalArgumentException();
+//            }
 
             if (includePositiveCoefs && !includeNegativeCoefs) {
                 coef = Math.abs(coef);
@@ -851,7 +865,7 @@ public final class LargeScaleSimulation {
         this.errorsNormal = errorsNormal;
     }
 
-//    public boolean isErrorsPositivelySkewedIfNonNormal() {
+    //    public boolean isErrorsPositivelySkewedIfNonNormal() {
 //        return errorsPositivelySkewedIfNonNormal;
 //    }
 //

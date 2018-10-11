@@ -307,23 +307,25 @@ public final class Fask_B implements GraphSearch {
         final double cxxy = cu0(x, x, y);
         final double cyyy = cu0(y, y, y);
 
-        double left = (cxyx * cxyx) / (cxxx * cyyx);
-        double right = (cxyy * cxyy) / (cxxy * cyyy);
-
-        double lr = (left - right);
-
         double a1 = cxyx / cxxx;
         double a2 = cxyy / cxxy;
         double b1 = cxyy / cyyy;
         double b2 = cxyx / cyyx;
 
+        double r1 = abs(a1 / a2);
+        double r2 = abs(b1 / b2);
+
         if (a1 > 0 != a2 > 0 && abs(a2) > abs(a1) == (b1 > 0 != b2 > 0 && abs(b1) > abs(b2))) {
-            lr = abs(a2 * b1) - abs(a1 * b2);
-        } else if (a1 > 0 != a2 > 0 && abs(a1) > abs(a2) == (b1 > 0 != b2 > 0 && abs(b2) > abs(b1))) {
-            lr = abs(a1 * b2) - abs(a2 * b1);
+            r1 = 1.0 / r1;
         }
 
-        if (StatUtils.correlation(x, y) < getDelta()) lr *= -1;
+        if (a1 > 0 != a2 > 0 && abs(a1) > abs(a2) == (b1 > 0 != b2 > 0 && abs(b2) > abs(b1))) {
+            r2 = 1.0 / r2;
+        }
+
+        double lr = r1 - r2;
+
+        if (StatUtils.correlation(x, y) < 0) lr += getDelta();
         lr *= signum(sx) * signum(sy);
         return lr > 0;
     }

@@ -258,7 +258,7 @@ public class ParamDescriptions {
 
         map.put("faskDelta2", new ParamDescription(
                 "Threshold for judging negative coefficient edges as X->Y (range (-1, 0)",
-                -1.0, -1.0, 1.0));
+                0.0, 0, 1.0));
 
 
         map.put("numLags", new ParamDescription(

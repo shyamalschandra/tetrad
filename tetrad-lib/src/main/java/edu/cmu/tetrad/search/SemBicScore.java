@@ -156,7 +156,7 @@ public class SemBicScore implements Score, ISemBicScore {
         int p = 2 + z.length;
 
         int N = covariances.getSampleSize();
-        return -N * Math.log(1.0 - r * r) - getPenaltyDiscount() * Math.log(N);
+        return -N * Math.log(1.0 - r * r) - p * getPenaltyDiscount() * Math.log(N);
 //        return localScore(y, append(z, x)) - localScore(y, z);
     }
 
