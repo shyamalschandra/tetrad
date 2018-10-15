@@ -60,7 +60,7 @@ public final class ConditionalCorrelationIndependence {
     public enum Basis {Polynomial, Cosine}
 
     /**
-     * The matrix of data, N x M, where N is the number of samples, M the number
+     * The matrix of data, M x N, where N is the number of samples, M the number
      * of variables, gotten from dataSet.
      */
     private final double[][] data;
@@ -307,7 +307,7 @@ public final class ConditionalCorrelationIndependence {
 
         double[] residualsx = new double[N];
 
-        double[] xdata = Arrays.copyOf(data[_x], data[_x].length);
+        double[] xdata = data[_x];
 
         double[] sumx = new double[N];
 
@@ -392,7 +392,8 @@ public final class ConditionalCorrelationIndependence {
     }
 
     public double getPValue(double score) {
-        return 2.0 * (1.0 - new NormalDistribution(0, 1).cumulativeProbability(score));
+//        int n = data.length * (data.length - 1) / 2;
+        return 2 * (1.0 - new NormalDistribution(0, 1).cumulativeProbability(score));
     }
 
     /**
@@ -447,11 +448,12 @@ public final class ConditionalCorrelationIndependence {
                 }
 
                 final double score = abs(nonparametricFisherZ(_x, _y));
+//                final double score = 0.8 * abs(fisherZ(_x, _y));
                 if (Double.isInfinite(score) || Double.isNaN(score)) continue;
 
-                if (earlyReturn && score >= cutoff) {
-                    return score;
-                }
+//                if (earlyReturn && score >= cutoff) {
+//                    return score;
+//                }
 
                 if (score > maxScore) {
                     maxScore = score;
@@ -473,6 +475,15 @@ public final class ConditionalCorrelationIndependence {
         return x;
     }
 
+    private double fisherZ(double[] _x, double[] _y) {
+
+        double r = correlation(_x, _y); // correlation
+        int N = _x.length;
+
+        // Non-parametric Fisher Z test.
+        return 0.5 * sqrt(N) * (log(1.0 + r) - log(1.0 - r));
+    }
+
     private double nonparametricFisherZ(double[] _x, double[] _y) {
 
         // Testing the hypothesis that _x and _y are uncorrelated and assuming that 4th moments of _x and _y
@@ -487,14 +498,6 @@ public final class ConditionalCorrelationIndependence {
         double z = 0.5 * sqrt(N) * (log(1.0 + r) - log(1.0 - r));
 
         return z / (sqrt((moment22(__x, __y))));
-    }
-
-    private double[] logColumn(double[] f) {
-        double[] ret = new double[f.length];
-        double min = min(f) - 0.0001;
-        if (min > 0) min = 0;
-        for (int i = 0; i < f.length; i++) ret[i] = log(f[i] - min);
-        return ret;
     }
 
     private double moment22(double[] x, double[] y) {
@@ -546,7 +549,7 @@ public final class ConditionalCorrelationIndependence {
     private double kernelEpinechnikov(double z, double h) {
         z /= getWidth() * h;
         if (abs(z) > 1) return 0.0;
-        else return (/*0.75 **/ (1.0 - z * z));
+        else return (1.0 - z * z);
     }
 
     private double kernelGaussian(double z, double h) {
@@ -599,57 +602,6 @@ public final class ConditionalCorrelationIndependence {
         return data;
     }
 
-//    private Set<Integer> getCloseZs(double[][] data, int[] _z, int i, int sampleSize) {
-//        try {
-//            Set<Integer> js = new HashSet<>();
-//
-//            if (sampleSize > data[0].length) sampleSize = (int) ceil(0.8 * data.length);
-//            if (_z.length == 0) return new HashSet<>();
-//
-//            int[] left = new int[_z.length];
-//            int[] right = new int[_z.length];
-//
-//            while (true) {
-//                for (int k = 0; k < _z.length; k++) {
-//                    int z1 = _z[k];
-//                    int l = -1, r = -1;
-//
-//                    int q = reverseLookup.get(z1).get(k);
-//                    int qq = sortedIndices.get(z1).get(q);
-//
-//                    if (q - left[k] >= 0 && q - left[k] < data[z1].length) {
-//                        l = sortedIndices.get(z1).get(q - left[k]);
-//                    }
-//
-//                    if (q + right[k] >= 0 && q + right[k] < data[z1].length) {
-//                        r = sortedIndices.get(z1).get(q + right[k]);
-//                    }
-//
-//                    final double L = l == -1 ? 0 : data[z1][qq] - data[z1][l];
-//                    final double R = r == -1 ? 0 : data[z1][r] - data[z1][qq];
-//
-//                    if (L == 0 && R == 0) {
-//                        js.add(qq);
-//                        if (js.size() >= sampleSize) return js;
-//                        left[k]++;
-//                        right[k]++;
-//                    } else if (L > R) {
-//                        js.add(l);
-//                        if (js.size() >= sampleSize) return js;
-//                        left[k]++;
-//                    } else {
-//                        js.add(r);
-//                        if (js.size() >= sampleSize) return js;
-//                        right[k]++;
-//                    }
-//                }
-//            }
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//            throw new RuntimeException(e);
-//        }
-//    }
-
     private Set<Integer> getCloseZs(double[][] data, int[] _z, int i, int sampleSize) {
         Set<Integer> js = new HashSet<>();
 
@@ -694,6 +646,3 @@ public final class ConditionalCorrelationIndependence {
         return h;
     }
 }
-
-
-

@@ -66,7 +66,7 @@ public class PcAll implements Algorithm, TakesInitialGraph, HasKnowledge, TakesI
                     colliderDiscovery = edu.cmu.tetrad.search.PcAll.ColliderDiscovery.MAX_P;
                     break;
                 default:
-                    throw new IllegalArgumentException("Not a choice.");
+                    throw new IllegalArgumentException("Not a choice: " + parameters.getInt("colliderDiscoveryRule"));
             }
 
             edu.cmu.tetrad.search.PcAll.ConflictRule conflictRule;
@@ -121,7 +121,7 @@ public class PcAll implements Algorithm, TakesInitialGraph, HasKnowledge, TakesI
 
             search.setResampleSize(parameters.getInt("resampleSize"));
             search.setResamplingWithReplacement(parameters.getBoolean("resamplingWithReplacement"));
-            
+
             ResamplingEdgeEnsemble edgeEnsemble = ResamplingEdgeEnsemble.Highest;
             switch (parameters.getInt("resamplingEnsemble", 1)) {
                 case 0:

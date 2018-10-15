@@ -42,9 +42,8 @@ public class CciScore implements ScoreWrapper {
         }
         cci.setNumFunctions(parameters.getInt("numBasisFunctions"));
         cci.setKernelMultiplier(parameters.getDouble("kernelMultiplier"));
-        cci.setFastFDR(parameters.getBoolean("fastFDR"));
+        cci.setFdrAdjustment(parameters.getBoolean("fastFDR"));
         cci.setKernelRegressionSampleSize(parameters.getInt("kernelRegressionSampleSize"));
-        cci.setNumDependenceSpotChecks(parameters.getInt("numDependenceSpotChecks"));
         cci.setEarlyReturn(false);
 
         if (parameters.getInt("basisType") == 1) {
@@ -78,7 +77,6 @@ public class CciScore implements ScoreWrapper {
         parameters.add("basisType");
         parameters.add("fastFDR");
         parameters.add("kernelRegressionSampleSize");
-        parameters.add("numDependenceSpotChecks");
         return parameters;
     }
 

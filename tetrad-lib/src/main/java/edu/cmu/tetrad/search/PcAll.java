@@ -37,6 +37,8 @@ import java.util.*;
  */
 public final class PcAll implements GraphSearch {
 
+    private Graph trueGraph = null;
+
     public void setUseHeuristic(boolean useHeuristic) {
         this.useHeuristic = useHeuristic;
     }
@@ -57,9 +59,15 @@ public final class PcAll implements GraphSearch {
         this.concurrent = concurrent;
     }
 
-    public enum FasType {REGULAR, STABLE}
+    public void setTrueGraph(Graph trueGraph) {
+        this.trueGraph = trueGraph;
+    }
 
-    public enum Concurrent {YES, NO};
+    public enum FasType {REGULAR, STABLE, StableFDR, Naive, LiWang}
+
+    public enum Concurrent {YES, NO}
+
+    ;
 
     public enum ColliderDiscovery {FAS_SEPSETS, CONSERVATIVE, MAX_P}
 
@@ -310,6 +318,7 @@ public final class PcAll implements GraphSearch {
         fas.setKnowledge(getKnowledge());
         fas.setDepth(getDepth());
         fas.setVerbose(verbose);
+        fas.setTrueGraph(trueGraph);
 
         // Note that we are ignoring the sepset map returned by this method
         // on purpose; it is not used in this search.
@@ -342,6 +351,14 @@ public final class PcAll implements GraphSearch {
         }
 
         graph = GraphUtils.replaceNodes(graph, nodes);
+
+//        for (Edge edge : graph.getEdges()) {
+//            if (Edges.isUndirectedEdge(edge)) {
+//                Edge unoriented = Edges.nondirectedEdge(edge.getNode1(), edge.getNode2());
+//                graph.removeEdge(edge);
+//                graph.addEdge(unoriented);
+//            }
+//        }
 
         MeekRules meekRules = new MeekRules();
 //        meekRules.setAggressivelyPreventCycles(this.aggressivelyPreventCycles);
@@ -613,20 +630,8 @@ public final class PcAll implements GraphSearch {
                 }
 
                 List<Node> sepset = set.get(a, c);
-//
-                List<Node> s2 = new ArrayList<>(sepset);
-                if (!s2.contains(b)) s2.add(b);
-//
-                if (!sepset.contains(b) && isArrowpointAllowed(a, b, knowledge) && isArrowpointAllowed(c, b, knowledge)) {
-//                    independenceTest.isIndependent(a, c, sepset);
-//                    double p = independenceTest.getPValue();
-//
-//                    independenceTest.isIndependent(a, c, s2);
-//                    double p2 = independenceTest.getPValue();
-//                    if (!(p > independenceTest.getAlpha() && p2 < .15)) continue;
 
-//                    scoredTriples.put(new Triple(a, b, c), p);
-
+                if (sepset != null && !sepset.contains(b) && isArrowpointAllowed(a, b, knowledge) && isArrowpointAllowed(c, b, knowledge)) {
                     orientCollider(a, b, c, conflictRule, graph);
 
                     if (verbose) {
@@ -667,4 +672,3 @@ public final class PcAll implements GraphSearch {
                 !knowledge.isForbidden(from.toString(), to.toString());
     }
 }
-
