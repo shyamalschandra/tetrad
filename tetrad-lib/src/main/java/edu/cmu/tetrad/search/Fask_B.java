@@ -97,10 +97,10 @@ public final class Fask_B implements GraphSearch {
      * @param dataSet These datasets must all have the same variables, in the same order.
      */
     public Fask_B(DataSet dataSet, IndependenceTest test) {
-        this.dataSet = dataSet;
+        this.dataSet = DataUtils.standardizeData(dataSet);
         this.test = test;
 
-        data = dataSet.getDoubleData().transpose().toArray();
+        data = this.dataSet.getDoubleData().transpose().toArray();
     }
 
     //======================================== PUBLIC METHODS ====================================//
@@ -315,6 +315,8 @@ public final class Fask_B implements GraphSearch {
         double r1 = abs(a1 / a2);
         double r2 = abs(b1 / b2);
 
+//        double r = StatUtils.correlation(x, y);
+
         if (a1 > 0 != a2 > 0 && abs(a2) > abs(a1) == (b1 > 0 != b2 > 0 && abs(b1) > abs(b2))) {
             r1 = 1.0 / r1;
         }
@@ -324,9 +326,10 @@ public final class Fask_B implements GraphSearch {
         }
 
         double lr = r1 - r2;
+//        lr *= r;
 
         if (StatUtils.correlation(x, y) < 0) lr += getDelta();
-        lr *= signum(sx) * signum(sy);
+//        lr *= signum(sx) * signum(sy);
         return lr > 0;
     }
 

@@ -305,7 +305,7 @@ public final class PcAll implements GraphSearch {
 //            fas = new FasStableLiAndWang(initialGraph, getIndependenceTest());
 //        } else if (fasType == FasType.REGULAR) {
 //            if (concurrent == Concurrent.NO) {
-                fas = new Fas(initialGraph, getIndependenceTest());
+        fas = new Fas(initialGraph, getIndependenceTest());
 //            } else {
 //                fas = new FasConcurrent(initialGraph, getIndependenceTest());
 //                ((FasConcurrent) fas).setStable(false);
@@ -634,20 +634,8 @@ public final class PcAll implements GraphSearch {
                 }
 
                 List<Node> sepset = set.get(a, c);
-//
-                List<Node> s2 = new ArrayList<>(sepset);
-                if (!s2.contains(b)) s2.add(b);
-//
-                if (!sepset.contains(b) && isArrowpointAllowed(a, b, knowledge) && isArrowpointAllowed(c, b, knowledge)) {
-//                    independenceTest.isIndependent(a, c, sepset);
-//                    double p = independenceTest.getPValue();
-//
-//                    independenceTest.isIndependent(a, c, s2);
-//                    double p2 = independenceTest.getPValue();
-//                    if (!(p > independenceTest.getAlpha() && p2 < .15)) continue;
 
-//                    scoredTriples.put(new Triple(a, b, c), p);
-
+                if (sepset != null && !sepset.contains(b) && isArrowpointAllowed(a, b, knowledge) && isArrowpointAllowed(c, b, knowledge)) {
                     orientCollider(a, b, c, conflictRule, graph);
 
                     if (verbose) {

@@ -465,7 +465,7 @@ public final class LargeScaleSimulation {
 //            if (tail.getName().equals("X") && head.getName().equals("Y")) {
 //                coef = 0.8;
 //            } else if (tail.getName().equals("Y") && head.getName().equals("Z")) {
-//                coef = 0.64;
+//                coef = 0.4;
 //            } else if (tail.getName().equals("Z") && head.getName().equals("X")) {
 //                coef = 0.8;
 //            } else {
