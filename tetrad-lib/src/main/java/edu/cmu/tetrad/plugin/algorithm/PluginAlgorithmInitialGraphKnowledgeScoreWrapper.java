@@ -17,8 +17,10 @@ import edu.cmu.tetrad.algcomparison.utils.UsesScoreWrapper;
 import edu.cmu.tetrad.data.DataModel;
 import edu.cmu.tetrad.data.DataType;
 import edu.cmu.tetrad.data.IKnowledge;
+import edu.cmu.tetrad.graph.EdgeListGraph;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.plugin.PluginExtension;
+import edu.cmu.tetrad.util.JsonUtils;
 import edu.cmu.tetrad.util.Parameters;
 
 /**
@@ -73,7 +75,8 @@ public class PluginAlgorithmInitialGraphKnowledgeScoreWrapper implements PluginE
 			System.out.println("dataSetJson: ");
 			System.out.println(dataSetJson);
 			Method method = extensionClass.getDeclaredMethod("search", String.class, String.class);
-			result = (Graph) method.invoke(algorithm, dataSetJson, parametersJson);
+			String json = (String) method.invoke(algorithm, dataSetJson, parametersJson);
+			result = JsonUtils.parseJSONObjectToTetradGraph(json);
 		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException
 				| SecurityException e) {
 			e.printStackTrace();
