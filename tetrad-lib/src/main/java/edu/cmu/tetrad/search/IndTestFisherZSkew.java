@@ -225,7 +225,23 @@ public final class IndTestFisherZSkew implements IndependenceTest {
 //            cutoff = getZForAlpha(alpha2);
 //        }
 
-        return Math.max(abs(zv1),  abs(fisherZ)) < cutoff;
+//        System.out.println(zv1);
+
+        double cutoff = 0.05;
+
+        if (abs(z1) < cutoff && abs(z2) < cutoff) {
+            return true;
+        }
+//        else if (abs(fisherZ) < this.cutoff) {
+//            return true;
+//        }
+        else {
+            return false;
+        }
+
+//        return abs(zv1) < .5;
+
+//        return Math.max(abs(zv1),  abs(fisherZ)) < .1;
     }
 
     private double partialCorrelation(Node x, Node y, List<Node> z) throws SingularMatrixException {

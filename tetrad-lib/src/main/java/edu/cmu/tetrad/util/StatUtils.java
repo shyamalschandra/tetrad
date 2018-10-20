@@ -2077,9 +2077,11 @@ public final class StatUtils {
         double[][] cov = new double[z.length + 2][z.length + 2];
 
         for (int i = 0; i < z.length + 2; i++) {
-            for (int j = 0; j < z.length + 2; j++) {
+            for (int j = i; j < z.length + 2; j++) {
+//                double c = StatUtils.sxy(subdata[i], subdata[j]);
                 double c = StatUtils.covariance(subdata[i], subdata[j]);
                 cov[i][j] = c;
+                cov[j][i] = c;
             }
         }
 

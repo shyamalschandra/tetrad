@@ -35,7 +35,7 @@ public class Fask implements Algorithm, HasKnowledge, UsesScoreWrapper {
 
     }
 
-    public Fask(ScoreWrapper score) {
+    public      Fask(ScoreWrapper score) {
         this.score = score;
     }
 
@@ -59,7 +59,7 @@ public class Fask implements Algorithm, HasKnowledge, UsesScoreWrapper {
 //            search.setNumBootstrapForLinearityTest(parameters.getInt("numBootstrapForLinearityTest"));
 //            search.setCutoffForLinearityTest(parameters.getDouble("cutoffForLinearityTest"));
 
-            search.setKnowledge(knowledge);
+
             return getGraph(search);
         } else {
             Fask fask = new Fask(score);

@@ -26,7 +26,6 @@ import edu.cmu.tetrad.data.DataUtils;
 import edu.cmu.tetrad.data.IKnowledge;
 import edu.cmu.tetrad.data.Knowledge2;
 import edu.cmu.tetrad.graph.*;
-import edu.cmu.tetrad.regression.RegressionDataset;
 import edu.cmu.tetrad.util.DepthChoiceGenerator;
 import edu.cmu.tetrad.util.StatUtils;
 import edu.cmu.tetrad.util.TetradLogger;
@@ -97,10 +96,10 @@ public final class Fask_B implements GraphSearch {
      * @param dataSet These datasets must all have the same variables, in the same order.
      */
     public Fask_B(DataSet dataSet, IndependenceTest test) {
-        this.dataSet = DataUtils.standardizeData(dataSet);
+        this.dataSet = dataSet;
         this.test = test;
 
-        data = this.dataSet.getDoubleData().transpose().toArray();
+        data = dataSet.getDoubleData().transpose().toArray();
     }
 
     //======================================== PUBLIC METHODS ====================================//
@@ -123,6 +122,7 @@ public final class Fask_B implements GraphSearch {
 
         List<Node> variables = dataSet.getVariables();
         double[][] colData = dataSet.getDoubleData().transpose().toArray();
+
         Graph G0;
 
         if (getInitialGraph() != null) {
@@ -181,22 +181,20 @@ public final class Fask_B implements GraphSearch {
                         graph.addEdge(edge1);
                         graph.addEdge(edge2);
                     } else if (!leftright(x, y) && !leftright(y, x)) {
-                        Edge edge1 = Edges.undirectedEdge(X, Y);
-                        edge1.setLineColor(Color.MAGENTA);
+
+                        // The 2-cycle rule should have caught these, but we'll mark them in green.
+                        Edge edge1 = Edges.directedEdge(X, Y);
+                        Edge edge2 = Edges.directedEdge(Y, X);
+                        edge1.setLineColor(Color.GREEN);
+                        edge2.setLineColor(Color.GREEN);
+                        edge1.setBold(true);
+                        edge2.setBold(true);
                         graph.addEdge(edge1);
-                    } else if (leftright(x, y) && leftright(y, x)) {
-                        Edge edge1 = Edges.undirectedEdge(X, Y);
-                        edge1.setLineColor(Color.MAGENTA);
-                        graph.addEdge(edge1);
+                        graph.addEdge(edge2);
                     } else if (!leftright(y, x)) {
                         graph.addDirectedEdge(X, Y);
                     } else if (!leftright(x, y)) {
                         graph.addDirectedEdge(Y, X);
-                    } else {
-                        Edge edge1 = Edges.undirectedEdge(X, Y);
-                        edge1.setLineColor(Color.MAGENTA);
-                        graph.addEdge(edge1);
-
                     }
                 }
             }
@@ -211,13 +209,20 @@ public final class Fask_B implements GraphSearch {
         return graph;
     }
 
+    private double[] correctSkewnesses(double[] data) {
+        double skewness = StatUtils.skewness(data);
+        double[] data2 = new double[data.length];
+        for (int i = 0; i < data.length; i++) data2[i] = data[i] * Math.signum(skewness);
+        return data2;
+    }
+
     private boolean adjacent(double[] x, double[] y) {
-        final double cxyx = cu0(x, y, x);
-        final double cxyy = cu0(x, y, y);
-        final double cxxx = cu0(x, x, x);
-        final double cyyx = cu0(y, y, x);
-        final double cxxy = cu0(x, x, y);
-        final double cyyy = cu0(y, y, y);
+        final double cxyx = cov(x, y, x);
+        final double cxyy = cov(x, y, y);
+        final double cxxx = cov(x, x, x);
+        final double cyyx = cov(y, y, x);
+        final double cxxy = cov(x, x, y);
+        final double cyyy = cov(y, y, y);
 
         double S = abs((cxyx / cxxx) - (cxyy / cxxy));
         double T = abs((cxyy / cyyy) - (cxyx / cyyx));
@@ -294,46 +299,30 @@ public final class Fask_B implements GraphSearch {
         return true;
     }
 
-    // Returns true just in case either X->Y or X <=> Y--i.e. not Y->X
+    // If x->y, returns true
     private boolean leftright(double[] x, double[] y) {
-
-        double sx = StatUtils.skewness(x);
-        double sy = StatUtils.skewness(y);
-
-        final double cxyx = cu0(x, y, x);
-        final double cxyy = cu0(x, y, y);
-        final double cxxx = cu0(x, x, x);
-        final double cyyx = cu0(y, y, x);
-        final double cxxy = cu0(x, x, y);
-        final double cyyy = cu0(y, y, y);
+        final double cxyx = cov(x, y, x);
+        final double cxyy = cov(x, y, y);
+        final double cxxx = cov(x, x, x);
+        final double cyyx = cov(y, y, x);
+        final double cxxy = cov(x, x, y);
+        final double cyyy = cov(y, y, y);
 
         double a1 = cxyx / cxxx;
         double a2 = cxyy / cxxy;
         double b1 = cxyy / cyyy;
         double b2 = cxyx / cyyx;
 
-        double r1 = abs(a1 / a2);
-        double r2 = abs(b1 / b2);
+        double Q = (a2 > 0) ? a1 / a2 : a2 / a1;
+        double R = (b2 > 0) ? b1 / b2 : b2 / b1;
 
-//        double r = StatUtils.correlation(x, y);
-
-        if (a1 > 0 != a2 > 0 && abs(a2) > abs(a1) == (b1 > 0 != b2 > 0 && abs(b1) > abs(b2))) {
-            r1 = 1.0 / r1;
-        }
-
-        if (a1 > 0 != a2 > 0 && abs(a1) > abs(a2) == (b1 > 0 != b2 > 0 && abs(b2) > abs(b1))) {
-            r2 = 1.0 / r2;
-        }
-
-        double lr = r1 - r2;
-//        lr *= r;
+        double lr = Q - R;
 
         if (StatUtils.correlation(x, y) < 0) lr += getDelta();
-//        lr *= signum(sx) * signum(sy);
         return lr > 0;
     }
 
-    private static double cu0(double[] x, double[] y, double[] condition) {
+    private static double cov(double[] x, double[] y, double[] condition) {
         double exy = 0.0;
 
         int n = 0;
@@ -348,46 +337,8 @@ public final class Fask_B implements GraphSearch {
         return exy / n;
     }
 
-    private double cu(double[] x, double[] y, double[] condition, double sx, double sy, double direction) {
-        double exy = 0.0;
-
-        int n = 0;
-
-        for (int k = 0; k < x.length; k++) {
-            if (direction > 0) {
-                if (condition == null || condition[k] > 0) {
-                    exy += x[k] * y[k];
-                    n++;
-                }
-            } else if (direction < 0) {
-                if (condition == null || condition[k] < 0) {
-                    exy += x[k] * y[k];
-                    n++;
-                }
-            }
-        }
-
-        exy *= signum(sx) * signum(sy);
-        return exy / n;
-    }
-
-    private double cu2(double[] x, double[] y, double[] c1, double[] c2) {
-        double exy = 0.0;
-
-        int n = 0;
-
-        for (int k = 0; k < x.length; k++) {
-            if ((c1[k] > 0 && c2[k] < 0)) {
-                exy += x[k] * y[k];
-                n++;
-            }
-        }
-
-        return exy / n;
-    }
-
     private double partialCorrelation(double[] x, double[] y, double[][] z, double[] condition, double threshold, double direction) throws SingularMatrixException {
-        double[][] cv = StatUtils.covMatrix(x, y, z, condition, threshold, direction);
+        double[][] cv = covMatrix(x, y, z, condition, threshold, direction);
         TetradMatrix m = new TetradMatrix(cv).transpose();
         return StatUtils.partialCorrelation(m);
     }
@@ -475,6 +426,33 @@ public final class Fask_B implements GraphSearch {
         return knowledge.isForbidden(right.getName(), left.getName()) && knowledge.isForbidden(left.getName(), right.getName());
     }
 
+    public static synchronized double partialCorrelation(TetradMatrix submatrix) {
+//        double cov = partialCovariance(submatrix);
+//
+//        int[] selection1 = new int[submatrix.rows()];
+//        int[] selection2 = new int[submatrix.rows()];
+//
+//        selection1[0] = 0;
+//        selection1[1] = 0;
+//        for (int i = 2; i < selection1.length; i++) selection1[i] = i;
+//
+//        TetradMatrix var1Matrix = submatrix.getSelection(selection1, selection1);
+//        double var1 = partialCovariance(var1Matrix);
+//
+//        selection2[0] = 1;
+//        selection2[1] = 1;
+//        for (int i = 2; i < selection2.length; i++) selection2[i] = i;
+//
+//        TetradMatrix var2Matrix = submatrix.getSelection(selection2, selection2);
+//        double var2 = partialCovariance(var2Matrix);
+//
+//        return cov / Math.sqrt(var1 * var2);
+
+        TetradMatrix inverse = submatrix.inverse();
+        return -(1.0 * inverse.get(0, 1)) / Math.sqrt(inverse.get(0, 0) * inverse.get(1, 1));
+    }
+
+
     public Graph getInitialGraph() {
         return initialGraph;
     }
@@ -513,6 +491,64 @@ public final class Fask_B implements GraphSearch {
 
     public void setUseFasAdjacencies(boolean useFasAdjacencies) {
         this.useFasAdjacencies = useFasAdjacencies;
+    }
+
+    public static double[][] covMatrix(double[] x, double[] y, double[][] z, double[] condition, double threshold, double direction) {
+        List<Integer> rows = getRows(x, condition, threshold, direction);
+
+        double[][] allData = new double[z.length + 2][];
+
+        allData[0] = x;
+        allData[1] = y;
+
+        for (int i = 0; i < z.length; i++) allData[i + 2] = z[i];
+
+        double[][] subdata = new double[allData.length][rows.size()];
+
+        for (int c = 0; c < allData.length; c++) {
+            for (int i = 0; i < rows.size(); i++) {
+                try {
+                    subdata[c][i] = allData[c][rows.get(i)];
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        double[][] cov = new double[z.length + 2][z.length + 2];
+
+        for (int i = 0; i < z.length + 2; i++) {
+            for (int j = i; j < z.length + 2; j++) {
+//                double c = StatUtils.sxy(subdata[i], subdata[j]);
+                double c = StatUtils.covariance(subdata[i], subdata[j]);
+                cov[i][j] = c;
+                cov[j][i] = c;
+            }
+        }
+
+        return cov;
+    }
+
+    public static List<Integer> getRows(double[] x, double[] condition, double threshold, double direction) {
+        List<Integer> rows = new ArrayList<>();
+
+        for (int k = 0; k < x.length; k++) {
+            if (direction > threshold) {
+                if (condition[k] > threshold) {
+                    rows.add(k);
+                }
+            } else if (direction < threshold) {
+                if (condition[k] > threshold) {
+                    rows.add(k);
+                }
+            } else {
+                if (condition[k] > threshold) {
+                    rows.add(k);
+                }
+            }
+        }
+
+        return rows;
     }
 }
 
