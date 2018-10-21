@@ -155,11 +155,18 @@ public final class IndTestFisherZSkew implements IndependenceTest {
         double fisherZ = Math.sqrt(n - 3 - z.size()) * 0.5 * (Math.log(1.0 + r) - Math.log(1.0 - r));
         this.fisherZ = fisherZ;
 
-        // Centered
+        double c1 = new NormalDistribution(0, 1).cumulativeProbability(abs(fisherZ));
+
+        boolean b1 = 2 * (1.0 - c1) > alpha;
+
+        // E(XY | X > 0, Z) != E(XY | Y > 0, Z)
         final double[] _x = data[variables.indexOf(x)];
         final double[] _y = data[variables.indexOf(y)];
 
         RegressionDataset regressionDataset = new RegressionDataset(dataSet);
+
+        double[] rxz = regressionDataset.regress(x, z).getResiduals().toArray();
+        double[] ryz = regressionDataset.regress(x, z).getResiduals().toArray();
 
         List<Integer> rowsx = StatUtils.getRows(_x, 0, +1);
         int[] _rowsx = new int[rowsx.size()];
@@ -189,18 +196,35 @@ public final class IndTestFisherZSkew implements IndependenceTest {
             sxyy[i] = rxzy[i] * ryzy[i];
         }
 
-        double zv0 = (mean(sxyx) - mean(sxyy)) / sqrt(variance(sxyx) / sxyx.length
+        double zv2 = (mean(sxyx) - mean(sxyy)) / sqrt(variance(sxyx) / sxyx.length
                 + variance(sxyy) / sxyy.length);
 
-        double c = new TDistribution(sxyx.length + sxyy.length).cumulativeProbability(abs(zv0));
+        double c2 = new TDistribution(sxyx.length + sxyy.length).cumulativeProbability(abs(zv2));
 
-        boolean b1 = 2 * (1.0 - c) > alpha;
+        // E(XY | Z) != E(XY | X > 0) or E(XY | Z) != E(XY | Y > 0)
+        double[] sxy = new double[rxz.length];
 
-        double c2 = new NormalDistribution(0, 1).cumulativeProbability(abs(fisherZ));
+        for (int i = 0; i < rxzy.length; i++) {
+            sxy[i] = rxz[i] * ryz[i];
+        }
+
+//        double zv3 = (mean(sxy) - mean(sxyx)) / sqrt(variance(sxy) / sxy.length
+//                + variance(sxyx) / sxyx.length);
+//        double zv4 = (mean(sxy) - mean(sxyy)) / sqrt(variance(sxy) / sxy.length
+//                + variance(sxyy) / sxyy.length);
+//
+//        double c3 = new TDistribution(sxy.length + sxyx.length).cumulativeProbability(abs(zv3));
+//
+//        double c4 = new TDistribution(sxy.length + sxyy.length).cumulativeProbability(abs(zv4));
+
 
         boolean b2 = 2 * (1.0 - c2) > alpha;
+//        boolean b3 = 2 * (1.0 - c3) > alpha;
+//        boolean b4 = 2 * (1.0 - c4) > alpha;
 
-        return b1 && b2;
+//        System.out.println("b2 = " + b2 + " b3 = " + b3 + " b4 = " + b4);
+
+        return b1 && b2;// || (b3 && b4));
     }
 
     private double partialCorrelation(Node x, Node y, List<Node> z) throws SingularMatrixException {

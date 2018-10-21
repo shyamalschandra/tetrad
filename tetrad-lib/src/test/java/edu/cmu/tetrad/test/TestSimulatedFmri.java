@@ -56,9 +56,9 @@ public class TestSimulatedFmri {
     private void task(boolean testing) {
         Parameters parameters = new Parameters();
         parameters.set("penaltyDiscount", 1);
-        parameters.set("alpha", 0.2);
+        parameters.set("alpha", 0.001);
         parameters.set("depth", -1);
-        parameters.set("twoCycleAlpha", .05);
+        parameters.set("twoCycleAlpha", .001);
         parameters.set("faskDelta", -0.2);
         parameters.set("faskDelta2", -.1);
         parameters.set("extraEdgeThreshold", 0.3);
