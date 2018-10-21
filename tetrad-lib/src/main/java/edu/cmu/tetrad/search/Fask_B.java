@@ -267,9 +267,9 @@ public final class Fask_B implements GraphSearch {
                 continue;
             }
 
-            int nc = StatUtils.getRows(x, x, Double.NEGATIVE_INFINITY, +1).size();
-            int nc1 = StatUtils.getRows(x, x, 0, +1).size();
-            int nc2 = StatUtils.getRows(y, y, 0, +1).size();
+            int nc = StatUtils.getRows(x, Double.NEGATIVE_INFINITY, +1).size();
+            int nc1 = StatUtils.getRows(x, 0, +1).size();
+            int nc2 = StatUtils.getRows(y, 0, +1).size();
 
             double z = 0.5 * (log(1.0 + pc) - log(1.0 - pc));
             double z1 = 0.5 * (log(1.0 + pc1) - log(1.0 - pc1));

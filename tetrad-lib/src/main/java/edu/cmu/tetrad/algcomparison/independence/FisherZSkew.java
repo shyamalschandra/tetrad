@@ -21,7 +21,7 @@ import java.util.List;
  * @author jdramsey
  */
 @TestOfIndependence(
-        name = "Fisher Z Skew Test",
+        name = "Fisher Z Skew",
         command = "fisher-z-skew",
         dataType = {DataType.Continuous, DataType.Covariance}
 )
@@ -36,23 +36,12 @@ public class FisherZSkew implements IndependenceWrapper {
     public IndependenceTest getTest(DataModel dataSet, Parameters parameters) {
         double alpha = parameters.getDouble("alpha");
         this.alpha = alpha;
-
-        if (dataSet instanceof ICovarianceMatrix) {
-            final IndTestFisherZSkew test = new IndTestFisherZSkew((ICovarianceMatrix) dataSet, alpha);
-            test.setFastFDR(parameters.getBoolean("fastFDR"));
-            return test;
-        } else if (dataSet instanceof DataSet) {
-            final IndTestFisherZSkew test = new IndTestFisherZSkew((DataSet) dataSet, alpha);
-            test.setFastFDR(parameters.getBoolean("fastFDR"));
-            return test;
-        }
-
-        throw new IllegalArgumentException("Expecting either a data set or a covariance matrix.");
+        return new IndTestFisherZSkew((DataSet) dataSet, alpha);
     }
 
     @Override
     public String getDescription() {
-        return "Fisher Z Skew test, alpha = " + alpha;
+        return "Fisher Z Skew, alpha = " + alpha;
     }
 
     @Override
@@ -62,9 +51,6 @@ public class FisherZSkew implements IndependenceWrapper {
 
     @Override
     public List<String> getParameters() {
-        List<String> params = new ArrayList<>();
-        params.add("alpha");
-        params.add("fastFDR");
-        return params;
+        return new ArrayList<>();
     }
 }

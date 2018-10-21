@@ -53,17 +53,13 @@ public class Fask_B implements Algorithm, HasKnowledge, TakesIndependenceWrapper
             search.setDepth(parameters.getInt("depth"));
             search.setPenaltyDiscount(parameters.getDouble("penaltyDiscount"));
             search.setExtraEdgeThreshold(parameters.getDouble("extraEdgeThreshold"));
-//            search.setUseFasAdjacencies(parameters.getBoolean("useFasAdjacencies"));
-//            search.setUseSkewAdjacencies(parameters.getBoolean("useCorrDiffAdjacencies"));
+            search.setUseFasAdjacencies(parameters.getBoolean("useFasAdjacencies"));
+            search.setUseSkewAdjacencies(parameters.getBoolean("useCorrDiffAdjacencies"));
             search.setAlpha(parameters.getDouble("twoCycleAlpha"));
             search.setDelta(parameters.getDouble("faskDelta2"));
 
             search.setUseFasAdjacencies(parameters.getBoolean("useFasAdjacencies"));
             search.setUseSkewAdjacencies(parameters.getBoolean("useCorrDiffAdjacencies"));
-
-//            search.setPercentBootstrapForLinearityTest(parameters.getDouble("percentBootstrapForLinearityTest"));
-//            search.setNumBootstrapForLinearityTest(parameters.getInt("numBootstrapForLinearityTest"));
-//            search.setCutoffForLinearityTest(parameters.getDouble("cutoffForLinearityTest"));
 
             search.setKnowledge(knowledge);
             return getGraph(search);

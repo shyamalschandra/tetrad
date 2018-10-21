@@ -56,12 +56,12 @@ public class TestSimulatedFmri {
     private void task(boolean testing) {
         Parameters parameters = new Parameters();
         parameters.set("penaltyDiscount", 1);
-        parameters.set("alpha", 0.001);
+        parameters.set("alpha", 0.2);
         parameters.set("depth", -1);
-        parameters.set("twoCycleAlpha", 1e-2);
+        parameters.set("twoCycleAlpha", .05);
         parameters.set("faskDelta", -0.2);
-        parameters.set("faskDelta2", .1);
-        parameters.set("extraEdgeThreshold", 0.5);
+        parameters.set("faskDelta2", -.1);
+        parameters.set("extraEdgeThreshold", 0.3);
 
         parameters.set("numRuns", 1);
         parameters.set("randomSelectionSize", 1);
@@ -185,7 +185,7 @@ public class TestSimulatedFmri {
 
         Algorithms algorithms = new Algorithms();
 
-//        algorithms.add(new Fask(new SemBicScore()));
+        algorithms.add(new Fask(new SemBicScore()));
         algorithms.add(new Fask_B(new FisherZSkew()));
 //        algorithms.add(new FaskConcatenated(new SemBicScore()));
 //        algorithms.add(new Fask_BConcatenated(new SemBicTest()));

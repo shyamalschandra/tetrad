@@ -265,9 +265,9 @@ public class MultiFask {
                     double pc1 = partialCorrelation(x[i], y[i], _Z[i], x[i], 0, +1);
                     double pc2 = partialCorrelation(x[i], y[i], _Z[i], y[i], 0, +1);
 
-                    int nc = StatUtils.getRows(x[i], x[i], Double.NEGATIVE_INFINITY, +1).size();
-                    int nc1 = StatUtils.getRows(x[i], x[i], 0, +1).size();
-                    int nc2 = StatUtils.getRows(y[i], y[i], 0, +1).size();
+                    int nc = StatUtils.getRows(x[i], Double.NEGATIVE_INFINITY, +1).size();
+                    int nc1 = StatUtils.getRows(x[i], 0, +1).size();
+                    int nc2 = StatUtils.getRows(y[i], 0, +1).size();
 
                     double z = 0.5 * (log(1.0 + pc) - log(1.0 - pc));
                     double z1 = 0.5 * (log(1.0 + pc1) - log(1.0 - pc1));
@@ -297,9 +297,9 @@ public class MultiFask {
                     double pc1 = partialCorrelation(x[i], y[i], _emptyZ, x[i], 0, +1);
                     double pc2 = partialCorrelation(x[i], y[i], _emptyZ, y[i], 0, +1);
 
-                    int nc = StatUtils.getRows(x[i], x[i], Double.NEGATIVE_INFINITY, +1).size();
-                    int nc1 = StatUtils.getRows(x[i], x[i], 0, +1).size();
-                    int nc2 = StatUtils.getRows(y[i], y[i], 0, +1).size();
+                    int nc = StatUtils.getRows(x[i], Double.NEGATIVE_INFINITY, +1).size();
+                    int nc1 = StatUtils.getRows(x[i], 0, +1).size();
+                    int nc2 = StatUtils.getRows(y[i], 0, +1).size();
 
                     double z = 0.5 * (log(1.0 + pc) - log(1.0 - pc));
                     double z1 = 0.5 * (log(1.0 + pc1) - log(1.0 - pc1));

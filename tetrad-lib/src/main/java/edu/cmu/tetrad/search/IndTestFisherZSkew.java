@@ -22,20 +22,19 @@
 package edu.cmu.tetrad.search;
 
 import edu.cmu.tetrad.data.*;
-import edu.cmu.tetrad.graph.GraphUtils;
 import edu.cmu.tetrad.graph.Node;
+import edu.cmu.tetrad.regression.RegressionDataset;
 import edu.cmu.tetrad.util.StatUtils;
-import edu.cmu.tetrad.util.TetradLogger;
 import edu.cmu.tetrad.util.TetradMatrix;
 import org.apache.commons.math3.distribution.NormalDistribution;
+import org.apache.commons.math3.distribution.TDistribution;
 import org.apache.commons.math3.linear.SingularMatrixException;
 
 import java.text.DecimalFormat;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static edu.cmu.tetrad.util.MathUtils.logChoose;
-import static edu.cmu.tetrad.util.StatUtils.getZForAlpha;
+import static edu.cmu.tetrad.util.StatUtils.*;
 import static java.lang.Math.*;
 
 /**
@@ -73,8 +72,6 @@ public final class IndTestFisherZSkew implements IndependenceTest {
     private double fisherZ = Double.NaN;
     private double cutoff = Double.NaN;
     private NormalDistribution normal = new NormalDistribution(0, 1);
-    private boolean fastFDR = false;
-    // Data as a double[][].
     private final double[][] data;
 
     //==========================CONSTRUCTORS=============================//
@@ -107,39 +104,6 @@ public final class IndTestFisherZSkew implements IndependenceTest {
         data = this.dataSet.getDoubleData().transpose().toArray();
     }
 
-    /**
-     * Constructs a new Fisher Z independence test with  the listed arguments.
-     *
-     * @param data      A 2D continuous data set with no missing values.
-     * @param variables A list of variables, a subset of the variables of <code>data</code>.
-     * @param alpha     The significance cutoff level. p values less than alpha will be reported as dependent.
-     */
-    public IndTestFisherZSkew(TetradMatrix data, List<Node> variables, double alpha) {
-        this.dataSet = ColtDataSet.makeContinuousData(variables, data);
-        this.covMatrix = new CovarianceMatrixOnTheFly(dataSet);
-        this.variables = Collections.unmodifiableList(variables);
-        this.indexMap = indexMap(variables);
-        this.nameMap = nameMap(variables);
-        setAlpha(alpha);
-        this.dataSet = DataUtils.standardizeData(this.dataSet);
-        this.data = this.dataSet.getDoubleData().transpose().toArray();
-    }
-
-    /**
-     * Constructs a new independence test that will determine conditional independence facts using the given correlation
-     * matrix and the given significance level.
-     */
-    public IndTestFisherZSkew(ICovarianceMatrix covMatrix, double alpha) {
-        this.covMatrix = covMatrix;
-        this.variables = covMatrix.getVariables();
-        this.indexMap = indexMap(variables);
-        this.nameMap = nameMap(variables);
-        setAlpha(alpha);
-        this.dataSet = DataUtils.standardizeData(this.dataSet);
-        this.data = this.dataSet.getDoubleData().transpose().toArray();
-
-    }
-
     //==========================PUBLIC METHODS=============================//
 
     /**
@@ -163,10 +127,8 @@ public final class IndTestFisherZSkew implements IndependenceTest {
             indices[i] = indexMap.get(vars.get(i));
         }
 
-        ICovarianceMatrix newCovMatrix = covMatrix.getSubmatrix(indices);
-
         double alphaNew = getAlpha();
-        return new IndTestFisherZSkew(newCovMatrix, alphaNew);
+        return new IndTestFisherZSkew(dataSet, alphaNew);
     }
 
     /**
@@ -197,51 +159,48 @@ public final class IndTestFisherZSkew implements IndependenceTest {
         final double[] _x = data[variables.indexOf(x)];
         final double[] _y = data[variables.indexOf(y)];
 
-        double[][] _Z = new double[z.size()][];
+        RegressionDataset regressionDataset = new RegressionDataset(dataSet);
 
-        for (int f = 0; f < z.size(); f++) {
-            Node _z = z.get(f);
-            int column = dataSet.getColumn(_z);
-            _Z[f] = data[column];
+        List<Integer> rowsx = StatUtils.getRows(_x, 0, +1);
+        int[] _rowsx = new int[rowsx.size()];
+        for (int i = 0; i < rowsx.size(); i++) _rowsx[i] = rowsx.get(i);
+
+        List<Integer> rowsy = StatUtils.getRows(_y, 0, +1);
+        int[] _rowsy = new int[rowsy.size()];
+        for (int i = 0; i < rowsy.size(); i++) _rowsy[i] = rowsy.get(i);
+
+        regressionDataset.setRows(_rowsx);
+        double[] rxzx = regressionDataset.regress(x, z).getResiduals().toArray();
+        double[] ryzx = regressionDataset.regress(y, z).getResiduals().toArray();
+
+        regressionDataset.setRows(_rowsy);
+        double[] rxzy = regressionDataset.regress(x, z).getResiduals().toArray();
+        double[] ryzy = regressionDataset.regress(y, z).getResiduals().toArray();
+
+        double[] sxyx = new double[rxzx.length];
+
+        for (int i = 0; i < rxzx.length; i++) {
+            sxyx[i] = rxzx[i] * ryzx[i];
         }
 
-        double pc1 = partialCorrelation(_x, _y, _Z, _x, 0, +1);
-        double pc2 = partialCorrelation(_x, _y, _Z, _y, 0, +1);
+        double[] sxyy = new double[rxzy.length];
 
-        int nc1 = StatUtils.getRows(_x, _x, 0, +1).size();
-        int nc2 = StatUtils.getRows(_y, _y, 0, +1).size();
-
-        double z1 = 0.5 * (log(1.0 + pc1) - log(1.0 - pc1));
-        double z2 = 0.5 * (log(1.0 + pc2) - log(1.0 - pc2));
-
-        double zv1 = (z1 - z2) / sqrt((1.0 / ((double) nc1 - 3) + 1.0 / ((double) nc2 - 3)));
-
-//        if(fastFDR) {
-//            final int d1 = 0; // reference
-//            final int d2 = z.size();
-//            final int v = variables.size() - 2;
-//
-//            double alpha2 = (exp(log(alpha) + logChoose(v, d1) - logChoose(v, d2)));
-//            cutoff = getZForAlpha(alpha2);
-//        }
-
-//        System.out.println(zv1);
-
-        double cutoff = 0.05;
-
-        if (abs(z1) < cutoff && abs(z2) < cutoff) {
-            return true;
-        }
-//        else if (abs(fisherZ) < this.cutoff) {
-//            return true;
-//        }
-        else {
-            return false;
+        for (int i = 0; i < rxzy.length; i++) {
+            sxyy[i] = rxzy[i] * ryzy[i];
         }
 
-//        return abs(zv1) < .5;
+        double zv0 = (mean(sxyx) - mean(sxyy)) / sqrt(variance(sxyx) / sxyx.length
+                + variance(sxyy) / sxyy.length);
 
-//        return Math.max(abs(zv1),  abs(fisherZ)) < .1;
+        double c = new TDistribution(sxyx.length + sxyy.length).cumulativeProbability(abs(zv0));
+
+        boolean b1 = 2 * (1.0 - c) > alpha;
+
+        double c2 = new NormalDistribution(0, 1).cumulativeProbability(abs(fisherZ));
+
+        boolean b2 = 2 * (1.0 - c2) > alpha;
+
+        return b1 && b2;
     }
 
     private double partialCorrelation(Node x, Node y, List<Node> z) throws SingularMatrixException {
@@ -442,16 +401,6 @@ public final class IndTestFisherZSkew implements IndependenceTest {
 
     public void setVerbose(boolean verbose) {
         this.verbose = verbose;
-    }
-
-    public void setFastFDR(boolean fastFDR) {
-        this.fastFDR = fastFDR;
-    }
-
-    private double partialCorrelation(double[] x, double[] y, double[][] z, double[] condition, double threshold, double direction) throws SingularMatrixException {
-        double[][] cv = StatUtils.covMatrix(x, y, z, condition, threshold, direction);
-        TetradMatrix m = new TetradMatrix(cv).transpose();
-        return StatUtils.partialCorrelation(m);
     }
 }
 
