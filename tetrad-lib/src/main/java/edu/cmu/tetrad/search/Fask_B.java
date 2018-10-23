@@ -21,10 +21,7 @@
 
 package edu.cmu.tetrad.search;
 
-import edu.cmu.tetrad.data.DataSet;
-import edu.cmu.tetrad.data.DataUtils;
-import edu.cmu.tetrad.data.IKnowledge;
-import edu.cmu.tetrad.data.Knowledge2;
+import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.util.DepthChoiceGenerator;
 import edu.cmu.tetrad.util.StatUtils;
@@ -141,7 +138,14 @@ public final class Fask_B implements GraphSearch {
         } else {
             System.out.println("FAS");
 
-            FasStable fas = new FasStable(test);
+//            final SemBicScore score = new SemBicScore(new CovarianceMatrixOnTheFly(dataSet));
+//            score.setPenaltyDiscount(1);
+//            Fges fges = new Fges(score);
+//            fges.setMaxDegree(getDepth());
+//            fges.setKnowledge(knowledge);
+//            G0 = fges.search();
+
+            Fas fas = new Fas(test);
             fas.setDepth(getDepth());
             fas.setVerbose(false);
             fas.setKnowledge(knowledge);

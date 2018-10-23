@@ -224,7 +224,7 @@ public final class IndTestFisherZSkew implements IndependenceTest {
 
 //        System.out.println("b2 = " + b2 + " b3 = " + b3 + " b4 = " + b4);
 
-        return !(b1 || b2 || b3 || b4);
+        return !(b2 || b3 || b4);
     }
 
     private double partialCorrelation(Node x, Node y, List<Node> z) throws SingularMatrixException {
