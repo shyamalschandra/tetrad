@@ -40,11 +40,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static edu.cmu.tetrad.util.StatUtils.correlation;
 import static edu.cmu.tetrad.util.StatUtils.mean;
 import static edu.cmu.tetrad.util.StatUtils.variance;
-import static java.lang.Math.abs;
-import static java.lang.Math.log;
-import static java.lang.Math.sqrt;
+import static java.lang.Math.*;
 
 /**
  * Implements the PC ("Peter/Clark") algorithm, as specified in Chapter 6 of Spirtes, Glymour, and Scheines, "Causation,
@@ -60,19 +59,9 @@ public class SkewSearch implements GraphSearch {
     private final List<Node> nodes;
 
     /**
-     * The independence test used for the PC search.g
-     */
-    private IndependenceTest independenceTest;
-
-    /**
      * Forbidden and required edges for the search.
      */
     private IKnowledge knowledge = new Knowledge2();
-
-    /**
-     * Sepset information accumulated in the search.
-     */
-    private SepsetMap sepsets;
 
     /**
      * The maximum number of nodes conditioned on in the search. The default it 1000.
@@ -85,16 +74,13 @@ public class SkewSearch implements GraphSearch {
      */
     private boolean aggressivelyPreventCycles = false;
 
-    /**
-     * The true graph, for purposes of comparison. Temporary.
-     */
-    private Graph trueGraph;
-
     private boolean verbose = false;
 
     private boolean fdr = false;
     private double delta = -0.01;
-    private double cutoff;
+    private RegressionDataset regressionDataset;
+    private double twoCycleAlpha = 0.05;
+    private double twoCycleAlphaCutoff;
 
     //=============================CONSTRUCTORS==========================//
 
@@ -106,6 +92,14 @@ public class SkewSearch implements GraphSearch {
         this.dataSet = dataSet;
         this.data = dataSet.getDoubleData().transpose().toArray();
         this.nodes = dataSet.getVariables();
+        regressionDataset = new RegressionDataset(dataSet);
+    }
+
+    private double[] correctSkewnesses(double[] data) {
+        double skewness = StatUtils.skewness(data);
+        double[] data2 = new double[data.length];
+        for (int i = 0; i < data.length; i++) data2[i] = data[i] * Math.signum(skewness);
+        return data2;
     }
 
     //==============================PUBLIC METHODS========================//
@@ -125,13 +119,6 @@ public class SkewSearch implements GraphSearch {
     }
 
     /**
-     * @return the independence test being used in the search.
-     */
-    public IndependenceTest getIndependenceTest() {
-        return independenceTest;
-    }
-
-    /**
      * @return the knowledge specification used in the search. Non-null.
      */
     public IKnowledge getKnowledge() {
@@ -147,13 +134,6 @@ public class SkewSearch implements GraphSearch {
         }
 
         this.knowledge = knowledge;
-    }
-
-    /**
-     * @return the sepset map from the most recent search. Non-null after the first call to <code>search()</code>.
-     */
-    public SepsetMap getSepsets() {
-        return this.sepsets;
     }
 
     /**
@@ -177,10 +157,6 @@ public class SkewSearch implements GraphSearch {
             throw new IllegalArgumentException("Depth must be -1 or >= 0: " + depth);
         }
 
-        if (depth > 1000) {
-            throw new IllegalArgumentException("Depth must be <= 1000.");
-        }
-
         this.depth = depth;
     }
 
@@ -193,54 +169,50 @@ public class SkewSearch implements GraphSearch {
      */
     @Override
     public Graph search() {
-        setCutoff(alpha);
+        setCutoffs();
 
         Graph graph = new EdgeListGraph(nodes);
         List<Node> empty = new ArrayList<>();
 
         for (int i = 0; i < nodes.size(); i++) {
-            for (int j = 0; j < nodes.size(); j++) {
-                if (i == j) continue;;
+            for (int j = i + 1; j < nodes.size(); j++) {
+                if (i == j) continue;
 
-                if (oriented(dataSet, nodes.get(i), nodes.get(j), empty)) {
-                    graph.addDirectedEdge(nodes.get(i), nodes.get(j));
-                }
-            }
-        }
+                Node X = nodes.get(i);
+                Node Y = nodes.get(j);
 
-        EDGES:
-        for (Edge edge : graph.getEdges()) {
-            if (edge.isDirected()) {
-                Node tail = Edges.getDirectedEdgeTail(edge);
-                Node head = Edges.getDirectedEdgeHead(edge);
+                if (!edgeForbiddenByKnowledge(X, Y)) {
+                    if (knowledgeOrients(X, Y)) {
+                        graph.addDirectedEdge(X, Y);
+                    } else if (knowledgeOrients(Y, X)) {
+                        graph.addDirectedEdge(Y, X);
+                    } else {
+                        if (existsEdge(X, Y, empty)) {
+                            final double[] x = data[nodes.indexOf(X)];
+                            final double[] y = data[nodes.indexOf(Y)];
 
-                List<Node> parents = graph.getParents(head);
-                parents.remove(tail);
-
-                DepthChoiceGenerator gen = new DepthChoiceGenerator(parents.size(), parents.size());
-                int[] choice;
-
-                while ((choice = gen.next()) != null) {
-                    if (choice.length == 0) continue;
-
-                    List<Node> Z = GraphUtils.asList(choice, parents);
-
-                    if (!oriented(dataSet, tail, head, Z)) {
-                        graph.removeEdge(edge);
-                        continue EDGES;
+                            if (!leftright(y, x)) {
+                                graph.addDirectedEdge(X, Y);
+                            } else if (!leftright(x, y)) {
+                                graph.addDirectedEdge(Y, X);
+                            }
+                        }
                     }
                 }
             }
         }
 
-        for (Edge edge : graph.getEdges()) {
+        for (Edge edge : new ArrayList<>(graph.getEdges())) {
             final Node X = Edges.getDirectedEdgeTail(edge);
             final Node Y = Edges.getDirectedEdgeHead(edge);
 
-            final int i = nodes.indexOf(X);
-            final int j = nodes.indexOf(Y);
+            final double[] x = data[nodes.indexOf(X)];
+            final double[] y = data[nodes.indexOf(Y)];
 
-            if (bidirected(data[i], data[j], graph, X, Y)) {
+
+            if (!knowledgeOrients(X, Y) && !knowledgeOrients(Y, X)
+                    && graph.getEdges(edge.getNode1(), edge.getNode2()).size() != 2
+                    && bidirected(x, y, graph, X, Y)) {
                 graph.removeEdges(X, Y);
 
                 Edge edge1 = Edges.directedEdge(X, Y);
@@ -254,6 +226,35 @@ public class SkewSearch implements GraphSearch {
             }
         }
 
+
+        EDGES:
+        for (Edge edge : new ArrayList<>(graph.getEdges())) {
+            if (edge.isDirected()) {
+                Node tail = Edges.getDirectedEdgeTail(edge);
+                Node head = Edges.getDirectedEdgeHead(edge);
+
+                List<Node> parents = graph.getParents(head);
+                parents.remove(tail);
+
+                final int depth = this.depth == -1 ? 1000 : this.depth;
+                final int min = min(depth, parents.size());
+
+                DepthChoiceGenerator gen = new DepthChoiceGenerator(parents.size(), min);
+                int[] choice;
+
+                while ((choice = gen.next()) != null) {
+                    if (choice.length == 0) continue;
+
+                    List<Node> Z = GraphUtils.asList(choice, parents);
+
+                    if (!existsEdge(tail, head, Z)) {
+                        graph.removeEdge(edge);
+                        continue EDGES;
+                    }
+                }
+            }
+        }
+
         return graph;
     }
 
@@ -264,14 +265,9 @@ public class SkewSearch implements GraphSearch {
 
     double alpha = 0.01;
 
-    private boolean oriented(DataSet dataSet, Node x, Node y, List<Node> z) {
+    private boolean existsEdge(Node x, Node y, List<Node> Z) {
         final double[] _x = data[nodes.indexOf(x)];
         final double[] _y = data[nodes.indexOf(y)];
-
-        RegressionDataset regressionDataset = new RegressionDataset(dataSet);
-
-//        double[] rxz = regressionDataset.regress(x, z).getResiduals().toArray();
-//        double[] ryz = regressionDataset.regress(y, z).getResiduals().toArray();
 
         List<Integer> rowsx = StatUtils.getRows(_x, 0, +1);
         int[] _rowsx = new int[rowsx.size()];
@@ -282,12 +278,12 @@ public class SkewSearch implements GraphSearch {
         for (int i = 0; i < rowsy.size(); i++) _rowsy[i] = rowsy.get(i);
 
         regressionDataset.setRows(_rowsx);
-        double[] rxzx = regressionDataset.regress(x, z).getResiduals().toArray();
-        double[] ryzx = regressionDataset.regress(y, z).getResiduals().toArray();
+        double[] rxzx = regressionDataset.regress(x, Z).getResiduals().toArray();
+        double[] ryzx = regressionDataset.regress(y, Z).getResiduals().toArray();
 
         regressionDataset.setRows(_rowsy);
-        double[] rxzy = regressionDataset.regress(x, z).getResiduals().toArray();
-        double[] ryzy = regressionDataset.regress(y, z).getResiduals().toArray();
+        double[] rxzy = regressionDataset.regress(x, Z).getResiduals().toArray();
+        double[] ryzy = regressionDataset.regress(y, Z).getResiduals().toArray();
 
         double[] sxyx = new double[rxzx.length];
 
@@ -304,7 +300,6 @@ public class SkewSearch implements GraphSearch {
         double zv3 = (mean(sxyx)) / sqrt(variance(sxyx) / sxyx.length);
         double zv4 = (mean(sxyy)) / sqrt(variance(sxyy) / sxyy.length);
 
-
         double c3 = new TDistribution(sxyx.length).cumulativeProbability(abs(zv3));
 
         double c4 = new TDistribution(sxyy.length).cumulativeProbability(abs(zv4));
@@ -312,13 +307,11 @@ public class SkewSearch implements GraphSearch {
         boolean b3 = 2 * (1.0 - c3) < alpha;
         boolean b4 = 2 * (1.0 - c4) < alpha;
 
-        if (b3 & b4) {
-            return !leftright(_y, _x);
-        }
-
-        return false;
+        return b3 && b4;
     }
 
+
+    // If x->y, returns true
     // If x->y, returns true
     private boolean leftright(double[] x, double[] y) {
         final double cxyx = cov(x, y, x);
@@ -357,94 +350,23 @@ public class SkewSearch implements GraphSearch {
         return exy / n;
     }
 
-    private boolean bidirected(double[] x, double[] y, Graph G0, Node X, Node Y) {
-        Set<Node> adjSet = new HashSet<>(G0.getAdjacentNodes(X));
-        adjSet.addAll(G0.getAdjacentNodes(Y));
-        List<Node> _Z = new ArrayList<>(adjSet);
-        _Z.remove(X);
-        _Z.remove(Y);
-
-        DepthChoiceGenerator gen = new DepthChoiceGenerator(_Z.size(), Math.min(depth, _Z.size()));
-        int[] choice;
-
-        while ((choice = gen.next()) != null) {
-            List<Node> Z = GraphUtils.asList(choice, _Z);
-
-            final double[] _x = data[nodes.indexOf(X)];
-            final double[] _y = data[nodes.indexOf(Y)];
-
-            RegressionDataset regressionDataset = new RegressionDataset(dataSet);
-
-            double[] rxz = regressionDataset.regress(X, Z).getResiduals().toArray();
-            double[] ryz = regressionDataset.regress(Y, Z).getResiduals().toArray();
-
-            List<Integer> rowsx = StatUtils.getRows(_x, 0, +1);
-            int[] _rowsx = new int[rowsx.size()];
-            for (int i = 0; i < rowsx.size(); i++) _rowsx[i] = rowsx.get(i);
-
-            List<Integer> rowsy = StatUtils.getRows(_y, 0, +1);
-            int[] _rowsy = new int[rowsy.size()];
-            for (int i = 0; i < rowsy.size(); i++) _rowsy[i] = rowsy.get(i);
-
-            regressionDataset.setRows(_rowsx);
-            double[] rxzx = regressionDataset.regress(X, Z).getResiduals().toArray();
-            double[] ryzx = regressionDataset.regress(Y, Z).getResiduals().toArray();
-
-            regressionDataset.setRows(_rowsy);
-            double[] rxzy = regressionDataset.regress(X, Z).getResiduals().toArray();
-            double[] ryzy = regressionDataset.regress(Y, Z).getResiduals().toArray();
-
-            double[] sxyx = new double[rxzx.length];
-
-            for (int i = 0; i < rxzx.length; i++) {
-                sxyx[i] = rxzx[i] * ryzx[i];
-            }
-
-            double[] sxyy = new double[rxzy.length];
-
-            for (int i = 0; i < rxzy.length; i++) {
-                sxyy[i] = rxzy[i] * ryzy[i];
-            }
-
-            double[] sxy = new double[rxz.length];
-
-            for (int i = 0; i < rxzy.length; i++) {
-                sxy[i] = rxz[i] * ryz[i];
-            }
-
-            double zv3 = (mean(sxy) - mean(sxyx)) / sqrt(variance(sxy) / sxy.length
-                    + variance(sxyx) / sxyx.length);
-            double zv4 = (mean(sxy) - mean(sxyy)) / sqrt(variance(sxy) / sxy.length
-                    + variance(sxyy) / sxyy.length);
-
-            double c3 = new TDistribution(sxy.length + sxyx.length).cumulativeProbability(abs(zv3));
-
-            double c4 = new TDistribution(sxy.length + sxyy.length).cumulativeProbability(abs(zv4));
-
-            boolean b3 = 2 * (1.0 - c3) < alpha;
-            boolean b4 = 2 * (1.0 - c4) < alpha;
-
-            if (!(b3 && b4)) return false;
+    private void setCutoffs() {
+        if (twoCycleAlpha < 0.0 || twoCycleAlpha > 1.0) {
+            throw new IllegalArgumentException("Significance out of range for two-cycles: " + twoCycleAlpha);
         }
 
-        return true;
+        this.twoCycleAlphaCutoff = StatUtils.getZForAlpha(twoCycleAlpha);
     }
 
-    private void setCutoff(double alpha) {
-        if (alpha < 0.0 || alpha > 1.0) {
-            throw new IllegalArgumentException("Significance out of range: " + alpha);
-        }
-
-        this.cutoff = StatUtils.getZForAlpha(alpha);
-    }
-
-    private double partialCorrelation(double[] x, double[] y, double[][] z, double[] condition, double threshold, double direction) throws SingularMatrixException {
+    private double partialCorrelation(double[] x, double[] y, double[][] z, double[] condition, double threshold,
+                                      double direction) throws SingularMatrixException {
         double[][] cv = covMatrix(x, y, z, condition, threshold, direction);
         TetradMatrix m = new TetradMatrix(cv).transpose();
         return StatUtils.partialCorrelation(m);
     }
 
-    public static double[][] covMatrix(double[] x, double[] y, double[][] z, double[] condition, double threshold, double direction) {
+    public static double[][] covMatrix(double[] x, double[] y, double[][] z, double[] condition, double threshold,
+                                       double direction) {
         List<Integer> rows = getRows(x, condition, threshold, direction);
 
         double[][] allData = new double[z.length + 2][];
@@ -452,7 +374,7 @@ public class SkewSearch implements GraphSearch {
         allData[0] = x;
         allData[1] = y;
 
-        for (int i = 0; i < z.length; i++) allData[i + 2] = z[i];
+        System.arraycopy(z, 0, allData, 2, z.length);
 
         double[][] subdata = new double[allData.length][rows.size()];
 
@@ -470,7 +392,6 @@ public class SkewSearch implements GraphSearch {
 
         for (int i = 0; i < z.length + 2; i++) {
             for (int j = i; j < z.length + 2; j++) {
-//                double c = StatUtils.sxy(subdata[i], subdata[j]);
                 double c = StatUtils.covariance(subdata[i], subdata[j]);
                 cov[i][j] = c;
                 cov[j][i] = c;
@@ -506,30 +427,6 @@ public class SkewSearch implements GraphSearch {
         return delta;
     }
 
-    public void setTrueGraph(Graph trueGraph) {
-        this.trueGraph = trueGraph;
-    }
-
-    public List<Triple> getColliders(Node node) {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
-    }
-
-    public List<Triple> getNoncolliders(Node node) {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
-    }
-
-    public List<Triple> getAmbiguousTriples(Node node) {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
-    }
-
-    public List<Triple> getUnderlineTriples(Node node) {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
-    }
-
-    public List<Triple> getDottedUnderlineTriples(Node node) {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
-    }
-
     public boolean isVerbose() {
         return verbose;
     }
@@ -555,6 +452,84 @@ public class SkewSearch implements GraphSearch {
 
     public void setDelta(double delta) {
         this.delta = delta;
+    }
+
+    private boolean edgeForbiddenByKnowledge(Node left, Node right) {
+        return knowledge.isForbidden(right.getName(), left.getName()) && knowledge.isForbidden(left.getName(), right.getName());
+    }
+
+    private boolean knowledgeOrients(Node left, Node right) {
+        return knowledge.isForbidden(right.getName(), left.getName()) || knowledge.isRequired(left.getName(), right.getName());
+    }
+
+    private boolean bidirected(double[] x, double[] y, Graph G0, Node X, Node Y) {
+        Set<Node> adjSet = new HashSet<>(G0.getAdjacentNodes(X));
+        adjSet.addAll(G0.getAdjacentNodes(Y));
+        List<Node> adj = new ArrayList<>(adjSet);
+        adj.remove(X);
+        adj.remove(Y);
+
+        DepthChoiceGenerator gen = new DepthChoiceGenerator(adj.size(), min(depth, adj.size()));
+        int[] choice;
+
+        while ((choice = gen.next()) != null) {
+            List<Node> _adj = GraphUtils.asList(choice, adj);
+            double[][] _Z = new double[_adj.size()][];
+
+            for (int f = 0; f < _adj.size(); f++) {
+                Node _z = _adj.get(f);
+                int column = dataSet.getColumn(_z);
+                _Z[f] = data[column];
+            }
+
+            double pc;
+            double pc1;
+            double pc2;
+
+            try {
+                pc = partialCorrelation(x, y, _Z, x, Double.NEGATIVE_INFINITY, +1);
+                pc1 = partialCorrelation(x, y, _Z, x, 0, +1);
+                pc2 = partialCorrelation(x, y, _Z, y, 0, +1);
+            } catch (SingularMatrixException e) {
+                System.out.println("Singularity X = " + X + " Y = " + Y + " adj = " + adj);
+                TetradLogger.getInstance().log("info", "Singularity X = " + X + " Y = " + Y + " adj = " + adj);
+                continue;
+            }
+
+            int nc = StatUtils.getRows(x, Double.NEGATIVE_INFINITY, +1).size();
+            int nc1 = StatUtils.getRows(x, 0, +1).size();
+            int nc2 = StatUtils.getRows(y, 0, +1).size();
+
+            double z = 0.5 * (log(1.0 + pc) - log(1.0 - pc));
+            double z1 = 0.5 * (log(1.0 + pc1) - log(1.0 - pc1));
+            double z2 = 0.5 * (log(1.0 + pc2) - log(1.0 - pc2));
+
+            double zv1 = (z - z1) / sqrt((1.0 / ((double) nc - 3) + 1.0 / ((double) nc1 - 3)));
+            double zv2 = (z - z2) / sqrt((1.0 / ((double) nc - 3) + 1.0 / ((double) nc2 - 3)));
+
+            boolean rejected1 = abs(zv1) > twoCycleAlphaCutoff;
+            boolean rejected2 = abs(zv2) > twoCycleAlphaCutoff;
+
+            boolean possibleCycle = false;
+
+            if (zv1 < 0 && zv2 > 0 && rejected1) {
+                possibleCycle = true;
+            } else if (zv1 > 0 && zv2 < 0 && rejected2) {
+                possibleCycle = true;
+            } else if (rejected1 && rejected2) {
+                possibleCycle = true;
+            }
+
+            if (!possibleCycle) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    public void setTwoCycleAlpha(double twoCycleAlpha) {
+        this.twoCycleAlpha = twoCycleAlpha;
     }
 }
 

@@ -27,7 +27,7 @@ public class ArrowheadFP implements Statistic {
 
     @Override
     public double getValue(Graph trueGraph, Graph estGraph) {
-        ArrowConfusion confusion = new ArrowConfusion(trueGraph, estGraph);
+        ArrowConfusion confusion = new ArrowConfusion(trueGraph, estGraph, false);
         return (double) confusion.getArrowsFp();
     }
 

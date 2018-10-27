@@ -12,24 +12,25 @@ import edu.cmu.tetrad.graph.Graph;
  *
  * @author jdramsey
  */
-public class ArrowheadPrecisionCommonEdges implements Statistic {
+public class ArrowheadPrecisionCommonAdjacencies implements Statistic {
     static final long serialVersionUID = 23L;
 
     @Override
     public String getAbbreviation() {
-        return "AHPC";
+        return "AHPCA";
     }
 
     @Override
     public String getDescription() {
-        return "Arrowhead precision (common edges)";
+        return "Arrowhead precision, common adjacencies";
     }
 
     @Override
     public double getValue(Graph trueGraph, Graph estGraph) {
-        ArrowConfusion confusion = new ArrowConfusion(trueGraph, estGraph);
-        double arrowsTp = confusion.getArrowsTpc();
-        double arrowsFp = confusion.getArrowsFpc();
+        ArrowConfusion confusion = new ArrowConfusion(trueGraph, estGraph, true);
+        double arrowsTp = confusion.getArrowsTp();
+        double arrowsFp = confusion.getArrowsFp();
+        if (arrowsTp == 0) return Double.NaN;
         return arrowsTp / (arrowsTp + arrowsFp);
     }
 

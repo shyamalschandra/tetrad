@@ -24,6 +24,7 @@ package edu.cmu.tetrad.test;
 import edu.cmu.tetrad.algcomparison.Comparison;
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithms;
 import edu.cmu.tetrad.algcomparison.algorithm.multi.*;
+import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.SkewSearch;
 import edu.cmu.tetrad.algcomparison.independence.FisherZ;
 import edu.cmu.tetrad.algcomparison.independence.FisherZSkew;
 import edu.cmu.tetrad.algcomparison.independence.SemBicTest;
@@ -56,14 +57,14 @@ public class TestSimulatedFmri {
     private void task(boolean testing) {
         Parameters parameters = new Parameters();
         parameters.set("penaltyDiscount", 1);
-        parameters.set("alpha", 0.0001);
-        parameters.set("depth", -1);
-        parameters.set("twoCycleAlpha", .05);
-        parameters.set("faskDelta", -0.2);
-        parameters.set("faskDelta2", -.1);
+        parameters.set("alpha", 0.001);
+        parameters.set("depth", 5);
+        parameters.set("twoCycleAlpha", .001);
+        parameters.set("faskDelta", -.2);
+        parameters.set("faskDelta2", -.2);
         parameters.set("extraEdgeThreshold", 0.3);
 
-        parameters.set("numRuns", 1);
+        parameters.set("numRuns", 5);
         parameters.set("randomSelectionSize", 1);
 
         parameters.set("useFasAdjacencies", true);
@@ -78,7 +79,8 @@ public class TestSimulatedFmri {
         statistics.add(new AdjacencyRecall());
 //        statistics.add(new MathewsCorrAdj());
         statistics.add(new ArrowheadPrecision());
-        statistics.add(new ArrowheadRecall());
+        statistics.add(new ArrowheadPrecisionCommonAdjacencies());
+         statistics.add(new ArrowheadRecall());
         statistics.add(new TwoCyclePrecision());
         statistics.add(new TwoCycleRecall());
         statistics.add(new TwoCycleFalsePositive());
@@ -185,8 +187,9 @@ public class TestSimulatedFmri {
 
         Algorithms algorithms = new Algorithms();
 
-        algorithms.add(new Fask(new SemBicScore()));
-        algorithms.add(new Fask_B(new FisherZSkew()));
+        algorithms.add(new FaskConcatenated(new SemBicScore()));
+        algorithms.add(new Fask_BConcatenated(new SemBicTest()));
+        algorithms.add(new SkewSearchConcatenated(new FisherZSkew()));
 //        algorithms.add(new FaskConcatenated(new SemBicScore()));
 //        algorithms.add(new Fask_BConcatenated(new SemBicTest()));
 //        algorithms.add(new FaskConcatenated(new SemBicScore()));
@@ -220,13 +223,14 @@ public class TestSimulatedFmri {
     public void task2() {
         Parameters parameters = new Parameters();
         parameters.set("penaltyDiscount", 1);
-        parameters.set("depth", -1);
-        parameters.set("twoCycleAlpha", 0);
+        parameters.set("depth", 3);
         parameters.set("faskDelta", -.2);
-        parameters.set("faskBDelta", 0.1);
+
+        parameters.set("alpha", 0.2);
+        parameters.set("twoCycleAlpha", 1e-4);
 
         parameters.set("numRuns", 10);
-        parameters.set("randomSelectionSize", 1);
+        parameters.set("randomSelectionSize", 2);
 
         parameters.set("Structure", "Placeholder");
 
@@ -237,6 +241,7 @@ public class TestSimulatedFmri {
         statistics.add(new AdjacencyRecall());
 //        statistics.add(new MathewsCorrAdj());
         statistics.add(new ArrowheadPrecision());
+        statistics.add(new ArrowheadPrecisionCommonAdjacencies());
         statistics.add(new ArrowheadRecall());
         statistics.add(new TwoCyclePrecision());
         statistics.add(new TwoCycleRecall());
@@ -254,7 +259,7 @@ public class TestSimulatedFmri {
         Algorithms algorithms = new Algorithms();
 
         for (int i = 1; i <= 28; i++) {
-            if (i == 21) continue;
+//            if (i == 21) continue;
             simulations.add(new LoadContinuousDataSmithSim("/Users/user/Downloads/smithsim/", i));
 //            simulations.add(new LoadContinuousDataPwdd7("/Users/user/Downloads/pwdd7/", i, "50_BOLDdemefilt1"));
 //            simulations.add(new LoadContinuousDataPwdd7("/Users/user/Downloads/pwdd7/", i, "50_BOLDnoise"));
@@ -269,8 +274,10 @@ public class TestSimulatedFmri {
 //        algorithms.add(new LofsConcatenated(Lofs2.Rule.SkewE));
 //        algorithms.add(new LofsConcatenated(Lofs2.Rule.Patel));
 
-        algorithms.add(new Fask(new SemBicScore()));
-        algorithms.add(new Fask_B(new SemBicTest()));
+        algorithms.add(new FaskConcatenated(new SemBicScore()));
+        algorithms.add(new Fask_BConcatenated(new SemBicTest()));
+        algorithms.add(new SkewSearchConcatenated());
+
 //        algorithms.add(new FasLofsConcatenated(Lofs2.Rule.R1));
 //        algorithms.add(new FasLofsConcatenated(Lofs2.Rule.Patel));
 //        algorithms.add(new FasLofsConcatenated(Lofs2.Rule.R3));
@@ -350,7 +357,7 @@ public class TestSimulatedFmri {
 //
 //        algorithms.add(new FgesConcatenated(new edu.cmu.tetrad.algcomparison.score.SemBicScore(), true));
 //        algorithms.add(new PcStableMaxConcatenated(new SemBicTest(), true));
-        algorithms.add(new FaskConcatenated(new SemBicScore()));
+        algorithms.add(new SkewSearch());
 //        algorithms.add(new FasLofsConcatenated(Lofs2.Rule.R1));
 //        algorithms.add(new FasLofsConcatenated(Lofs2.Rule.R2));
 //        algorithms.add(new FasLofsConcatenated(Lofs2.Rule.R3));

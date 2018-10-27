@@ -26,7 +26,7 @@ public class TwoCycleRecall implements Statistic {
 
     @Override
     public double getValue(Graph trueGraph, Graph estGraph) {
-        ArrowConfusion adjConfusion = new ArrowConfusion(trueGraph, estGraph);
+        ArrowConfusion adjConfusion = new ArrowConfusion(trueGraph, estGraph, false);
         double TwoCycleTp = adjConfusion.getTwoCycleTp();
         double TwoCycleFn = adjConfusion.getTwoCycleFn();
         double recall = TwoCycleTp / (TwoCycleTp + TwoCycleFn);

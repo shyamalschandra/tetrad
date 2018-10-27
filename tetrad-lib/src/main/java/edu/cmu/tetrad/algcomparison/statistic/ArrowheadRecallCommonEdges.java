@@ -27,7 +27,7 @@ public class ArrowheadRecallCommonEdges implements Statistic {
 
     @Override
     public double getValue(Graph trueGraph, Graph estGraph) {
-        ArrowConfusion adjConfusion = new ArrowConfusion(trueGraph, estGraph);
+        ArrowConfusion adjConfusion = new ArrowConfusion(trueGraph, estGraph, false);
         double arrowsTp = adjConfusion.getArrowsTpc();
         double arrowsFn = adjConfusion.getArrowsFnc();
         double den = arrowsTp + arrowsFn;

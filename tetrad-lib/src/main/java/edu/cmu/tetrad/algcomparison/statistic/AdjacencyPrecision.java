@@ -28,7 +28,7 @@ public class AdjacencyPrecision implements Statistic {
         int adjTp = adjConfusion.getAdjTp();
         int adjFp = adjConfusion.getAdjFp();
 //        int adjFn = adjConfusion.getAdjFn();
-//        int adjTn = adjConfusion.getAdjTn();
+//        int adjTn = adjConfusiogetAdjTn();
         if (adjTp == 0) return Double.NaN;
         return adjTp / (double) (adjTp + adjFp);
     }

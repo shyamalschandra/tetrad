@@ -13,6 +13,9 @@ import java.util.List;
  */
 public class ArrowConfusion {
 
+    // For arrowhead FP's, don't count an error unless the variables are adj in the true graph.
+    private boolean truthAdj = false;
+
     private Graph truth;
     private Graph est;
     private int arrowsTp;
@@ -27,7 +30,7 @@ public class ArrowConfusion {
     private int TCfn;
     private int TCfp;
 
-    public ArrowConfusion(Graph truth, Graph est) {
+    public ArrowConfusion(Graph truth, Graph est, boolean truthAdj) {
         this.truth = truth;
         this.est = est;
         arrowsTp = 0;
@@ -39,6 +42,7 @@ public class ArrowConfusion {
         TCtp = 0; //for the two-cycle accuracy
         TCfn = 0;
         TCfp = 0;
+        this.truthAdj = truthAdj;
 
 
         this.est = GraphUtils.replaceNodes(est, truth.getNodes());
@@ -191,13 +195,34 @@ public class ArrowConfusion {
             //          System.out.println(e1True);
             //          System.out.println(e2True);
 
+//            if ((isTruthAdj() && truth.isAdjacentTo(edge.getNode1(), edge.getNode2()))) {
+//                if (e1Est == Endpoint.ARROW && e1True != Endpoint.ARROW) {
+//                    arrowsFp++;
+//                }
+//
+//                if (e2Est == Endpoint.ARROW && e2True != Endpoint.ARROW) {
+//                    arrowsFp++;
+//                }
+//            }
 
-            if (e1Est == Endpoint.ARROW && e1True != Endpoint.ARROW) {
-                arrowsFp++;
-            }
+            if (isTruthAdj()) {
+                if (truth.isAdjacentTo(edge.getNode1(), edge.getNode2())) {
+                    if (e1Est == Endpoint.ARROW && e1True != Endpoint.ARROW) {
+                        arrowsFp++;
+                    }
 
-            if (e2Est == Endpoint.ARROW && e2True != Endpoint.ARROW) {
-                arrowsFp++;
+                    if (e2Est == Endpoint.ARROW && e2True != Endpoint.ARROW) {
+                        arrowsFp++;
+                    }
+                }
+            } else {
+                if (e1Est == Endpoint.ARROW && e1True != Endpoint.ARROW) {
+                    arrowsFp++;
+                }
+
+                if (e2Est == Endpoint.ARROW && e2True != Endpoint.ARROW) {
+                    arrowsFp++;
+                }
             }
 
             if (e1Est == Endpoint.ARROW && e1True != Endpoint.ARROW && edge1 != null && edge2 != null) {
@@ -314,5 +339,9 @@ public class ArrowConfusion {
      */
     public int getArrowsTnc() {
         return arrowsTnc;
+    }
+
+    public boolean isTruthAdj() {
+        return truthAdj;
     }
 }

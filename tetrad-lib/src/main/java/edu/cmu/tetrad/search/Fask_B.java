@@ -23,10 +23,12 @@ package edu.cmu.tetrad.search;
 
 import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.*;
+import edu.cmu.tetrad.regression.RegressionDataset;
 import edu.cmu.tetrad.util.DepthChoiceGenerator;
 import edu.cmu.tetrad.util.StatUtils;
 import edu.cmu.tetrad.util.TetradLogger;
 import edu.cmu.tetrad.util.TetradMatrix;
+import org.apache.commons.math3.distribution.TDistribution;
 import org.apache.commons.math3.linear.SingularMatrixException;
 
 import java.awt.*;
@@ -35,6 +37,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static edu.cmu.tetrad.util.StatUtils.correlation;
+import static edu.cmu.tetrad.util.StatUtils.mean;
+import static edu.cmu.tetrad.util.StatUtils.variance;
 import static java.lang.Math.*;
 
 /**
@@ -57,7 +62,7 @@ public final class Fask_B implements GraphSearch {
 
     // The data sets being analyzed. They must all have the same variables and the same
     // number of records.
-    private DataSet dataSet = null;
+    private DataSet dataSet;
 
     // For the Fast Adjacency Search.
     private int depth = -1;
@@ -89,6 +94,9 @@ public final class Fask_B implements GraphSearch {
     // Threshold for reversing casual judgments for negative coefficients.
     private double delta = -0.2;
 
+    private RegressionDataset regressionDataset;
+    private final List<Node> nodes;
+
     /**
      * @param dataSet These datasets must all have the same variables, in the same order.
      */
@@ -97,6 +105,8 @@ public final class Fask_B implements GraphSearch {
         this.test = test;
 
         data = dataSet.getDoubleData().transpose().toArray();
+        this.nodes = dataSet.getVariables();
+        regressionDataset = new RegressionDataset(dataSet);
     }
 
     //======================================== PUBLIC METHODS ====================================//
@@ -138,14 +148,7 @@ public final class Fask_B implements GraphSearch {
         } else {
             System.out.println("FAS");
 
-//            final SemBicScore score = new SemBicScore(new CovarianceMatrixOnTheFly(dataSet));
-//            score.setPenaltyDiscount(1);
-//            Fges fges = new Fges(score);
-//            fges.setMaxDegree(getDepth());
-//            fges.setKnowledge(knowledge);
-//            G0 = fges.search();
-
-            Fas fas = new Fas(test);
+            FasStable fas = new FasStable(test);
             fas.setDepth(getDepth());
             fas.setVerbose(false);
             fas.setKnowledge(knowledge);
@@ -184,21 +187,38 @@ public final class Fask_B implements GraphSearch {
                         edge2.setBold(true);
                         graph.addEdge(edge1);
                         graph.addEdge(edge2);
-                    } else if (!leftright(x, y) && !leftright(y, x)) {
-
-                        // The 2-cycle rule should have caught these, but we'll mark them in green.
-                        Edge edge1 = Edges.directedEdge(X, Y);
-                        Edge edge2 = Edges.directedEdge(Y, X);
-                        edge1.setLineColor(Color.GREEN);
-                        edge2.setLineColor(Color.GREEN);
-                        edge1.setBold(true);
-                        edge2.setBold(true);
-                        graph.addEdge(edge1);
-                        graph.addEdge(edge2);
                     } else if (!leftright(y, x)) {
                         graph.addDirectedEdge(X, Y);
                     } else if (!leftright(x, y)) {
                         graph.addDirectedEdge(Y, X);
+                    }
+                }
+            }
+        }
+
+        EDGES:
+        for (Edge edge : new ArrayList<>(graph.getEdges())) {
+            if (edge.isDirected()) {
+                Node tail = Edges.getDirectedEdgeTail(edge);
+                Node head = Edges.getDirectedEdgeHead(edge);
+
+                List<Node> parents = graph.getParents(head);
+                parents.remove(tail);
+
+                final int depth = this.depth == -1 ? 1000 : this.depth;
+                final int min = min(depth, parents.size());
+
+                DepthChoiceGenerator gen = new DepthChoiceGenerator(parents.size(), min);
+                int[] choice;
+
+                while ((choice = gen.next()) != null) {
+                    if (choice.length == 0) continue;
+
+                    List<Node> Z = GraphUtils.asList(choice, parents);
+
+                    if (!existsEdge(tail, head, Z)) {
+                        graph.removeEdge(edge);
+                        continue EDGES;
                     }
                 }
             }
@@ -211,6 +231,51 @@ public final class Fask_B implements GraphSearch {
         this.elapsed = stop - start;
 
         return graph;
+    }
+
+    private boolean existsEdge(Node x, Node y, List<Node> Z) {
+        final double[] _x = data[nodes.indexOf(x)];
+        final double[] _y = data[nodes.indexOf(y)];
+
+        List<Integer> rowsx = StatUtils.getRows(_x, 0, +1);
+        int[] _rowsx = new int[rowsx.size()];
+        for (int i = 0; i < rowsx.size(); i++) _rowsx[i] = rowsx.get(i);
+
+        List<Integer> rowsy = StatUtils.getRows(_y, 0, +1);
+        int[] _rowsy = new int[rowsy.size()];
+        for (int i = 0; i < rowsy.size(); i++) _rowsy[i] = rowsy.get(i);
+
+        regressionDataset.setRows(_rowsx);
+        double[] rxzx = regressionDataset.regress(x, Z).getResiduals().toArray();
+        double[] ryzx = regressionDataset.regress(y, Z).getResiduals().toArray();
+
+        regressionDataset.setRows(_rowsy);
+        double[] rxzy = regressionDataset.regress(x, Z).getResiduals().toArray();
+        double[] ryzy = regressionDataset.regress(y, Z).getResiduals().toArray();
+
+        double[] sxyx = new double[rxzx.length];
+
+        for (int i = 0; i < rxzx.length; i++) {
+            sxyx[i] = rxzx[i] * ryzx[i];
+        }
+
+        double[] sxyy = new double[rxzy.length];
+
+        for (int i = 0; i < rxzy.length; i++) {
+            sxyy[i] = rxzy[i] * ryzy[i];
+        }
+
+        double zv3 = (mean(sxyx)) / sqrt(variance(sxyx) / sxyx.length);
+        double zv4 = (mean(sxyy)) / sqrt(variance(sxyy) / sxyy.length);
+
+        double c3 = new TDistribution(sxyx.length).cumulativeProbability(abs(zv3));
+
+        double c4 = new TDistribution(sxyy.length).cumulativeProbability(abs(zv4));
+
+        boolean b3 = 2 * (1.0 - c3) < alpha;
+        boolean b4 = 2 * (1.0 - c4) < alpha;
+
+        return b3 && b4;
     }
 
     private double[] correctSkewnesses(double[] data) {
@@ -322,7 +387,7 @@ public final class Fask_B implements GraphSearch {
 
         double lr = Q - R;
 
-        if (StatUtils.correlation(x, y) < 0) lr += getDelta();
+        if (correlation(x, y) < 0) lr += getDelta();
         return lr > 0;
     }
 

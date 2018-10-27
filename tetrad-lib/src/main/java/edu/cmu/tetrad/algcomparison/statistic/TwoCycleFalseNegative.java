@@ -26,7 +26,7 @@ public class TwoCycleFalseNegative implements Statistic {
 
     @Override
     public double getValue(Graph trueGraph, Graph estGraph) {
-        ArrowConfusion adjConfusion = new ArrowConfusion(trueGraph, estGraph);
+        ArrowConfusion adjConfusion = new ArrowConfusion(trueGraph, estGraph, false);
         return (double) adjConfusion.getTwoCycleFn();
 
     }

@@ -2,6 +2,7 @@ package edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern;
 
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithm;
 import edu.cmu.tetrad.algcomparison.independence.IndependenceWrapper;
+import edu.cmu.tetrad.algcomparison.utils.HasKnowledge;
 import edu.cmu.tetrad.annotation.AlgType;
 import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.EdgeListGraph;
@@ -19,7 +20,7 @@ import java.util.List;
         command = "skew-search",
         algoType = AlgType.forbid_latent_common_causes
 )
-public class SkewSearch implements Algorithm {
+public class SkewSearch implements Algorithm, HasKnowledge {
     static final long serialVersionUID = 23L;
     private IndependenceWrapper test;
     private Algorithm algorithm = null;
@@ -44,7 +45,8 @@ public class SkewSearch implements Algorithm {
             edu.cmu.tetrad.search.SkewSearch search = new edu.cmu.tetrad.search.SkewSearch((DataSet) dataSet);
             search.setDepth(parameters.getInt("depth"));
             search.setAlpha(parameters.getDouble("alpha"));
-            search.setDelta(parameters.getDouble("faskDelta2"));
+            search.setTwoCycleAlpha(parameters.getDouble("twoCycleAlpha"));
+            search.setDelta(parameters.getDouble("faskDelta"));
             search.setKnowledge(knowledge);
             search.setVerbose(parameters.getBoolean("verbose"));
             return search.search();
@@ -88,6 +90,17 @@ public class SkewSearch implements Algorithm {
     public DataType getDataType() {
         return DataType.Continuous;
     }
+
+    @Override
+    public IKnowledge getKnowledge() {
+        return knowledge;
+    }
+
+    @Override
+    public void setKnowledge(IKnowledge knowledge) {
+        this.knowledge = knowledge;
+    }
+
 
     @Override
     public List<String> getParameters() {

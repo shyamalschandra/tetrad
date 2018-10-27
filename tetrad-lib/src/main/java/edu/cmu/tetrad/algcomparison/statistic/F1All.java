@@ -29,7 +29,7 @@ public class F1All implements Statistic {
     @Override
     public double getValue(Graph trueGraph, Graph estGraph) {
         AdjacencyConfusion adjConfusion = new AdjacencyConfusion(trueGraph, estGraph);
-        ArrowConfusion arrowConfusion = new ArrowConfusion(trueGraph, estGraph);
+        ArrowConfusion arrowConfusion = new ArrowConfusion(trueGraph, estGraph, false);
         int adjTp = adjConfusion.getAdjTp();
         int adjFp = adjConfusion.getAdjFp();
         int adjFn = adjConfusion.getAdjFn();

@@ -30,7 +30,7 @@ public class F1Arrow implements Statistic {
 
     @Override
     public double getValue(Graph trueGraph, Graph estGraph) {
-        ArrowConfusion arrowConfusion = new ArrowConfusion(trueGraph, estGraph);
+        ArrowConfusion arrowConfusion = new ArrowConfusion(trueGraph, estGraph, false);
         int arrowTp = arrowConfusion.getArrowsTp();
         int arrowFp = arrowConfusion.getArrowsFp();
         int arrowFn = arrowConfusion.getArrowsFn();

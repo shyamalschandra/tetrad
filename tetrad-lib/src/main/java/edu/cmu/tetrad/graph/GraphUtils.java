@@ -3746,17 +3746,24 @@ public final class GraphUtils {
             graph.removeEdge(edge);
             graph.addEdge(edge);
 
-            if (existsSemiDirectedPath(x, y, -1, graph)) {
+            Edge xyEdge = graph.getEdge(x, y);
+            graph.removeEdge(xyEdge);
+
+            if (!existsSemiDirectedPath(x, y, -1, graph)) {
+                edge.addProperty(Edge.Property.dd); // green.
+            } else {
+                edge.addProperty(Edge.Property.pd);
+            }
+
+            graph.addEdge(xyEdge);
+
+            if (graph.defVisible(edge)) {
                 edge.addProperty(Edge.Property.nl); // bold.
             } else {
                 edge.addProperty(Edge.Property.pl);
             }
 
-            if (graph.defVisible(edge)) {
-                edge.addProperty(Edge.Property.dd); // green.
-            } else {
-                edge.addProperty(Edge.Property.pd);
-            }
+
         }
     }
 
@@ -5012,7 +5019,7 @@ public final class GraphUtils {
 
     // Needs to be public.
     public static boolean existsInducingPathVisit(Graph graph, Node a, Node b, Node x, Node y,
-            LinkedList<Node> path) {
+                                                  LinkedList<Node> path) {
         if (path.contains(b)) {
             return false;
         }
