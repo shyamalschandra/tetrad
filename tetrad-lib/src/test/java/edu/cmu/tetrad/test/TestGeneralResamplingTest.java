@@ -40,8 +40,9 @@ import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.search.DagToPag;
 import edu.cmu.tetrad.sem.LargeScaleSimulation;
 import edu.cmu.tetrad.util.Parameters;
-import edu.pitt.dbmi.algo.bootstrap.BootstrapEdgeEnsemble;
-import edu.pitt.dbmi.algo.bootstrap.GeneralBootstrapTest;
+import edu.pitt.dbmi.algo.resampling.GeneralResamplingTest;
+import edu.pitt.dbmi.algo.resampling.ResamplingEdgeEnsemble;
+
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.Test;
@@ -53,7 +54,7 @@ import org.junit.Test;
  * @author Chirayu Kong Wongchokprasitti, PhD (chw20@pitt.edu)
  *
  */
-public class TestGeneralBootstrapTest {
+public class TestGeneralResamplingTest {
 
 	/**
 	 * @param args
@@ -105,26 +106,28 @@ public class TestGeneralBootstrapTest {
 		ScoreWrapper score = new SemBicScore();
 		Algorithm algorithm = new Fges(score);
 
-		GeneralBootstrapTest bootstrapTest = new GeneralBootstrapTest(data, algorithm, numBootstrapSamples);
+		GeneralResamplingTest bootstrapTest = new GeneralResamplingTest(data, algorithm, numBootstrapSamples);
+		bootstrapTest.setResamplingWithReplacement(true);
+		bootstrapTest.setResampleSize(data.getNumRows());
 		bootstrapTest.setVerbose(verbose);
 		bootstrapTest.setParameters(parameters);
-		bootstrapTest.setEdgeEnsemble(BootstrapEdgeEnsemble.Highest);
+		bootstrapTest.setEdgeEnsemble(ResamplingEdgeEnsemble.Highest);
 		Graph resultGraph = bootstrapTest.search();
-		System.out.println("Estimated Graph:");
-		System.out.println(resultGraph.toString());
+		//System.out.println("Estimated Graph:");
+		//System.out.println(resultGraph.toString());
 
 		// Adjacency Confusion Matrix
-		int[][] adjAr = GeneralBootstrapTest.getAdjConfusionMatrix(dag, resultGraph);
+		int[][] adjAr = GeneralResamplingTest.getAdjConfusionMatrix(dag, resultGraph);
 
 		printAdjConfusionMatrix(adjAr);
 
 		// Edge Type Confusion Matrix
-		int[][] edgeAr = GeneralBootstrapTest.getEdgeTypeConfusionMatrix(dag, resultGraph);
+		int[][] edgeAr = GeneralResamplingTest.getEdgeTypeConfusionMatrix(dag, resultGraph);
 
 		printEdgeTypeConfusionMatrix(edgeAr);
 	}
 
-	@Test
+	//@Test
 	public void testFGESd(){
 		double structurePrior = 1, samplePrior = 1;
 		boolean faithfulnessAssumed = false;
@@ -140,8 +143,8 @@ public class TestGeneralBootstrapTest {
 
 		Graph dag = makeDiscreteDAG(numVars, numLatentConfounders, edgesPerNode);
 
-		System.out.println("Truth Graph:");
-		System.out.println(dag.toString());
+		//System.out.println("Truth Graph:");
+		//System.out.println(dag.toString());
 
 		BayesPm pm = new BayesPm(dag, 2, 3);
 		BayesIm im = new MlBayesIm(pm, MlBayesIm.RANDOM);
@@ -159,21 +162,23 @@ public class TestGeneralBootstrapTest {
 		ScoreWrapper score = new BdeuScore();
 		Algorithm algorithm = new Fges(score);
 		
-		GeneralBootstrapTest bootstrapTest = new GeneralBootstrapTest(data, algorithm, numBootstrapSamples);
+		GeneralResamplingTest bootstrapTest = new GeneralResamplingTest(data, algorithm, numBootstrapSamples);
+		bootstrapTest.setResamplingWithReplacement(true);
+		bootstrapTest.setResampleSize(data.getNumRows());
 		bootstrapTest.setVerbose(verbose);
 		bootstrapTest.setParameters(parameters);
-		bootstrapTest.setEdgeEnsemble(BootstrapEdgeEnsemble.Highest);
+		bootstrapTest.setEdgeEnsemble(ResamplingEdgeEnsemble.Highest);
 		Graph resultGraph = bootstrapTest.search();
-		System.out.println("Estimated Graph:");
-		System.out.println(resultGraph.toString());
+		//System.out.println("Estimated Graph:");
+		//System.out.println(resultGraph.toString());
 
 		// Adjacency Confusion Matrix
-		int[][] adjAr = GeneralBootstrapTest.getAdjConfusionMatrix(dag, resultGraph);
+		int[][] adjAr = GeneralResamplingTest.getAdjConfusionMatrix(dag, resultGraph);
 
 		printAdjConfusionMatrix(adjAr);
 
 		// Edge Type Confusion Matrix
-		int[][] edgeAr = GeneralBootstrapTest.getEdgeTypeConfusionMatrix(dag, resultGraph);
+		int[][] edgeAr = GeneralResamplingTest.getEdgeTypeConfusionMatrix(dag, resultGraph);
 
 		printEdgeTypeConfusionMatrix(edgeAr);
 	}
@@ -196,8 +201,8 @@ public class TestGeneralBootstrapTest {
 		DagToPag dagToPag = new DagToPag(dag);
 		Graph truePag = dagToPag.convert();
 
-		System.out.println("Truth PAG_of_the_true_DAG Graph:");
-		System.out.println(truePag.toString());
+		//System.out.println("Truth PAG_of_the_true_DAG Graph:");
+		//System.out.println(truePag.toString());
 
 		int[] causalOrdering = new int[numVars];
 
@@ -220,26 +225,28 @@ public class TestGeneralBootstrapTest {
 		IndependenceWrapper test =  new FisherZ();
 		Algorithm algorithm = new Gfci(test, score);
 		
-		GeneralBootstrapTest bootstrapTest = new GeneralBootstrapTest(data, algorithm, numBootstrapSamples);
+		GeneralResamplingTest bootstrapTest = new GeneralResamplingTest(data, algorithm, numBootstrapSamples);
+		bootstrapTest.setResamplingWithReplacement(true);
+		bootstrapTest.setResampleSize(data.getNumRows());
 		bootstrapTest.setVerbose(verbose);
 		bootstrapTest.setParameters(parameters);
-		bootstrapTest.setEdgeEnsemble(BootstrapEdgeEnsemble.Highest);
+		bootstrapTest.setEdgeEnsemble(ResamplingEdgeEnsemble.Highest);
 		Graph resultGraph = bootstrapTest.search();
-		System.out.println("Estimated PAG_of_the_true_DAG Graph:");
-		System.out.println(resultGraph.toString());
+		//System.out.println("Estimated PAG_of_the_true_DAG Graph:");
+		//System.out.println(resultGraph.toString());
 
 		// Adjacency Confusion Matrix
-		int[][] adjAr = GeneralBootstrapTest.getAdjConfusionMatrix(truePag, resultGraph);
+		int[][] adjAr = GeneralResamplingTest.getAdjConfusionMatrix(truePag, resultGraph);
 
 		printAdjConfusionMatrix(adjAr);
 
 		// Edge Type Confusion Matrix
-		int[][] edgeAr = GeneralBootstrapTest.getEdgeTypeConfusionMatrix(truePag, resultGraph);
+		int[][] edgeAr = GeneralResamplingTest.getEdgeTypeConfusionMatrix(truePag, resultGraph);
 
 		printEdgeTypeConfusionMatrix(edgeAr);
 	}
 	
-	@Test
+	//@Test
 	public void testGFCId(){
 		double structurePrior = 1, samplePrior = 1;
 		boolean faithfulnessAssumed = false;
@@ -258,8 +265,8 @@ public class TestGeneralBootstrapTest {
 		DagToPag dagToPag = new DagToPag(dag);
 		Graph truePag = dagToPag.convert();
 
-		System.out.println("Truth PAG_of_the_true_DAG Graph:");
-		System.out.println(truePag.toString());
+		//System.out.println("Truth PAG_of_the_true_DAG Graph:");
+		//System.out.println(truePag.toString());
 
 		BayesPm pm = new BayesPm(dag, 2, 3);
 		BayesIm im = new MlBayesIm(pm, MlBayesIm.RANDOM);
@@ -278,26 +285,28 @@ public class TestGeneralBootstrapTest {
 		IndependenceWrapper test =  new ChiSquare();
 		Algorithm algorithm = new Gfci(test, score);
 		
-		GeneralBootstrapTest bootstrapTest = new GeneralBootstrapTest(data, algorithm, numBootstrapSamples);
+		GeneralResamplingTest bootstrapTest = new GeneralResamplingTest(data, algorithm, numBootstrapSamples);
+		bootstrapTest.setResamplingWithReplacement(true);
+		bootstrapTest.setResampleSize(data.getNumRows());
 		bootstrapTest.setVerbose(verbose);
 		bootstrapTest.setParameters(parameters);
-		bootstrapTest.setEdgeEnsemble(BootstrapEdgeEnsemble.Highest);
+		bootstrapTest.setEdgeEnsemble(ResamplingEdgeEnsemble.Highest);
 		Graph resultGraph = bootstrapTest.search();
-		System.out.println("Estimated Bootstrapped PAG_of_the_true_DAG Graph:");
-		System.out.println(resultGraph.toString());
+		//System.out.println("Estimated Bootstrapped PAG_of_the_true_DAG Graph:");
+		//System.out.println(resultGraph.toString());
 
 		// Adjacency Confusion Matrix
-		int[][] adjAr = GeneralBootstrapTest.getAdjConfusionMatrix(truePag, resultGraph);
+		int[][] adjAr = GeneralResamplingTest.getAdjConfusionMatrix(truePag, resultGraph);
 
 		printAdjConfusionMatrix(adjAr);
 
 		// Edge Type Confusion Matrix
-		int[][] edgeAr = GeneralBootstrapTest.getEdgeTypeConfusionMatrix(truePag, resultGraph);
+		int[][] edgeAr = GeneralResamplingTest.getEdgeTypeConfusionMatrix(truePag, resultGraph);
 
 		printEdgeTypeConfusionMatrix(edgeAr);
 	}
 	
-	@Test
+	//@Test
 	public void testFCIc(){
 		int penaltyDiscount = 2;
 		int depth = 3;
@@ -315,8 +324,8 @@ public class TestGeneralBootstrapTest {
 		DagToPag dagToPag = new DagToPag(dag);
 		Graph truePag = dagToPag.convert();
 
-		System.out.println("Truth PAG_of_the_true_DAG Graph:");
-		System.out.println(truePag.toString());
+		//System.out.println("Truth PAG_of_the_true_DAG Graph:");
+		//System.out.println(truePag.toString());
 
 		int[] causalOrdering = new int[numVars];
 
@@ -338,27 +347,29 @@ public class TestGeneralBootstrapTest {
 		IndependenceWrapper test =  new FisherZ();
 		Fci algorithm = new Fci(test);
 		
-		GeneralBootstrapTest bootstrapTest = new GeneralBootstrapTest(data, algorithm, numBootstrapSamples);
+		GeneralResamplingTest bootstrapTest = new GeneralResamplingTest(data, algorithm, numBootstrapSamples);
+		bootstrapTest.setResamplingWithReplacement(true);
+		bootstrapTest.setResampleSize(data.getNumRows());
 		bootstrapTest.setVerbose(verbose);
 		bootstrapTest.setParameters(parameters);
-		bootstrapTest.setEdgeEnsemble(BootstrapEdgeEnsemble.Preserved);
+		bootstrapTest.setEdgeEnsemble(ResamplingEdgeEnsemble.Preserved);
 		//bootstrapTest.setParallelMode(false);
 		Graph resultGraph = bootstrapTest.search();
-		System.out.println("Estimated PAG_of_the_true_DAG Graph:");
-		System.out.println(resultGraph.toString());
+		//System.out.println("Estimated PAG_of_the_true_DAG Graph:");
+		//System.out.println(resultGraph.toString());
 
 		// Adjacency Confusion Matrix
-		int[][] adjAr = GeneralBootstrapTest.getAdjConfusionMatrix(truePag, resultGraph);
+		int[][] adjAr = GeneralResamplingTest.getAdjConfusionMatrix(truePag, resultGraph);
 
 		printAdjConfusionMatrix(adjAr);
 
 		// Edge Type Confusion Matrix
-		int[][] edgeAr = GeneralBootstrapTest.getEdgeTypeConfusionMatrix(truePag, resultGraph);
+		int[][] edgeAr = GeneralResamplingTest.getEdgeTypeConfusionMatrix(truePag, resultGraph);
 
 		printEdgeTypeConfusionMatrix(edgeAr);
 	}
 	
-	@Test
+	//@Test
 	public void testFCId(){
 		double structurePrior = 1, samplePrior = 1;
 		int depth = -1;
@@ -377,8 +388,8 @@ public class TestGeneralBootstrapTest {
 		DagToPag dagToPag = new DagToPag(dag);
 		Graph truePag = dagToPag.convert();
 
-		System.out.println("Truth PAG_of_the_true_DAG Graph:");
-		System.out.println(truePag.toString());
+		//System.out.println("Truth PAG_of_the_true_DAG Graph:");
+		//System.out.println(truePag.toString());
 
 		BayesPm pm = new BayesPm(dag, 2, 3);
 		BayesIm im = new MlBayesIm(pm, MlBayesIm.RANDOM);
@@ -396,21 +407,23 @@ public class TestGeneralBootstrapTest {
 		IndependenceWrapper test =  new ChiSquare();
 		Algorithm algorithm = new Fci(test);
 		
-		GeneralBootstrapTest bootstrapTest = new GeneralBootstrapTest(data, algorithm, numBootstrapSamples);
+		GeneralResamplingTest bootstrapTest = new GeneralResamplingTest(data, algorithm, numBootstrapSamples);
+		bootstrapTest.setResamplingWithReplacement(true);
+		bootstrapTest.setResampleSize(data.getNumRows());
 		bootstrapTest.setVerbose(verbose);
 		bootstrapTest.setParameters(parameters);
-		bootstrapTest.setEdgeEnsemble(BootstrapEdgeEnsemble.Highest);
+		bootstrapTest.setEdgeEnsemble(ResamplingEdgeEnsemble.Highest);
 		Graph resultGraph = bootstrapTest.search();
-		System.out.println("Estimated Bootstrapped PAG_of_the_true_DAG Graph:");
-		System.out.println(resultGraph.toString());
+		//System.out.println("Estimated Bootstrapped PAG_of_the_true_DAG Graph:");
+		//System.out.println(resultGraph.toString());
 
 		// Adjacency Confusion Matrix
-		int[][] adjAr = GeneralBootstrapTest.getAdjConfusionMatrix(truePag, resultGraph);
+		int[][] adjAr = GeneralResamplingTest.getAdjConfusionMatrix(truePag, resultGraph);
 
 		printAdjConfusionMatrix(adjAr);
 
 		// Edge Type Confusion Matrix
-		int[][] edgeAr = GeneralBootstrapTest.getEdgeTypeConfusionMatrix(truePag, resultGraph);
+		int[][] edgeAr = GeneralResamplingTest.getEdgeTypeConfusionMatrix(truePag, resultGraph);
 
 		printEdgeTypeConfusionMatrix(edgeAr);
 	}
