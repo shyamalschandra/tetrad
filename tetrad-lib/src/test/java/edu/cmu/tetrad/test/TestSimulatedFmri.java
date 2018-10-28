@@ -227,7 +227,7 @@ public class TestSimulatedFmri {
         parameters.set("extraEdgeThreshold", 10);
 
         parameters.set("numRuns", 5);
-        parameters.set("randomSelectionSize", 1);
+        parameters.set("randomSelectionSize", 2);
 
         parameters.set("Structure", "Placeholder");
 
