@@ -57,12 +57,12 @@ public class TestSimulatedFmri {
     private void task(boolean testing) {
         Parameters parameters = new Parameters();
         parameters.set("penaltyDiscount", 1);
-        parameters.set("alpha", 0.001);
+        parameters.set("alpha", 0.00001);
         parameters.set("depth", 5);
         parameters.set("twoCycleAlpha", .001);
         parameters.set("faskDelta", -.2);
         parameters.set("faskDelta2", -.2);
-        parameters.set("extraEdgeThreshold", 0.3);
+        parameters.set("extraEdgeThreshold", 0.25);
 
         parameters.set("numRuns", 5);
         parameters.set("randomSelectionSize", 1);
@@ -223,14 +223,15 @@ public class TestSimulatedFmri {
     public void task2() {
         Parameters parameters = new Parameters();
         parameters.set("penaltyDiscount", 1);
-        parameters.set("depth", 3);
+        parameters.set("depth", -1);
         parameters.set("faskDelta", -.2);
+        parameters.set("extraEdgeThreshold", 0.25);
 
-        parameters.set("alpha", 0.2);
+        parameters.set("alpha", 0.05);
         parameters.set("twoCycleAlpha", 1e-4);
 
         parameters.set("numRuns", 10);
-        parameters.set("randomSelectionSize", 2);
+        parameters.set("randomSelectionSize", 1);
 
         parameters.set("Structure", "Placeholder");
 
@@ -259,10 +260,10 @@ public class TestSimulatedFmri {
         Algorithms algorithms = new Algorithms();
 
         for (int i = 1; i <= 28; i++) {
-//            if (i == 21) continue;
-            simulations.add(new LoadContinuousDataSmithSim("/Users/user/Downloads/smithsim/", i));
+            if (i == 21) continue;
+//            simulations.add(new LoadContinuousDataSmithSim("/Users/user/Downloads/smithsim/", i));
 //            simulations.add(new LoadContinuousDataPwdd7("/Users/user/Downloads/pwdd7/", i, "50_BOLDdemefilt1"));
-//            simulations.add(new LoadContinuousDataPwdd7("/Users/user/Downloads/pwdd7/", i, "50_BOLDnoise"));
+            simulations.add(new LoadContinuousDataPwdd7("/Users/user/Downloads/pwdd7/", i, "50_BOLDnoise"));
         }
 
 //        algorithms.add(new LofsConcatenated(Lofs2.Rule.FASKLR));

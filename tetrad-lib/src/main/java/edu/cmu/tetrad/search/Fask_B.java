@@ -32,10 +32,8 @@ import org.apache.commons.math3.distribution.TDistribution;
 import org.apache.commons.math3.linear.SingularMatrixException;
 
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.*;
 import java.util.List;
-import java.util.Set;
 
 import static edu.cmu.tetrad.util.StatUtils.correlation;
 import static edu.cmu.tetrad.util.StatUtils.mean;
@@ -173,7 +171,11 @@ public final class Fask_B implements GraphSearch {
                 double c1 = StatUtils.cov(x, y, x, 0, +1)[1];
                 double c2 = StatUtils.cov(x, y, y, 0, +1)[1];
 
-                if ((isUseFasAdjacencies() && G0.isAdjacentTo(X, Y)) || (isUseSkewAdjacencies() && Math.abs(c1 - c2) > getExtraEdgeThreshold())) {
+                if ((isUseFasAdjacencies() && G0.isAdjacentTo(X, Y))
+                        || (isUseSkewAdjacencies()
+//                        && existsEdge(X, Y, Collections.emptyList()))) {
+                        && adjacenct2(x, y, G0, X, Y))) {
+//                        && Math.abs(c1 - c2) > getExtraEdgeThreshold())) {
                     if (edgeForbiddenByKnowledge(X, Y)) {
                         // Don't add an edge.
                     } else if (knowledgeOrients(X, Y)) {
@@ -196,33 +198,33 @@ public final class Fask_B implements GraphSearch {
             }
         }
 
-        EDGES:
-        for (Edge edge : new ArrayList<>(graph.getEdges())) {
-            if (edge.isDirected()) {
-                Node tail = Edges.getDirectedEdgeTail(edge);
-                Node head = Edges.getDirectedEdgeHead(edge);
-
-                List<Node> parents = graph.getParents(head);
-                parents.remove(tail);
-
-                final int depth = this.depth == -1 ? 1000 : this.depth;
-                final int min = min(depth, parents.size());
-
-                DepthChoiceGenerator gen = new DepthChoiceGenerator(parents.size(), min);
-                int[] choice;
-
-                while ((choice = gen.next()) != null) {
-                    if (choice.length == 0) continue;
-
-                    List<Node> Z = GraphUtils.asList(choice, parents);
-
-                    if (!existsEdge(tail, head, Z)) {
-                        graph.removeEdge(edge);
-                        continue EDGES;
-                    }
-                }
-            }
-        }
+//        EDGES:
+//        for (Edge edge : new ArrayList<>(graph.getEdges())) {
+//            if (edge.isDirected()) {
+//                Node tail = Edges.getDirectedEdgeTail(edge);
+//                Node head = Edges.getDirectedEdgeHead(edge);
+//
+//                List<Node> parents = graph.getParents(head);
+//                parents.remove(tail);
+//
+//                final int depth = this.depth == -1 ? 1000 : this.depth;
+//                final int min = min(depth, parents.size());
+//
+//                DepthChoiceGenerator gen = new DepthChoiceGenerator(parents.size(), min);
+//                int[] choice;
+//
+//                while ((choice = gen.next()) != null) {
+//                    if (choice.length == 0) continue;
+//
+//                    List<Node> Z = GraphUtils.asList(choice, parents);
+//
+//                    if (!existsEdge(tail, head, Z)) {
+//                        graph.removeEdge(edge);
+//                        continue EDGES;
+//                    }
+//                }
+//            }
+//        }
 
         System.out.println();
         System.out.println("Done");
@@ -618,6 +620,51 @@ public final class Fask_B implements GraphSearch {
         }
 
         return rows;
+    }
+
+    private boolean adjacenct2(double[] x, double[] y, Graph G0, Node X, Node Y) {
+        Set<Node> adjSet = new HashSet<>(G0.getAdjacentNodes(X));
+        adjSet.addAll(G0.getAdjacentNodes(Y));
+        List<Node> adj = new ArrayList<>(adjSet);
+        adj.remove(X);
+        adj.remove(Y);
+
+        double[][] _Z = new double[0][];
+
+//        double pc = 0;
+        double pc1 = 0;
+        double pc2 = 0;
+
+        try {
+//            pc = partialCorrelation(x, y, _Z, x, Double.NEGATIVE_INFINITY, +1);
+//            pc1 = partialCorrelation(x, y, _Z, x, 0, +1);
+//            pc2 = partialCorrelation(x, y, _Z, y, 0, +1);
+
+            pc1 = StatUtils.cov(x, y, x, 0, +1)[1];
+            pc2 = StatUtils.cov(x, y, y, 0, +1)[1];
+
+        } catch (SingularMatrixException e) {
+            System.out.println("Singularity X = " + X + " Y = " + Y + " adj = " + adj);
+            TetradLogger.getInstance().log("info", "Singularity X = " + X + " Y = " + Y + " adj = " + adj);
+        }
+
+//        int nc = StatUtils.getRows(x, Double.NEGATIVE_INFINITY, +1).size();
+        int nc1 = StatUtils.getRows(x, 0, +1).size();
+        int nc2 = StatUtils.getRows(y, 0, +1).size();
+
+//        double z = 0.5 * (log(1.0 + pc) - log(1.0 - pc));
+        double z1 = 0.5 * (log(1.0 + pc1) - log(1.0 - pc1));
+        double z2 = 0.5 * (log(1.0 + pc2) - log(1.0 - pc2));
+
+//        double zv1 = (z - z1) / sqrt((1.0 / ((double) nc - 3) + 1.0 / ((double) nc1 - 3)));
+//        double zv2 = (z - z2) / sqrt((1.0 / ((double) nc - 3) + 1.0 / ((double) nc2 - 3)));
+        double zv3 = (z1 - z2) / sqrt((1.0 / ((double) nc1 - 3) + 1.0 / ((double) nc2 - 3)));
+
+//        boolean rejected1 = abs(zv1) > cutoff;
+//        boolean rejected2 = abs(zv2) > cutoff;
+        boolean rejected3 = abs(zv3) > getExtraEdgeThreshold();
+
+        return rejected3;
     }
 }
 

@@ -242,7 +242,7 @@ public class ParamDescriptions {
 
         map.put("extraEdgeThreshold", new ParamDescription(
                 "Threshold for including extra edges",
-                0.3, 0.0, 1.0));
+                0.3, 0.0, Double.POSITIVE_INFINITY));
 
         map.put("useFasAdjacencies", new ParamDescription(
                 "Yes if adjacencies from the FAS search should be used",
