@@ -55,7 +55,7 @@ public class Fask_B implements Algorithm, HasKnowledge, TakesIndependenceWrapper
             search.setExtraEdgeThreshold(parameters.getDouble("extraEdgeThreshold"));
             search.setUseFasAdjacencies(parameters.getBoolean("useFasAdjacencies"));
             search.setUseSkewAdjacencies(parameters.getBoolean("useCorrDiffAdjacencies"));
-            search.setAlpha(parameters.getDouble("twoCycleAlpha"));
+            search.setTwoCycleAlpha(parameters.getDouble("twoCycleAlpha"));
             search.setDelta(parameters.getDouble("faskDelta"));
 
             search.setUseFasAdjacencies(parameters.getBoolean("useFasAdjacencies"));

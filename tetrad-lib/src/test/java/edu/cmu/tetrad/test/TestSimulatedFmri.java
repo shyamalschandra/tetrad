@@ -57,12 +57,10 @@ public class TestSimulatedFmri {
     private void task(boolean testing) {
         Parameters parameters = new Parameters();
         parameters.set("penaltyDiscount", 1);
-        parameters.set("alpha", 0.00001);
-        parameters.set("depth", 5);
-        parameters.set("twoCycleAlpha", .001);
+        parameters.set("twoCycleAlpha", .0001);
         parameters.set("faskDelta", -.2);
-        parameters.set("faskDelta2", -.2);
-        parameters.set("extraEdgeThreshold", 0.25);
+        parameters.set("depth", 5);
+        parameters.set("extraEdgeThreshold", 10);
 
         parameters.set("numRuns", 5);
         parameters.set("randomSelectionSize", 1);
@@ -189,7 +187,7 @@ public class TestSimulatedFmri {
 
         algorithms.add(new FaskConcatenated(new SemBicScore()));
         algorithms.add(new Fask_BConcatenated(new SemBicTest()));
-        algorithms.add(new SkewSearchConcatenated(new FisherZSkew()));
+//        algorithms.add(new SkewSearchConcatenated(new FisherZSkew()));
 //        algorithms.add(new FaskConcatenated(new SemBicScore()));
 //        algorithms.add(new Fask_BConcatenated(new SemBicTest()));
 //        algorithms.add(new FaskConcatenated(new SemBicScore()));
@@ -223,14 +221,12 @@ public class TestSimulatedFmri {
     public void task2() {
         Parameters parameters = new Parameters();
         parameters.set("penaltyDiscount", 1);
-        parameters.set("depth", -1);
+        parameters.set("twoCycleAlpha", .0001);
         parameters.set("faskDelta", -.2);
-        parameters.set("extraEdgeThreshold", 0.25);
+        parameters.set("depth", 5);
+        parameters.set("extraEdgeThreshold", 10);
 
-        parameters.set("alpha", 0.05);
-        parameters.set("twoCycleAlpha", 1e-4);
-
-        parameters.set("numRuns", 10);
+        parameters.set("numRuns", 5);
         parameters.set("randomSelectionSize", 1);
 
         parameters.set("Structure", "Placeholder");
@@ -277,7 +273,7 @@ public class TestSimulatedFmri {
 
         algorithms.add(new FaskConcatenated(new SemBicScore()));
         algorithms.add(new Fask_BConcatenated(new SemBicTest()));
-        algorithms.add(new SkewSearchConcatenated());
+//        algorithms.add(new SkewSearchConcatenated());
 
 //        algorithms.add(new FasLofsConcatenated(Lofs2.Rule.R1));
 //        algorithms.add(new FasLofsConcatenated(Lofs2.Rule.Patel));

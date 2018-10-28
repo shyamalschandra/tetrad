@@ -58,14 +58,14 @@ public class Fask_BConcatenated implements MultiDataSetAlgorithm, HasKnowledge, 
 
             dataSet.setNumberFormat(new DecimalFormat("0.000000000000000000"));
 
-            edu.cmu.tetrad.search.Fask_B search = new edu.cmu.tetrad.search.Fask_B((DataSet) dataSet, test.getTest(dataSet, parameters));
+            edu.cmu.tetrad.search.Fask_B search = new edu.cmu.tetrad.search.Fask_B(dataSet, test.getTest(dataSet, parameters));
             search.setDepth(parameters.getInt("depth"));
             search.setPenaltyDiscount(parameters.getDouble("penaltyDiscount"));
             search.setExtraEdgeThreshold(parameters.getDouble("extraEdgeThreshold"));
-//            search.setUseFasAdjacencies(parameters.getBoolean("useFasAdjacencies"));
-//            search.setUseSkewAdjacencies(parameters.getBoolean("useCorrDiffAdjacencies"));
-            search.setAlpha(parameters.getDouble("twoCycleAlpha"));
-            search.setDelta(parameters.getDouble("faskDelta2"));
+            search.setUseFasAdjacencies(parameters.getBoolean("useFasAdjacencies"));
+            search.setUseSkewAdjacencies(parameters.getBoolean("useCorrDiffAdjacencies"));
+            search.setTwoCycleAlpha(parameters.getDouble("twoCycleAlpha"));
+            search.setDelta(parameters.getDouble("faskDelta"));
 
             search.setUseFasAdjacencies(parameters.getBoolean("useFasAdjacencies"));
             search.setUseSkewAdjacencies(parameters.getBoolean("useCorrDiffAdjacencies"));
@@ -165,7 +165,7 @@ public class Fask_BConcatenated implements MultiDataSetAlgorithm, HasKnowledge, 
         parameters.add("depth");
         parameters.add("twoCycleAlpha");
         parameters.add("extraEdgeThreshold");
-        parameters.add("faskDelta2");
+        parameters.add("faskDelta");
 
         parameters.add("useFasAdjacencies");
         parameters.add("useCorrDiffAdjacencies");
