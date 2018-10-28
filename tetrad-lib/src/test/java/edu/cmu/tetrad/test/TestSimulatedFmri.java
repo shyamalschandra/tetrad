@@ -63,7 +63,7 @@ public class TestSimulatedFmri {
         parameters.set("extraEdgeThreshold", 10);
 
         parameters.set("numRuns", 5);
-        parameters.set("randomSelectionSize", 1);
+        parameters.set("randomSelectionSize", 2);
 
         parameters.set("useFasAdjacencies", true);
         parameters.set("useCorrDiffAdjacencies", true);
@@ -222,7 +222,7 @@ public class TestSimulatedFmri {
         Parameters parameters = new Parameters();
         parameters.set("penaltyDiscount", 1);
         parameters.set("twoCycleAlpha", .0001);
-        parameters.set("faskDelta", -.2);
+        parameters.set("faskDelta", -.3);
         parameters.set("depth", 5);
         parameters.set("extraEdgeThreshold", 10);
 
@@ -256,10 +256,10 @@ public class TestSimulatedFmri {
         Algorithms algorithms = new Algorithms();
 
         for (int i = 1; i <= 28; i++) {
-            if (i == 21) continue;
-//            simulations.add(new LoadContinuousDataSmithSim("/Users/user/Downloads/smithsim/", i));
+//            if (i == 21) continue;
+            simulations.add(new LoadContinuousDataSmithSim("/Users/user/Downloads/smithsim/", i));
 //            simulations.add(new LoadContinuousDataPwdd7("/Users/user/Downloads/pwdd7/", i, "50_BOLDdemefilt1"));
-            simulations.add(new LoadContinuousDataPwdd7("/Users/user/Downloads/pwdd7/", i, "50_BOLDnoise"));
+//            simulations.add(new LoadContinuousDataPwdd7("/Users/user/Downloads/pwdd7/", i, "50_BOLDnoise"));
         }
 
 //        algorithms.add(new LofsConcatenated(Lofs2.Rule.FASKLR));
