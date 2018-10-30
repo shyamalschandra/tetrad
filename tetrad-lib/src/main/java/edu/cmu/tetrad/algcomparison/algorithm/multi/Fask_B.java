@@ -2,10 +2,8 @@ package edu.cmu.tetrad.algcomparison.algorithm.multi;
 
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithm;
 import edu.cmu.tetrad.algcomparison.independence.IndependenceWrapper;
-import edu.cmu.tetrad.algcomparison.score.ScoreWrapper;
 import edu.cmu.tetrad.algcomparison.utils.HasKnowledge;
 import edu.cmu.tetrad.algcomparison.utils.TakesIndependenceWrapper;
-import edu.cmu.tetrad.algcomparison.utils.UsesScoreWrapper;
 import edu.cmu.tetrad.annotation.AlgType;
 import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.EdgeListGraph;
@@ -52,7 +50,7 @@ public class Fask_B implements Algorithm, HasKnowledge, TakesIndependenceWrapper
             edu.cmu.tetrad.search.Fask_B search = new edu.cmu.tetrad.search.Fask_B((DataSet) dataSet, test.getTest(dataSet, parameters));
             search.setDepth(parameters.getInt("depth"));
             search.setPenaltyDiscount(parameters.getDouble("penaltyDiscount"));
-            search.setExtraEdgeThreshold(parameters.getDouble("extraEdgeThreshold"));
+            search.setSkewEdgeAlpha(parameters.getDouble("skewEdgeAlpha"));
             search.setUseFasAdjacencies(parameters.getBoolean("useFasAdjacencies"));
             search.setUseSkewAdjacencies(parameters.getBoolean("useCorrDiffAdjacencies"));
             search.setTwoCycleAlpha(parameters.getDouble("twoCycleAlpha"));
@@ -112,7 +110,7 @@ public class Fask_B implements Algorithm, HasKnowledge, TakesIndependenceWrapper
         List<String> parameters = test.getParameters();
         parameters.add("depth");
         parameters.add("twoCycleAlpha");
-        parameters.add("extraEdgeThreshold");
+        parameters.add("skewEdgeAlpha");
         parameters.add("faskDelta");
 
         parameters.add("useFasAdjacencies");

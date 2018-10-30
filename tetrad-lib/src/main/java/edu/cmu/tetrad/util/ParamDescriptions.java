@@ -244,6 +244,10 @@ public class ParamDescriptions {
                 "Threshold for including extra edges",
                 0.3, 0.0, Double.POSITIVE_INFINITY));
 
+        map.put("skewEdgeAlpha", new ParamDescription(
+                "Alpha for including extra edges based on skewness",
+                0.3, 0.0, Double.POSITIVE_INFINITY));
+
         map.put("useFasAdjacencies", new ParamDescription(
                 "Yes if adjacencies from the FAS search should be used",
                 true));

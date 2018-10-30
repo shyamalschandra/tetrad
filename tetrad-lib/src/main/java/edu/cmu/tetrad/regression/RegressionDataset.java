@@ -135,28 +135,28 @@ public class RegressionDataset implements Regression {
         }
 
         TetradMatrix y = data.getSelection(getRows(), new int[]{_target}).copy();
-        TetradMatrix xSub = data.getSelection(getRows(), _regressors);
+//        TetradMatrix xSub = data.getSelection(getRows(), _regressors);
 
         TetradMatrix x;
 
         if (regressors.size() > 0) {
-            x = new TetradMatrix(xSub.rows(), xSub.columns() + 1);
+            x = new TetradMatrix(getRows().length, _regressors.length + 1);
 
             for (int i = 0; i < x.rows(); i++) {
                 for (int j = 0; j < x.columns(); j++) {
                     if (j == 0) {
                         x.set(i, j, 1);
                     } else {
-                        x.set(i, j, xSub.get(i, j - 1));
+                        x.set(i, j, data.get(getRows()[i], _regressors[j - 1]));// - 1));
                     }
                 }
             }
         } else {
-            x = new TetradMatrix(xSub.rows(), xSub.columns());
+            x = new TetradMatrix(getRows().length, _regressors.length);
 
             for (int i = 0; i < x.rows(); i++) {
                 for (int j = 0; j < x.columns(); j++) {
-                    x.set(i, j, xSub.get(i, j));
+                    x.set(i, j, data.get(getRows()[i], _regressors[j]));
                 }
             }
         }

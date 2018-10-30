@@ -57,13 +57,14 @@ public class TestSimulatedFmri {
     private void task(boolean testing) {
         Parameters parameters = new Parameters();
         parameters.set("penaltyDiscount", 1);
-        parameters.set("twoCycleAlpha", .0001);
-        parameters.set("faskDelta", -.2);
+        parameters.set("twoCycleAlpha", .0000001);
+        parameters.set("faskDelta", -.3);
         parameters.set("depth", 5);
         parameters.set("extraEdgeThreshold", 10);
+        parameters.set("skewEdgeAlpha", 0.01);
 
         parameters.set("numRuns", 5);
-        parameters.set("randomSelectionSize", 2);
+        parameters.set("randomSelectionSize", 1);
 
         parameters.set("useFasAdjacencies", true);
         parameters.set("useCorrDiffAdjacencies", true);
@@ -221,13 +222,14 @@ public class TestSimulatedFmri {
     public void task2() {
         Parameters parameters = new Parameters();
         parameters.set("penaltyDiscount", 1);
-        parameters.set("twoCycleAlpha", .0001);
+        parameters.set("twoCycleAlpha", .0000001);
         parameters.set("faskDelta", -.3);
         parameters.set("depth", 5);
         parameters.set("extraEdgeThreshold", 10);
+        parameters.set("skewEdgeAlpha", 0.01);
 
         parameters.set("numRuns", 5);
-        parameters.set("randomSelectionSize", 2);
+        parameters.set("randomSelectionSize", 1);
 
         parameters.set("Structure", "Placeholder");
 

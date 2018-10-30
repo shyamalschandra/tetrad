@@ -142,7 +142,7 @@ public class MultiFask {
                 }
 
                 if ((isUseFasAdjacencies() && G0.isAdjacentTo(X, Y)) || (isUseSkewAdjacencies() && (Math.abs(c1 - c2) / dataSets.size()) > getExtraEdgeThreshold())) {
-                    // if ((isUseFasAdjacencies() && G0.isAdjacentTo(X, Y)) || (isUseSkewAdjacencies() && (Math.abs(c1 - c2) > getExtraEdgeThreshold()))) {
+                    // if ((isUseFasAdjacencies() && G0.isAdjacentTo(X, Y)) || (isUseSkewAdjacencies() && (Math.abs(c1 - c2) > getSkewEdgeAlpha()))) {
 
                     if (knowledgeOrients(X, Y)) {
                         graph.addDirectedEdge(X, Y);

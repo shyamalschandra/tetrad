@@ -26,18 +26,15 @@ import edu.cmu.tetrad.data.DataUtils;
 import edu.cmu.tetrad.data.IKnowledge;
 import edu.cmu.tetrad.data.Knowledge2;
 import edu.cmu.tetrad.graph.*;
-import edu.cmu.tetrad.util.DepthChoiceGenerator;
-import edu.cmu.tetrad.util.StatUtils;
-import edu.cmu.tetrad.util.TetradLogger;
-import edu.cmu.tetrad.util.TetradMatrix;
+import edu.cmu.tetrad.regression.RegressionDataset;
+import edu.cmu.tetrad.util.*;
 import org.apache.commons.math3.linear.SingularMatrixException;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static edu.cmu.tetrad.util.StatUtils.correlation;
+import static edu.cmu.tetrad.util.StatUtils.mean;
+import static edu.cmu.tetrad.util.StatUtils.variance;
 import static java.lang.Math.*;
 
 /**
@@ -68,6 +65,9 @@ public final class Fask_B implements GraphSearch {
     // For the SEM BIC score, for the Fast Adjacency Search.
     private double penaltyDiscount = 1;
 
+    // Alpha for orienting 2-cycles. Usually needs to be low.
+    private double alpha = 1e-6;
+
     // Knowledge the the search will obey, of forbidden and required edges.
     private IKnowledge knowledge = new Knowledge2();
 
@@ -75,7 +75,7 @@ public final class Fask_B implements GraphSearch {
     private final double[][] data;
 
     // A threshold for including extra adjacencies due to skewness.
-    private double extraEdgeThreshold = 0.3;
+    private double skewEdgeAlpha = 0.3;
 
     // True if FAS adjacencies should be included in the output.
     private boolean useFasAdjacencies = true;
@@ -89,6 +89,10 @@ public final class Fask_B implements GraphSearch {
     private double twoCycleAlpha = 1e-6;
     private double twoCycleCutoff;
 
+    private RegressionDataset regressionDataset;
+    private final List<Node> nodes;
+
+
     /**
      * @param dataSet These datasets must all have the same variables, in the same order.
      */
@@ -97,9 +101,117 @@ public final class Fask_B implements GraphSearch {
         this.test = test;
 
         data = dataSet.getDoubleData().transpose().toArray();
+        this.nodes = dataSet.getVariables();
+        regressionDataset = new RegressionDataset(dataSet);
     }
 
     //======================================== PUBLIC METHODS ====================================//
+
+    public Graph getInitialGraph() {
+        return initialGraph;
+    }
+
+    public void setInitialGraph(Graph initialGraph) {
+        this.initialGraph = initialGraph;
+    }
+
+    public double getSkewEdgeAlpha() {
+        return skewEdgeAlpha;
+    }
+
+    public void setSkewEdgeAlpha(double skewEdgeAlpha) {
+        this.skewEdgeAlpha = skewEdgeAlpha;
+    }
+
+    public boolean isUseFasAdjacencies() {
+        return useFasAdjacencies;
+    }
+
+    private boolean isUseSkewAdjacencies() {
+        return useSkewAdjacencies;
+    }
+
+    public void setUseSkewAdjacencies(boolean useSkewAdjacencies) {
+        this.useSkewAdjacencies = useSkewAdjacencies;
+    }
+
+    public double getDelta() {
+        return delta;
+    }
+
+    public void setDelta(double delta) {
+        this.delta = delta;
+    }
+
+    public void setUseFasAdjacencies(boolean useFasAdjacencies) {
+        this.useFasAdjacencies = useFasAdjacencies;
+    }
+
+    public void setTwoCycleAlpha(double twoCycleAlpha) {
+        this.twoCycleAlpha = twoCycleAlpha;
+    }
+
+    /**
+     * Sets the significance level at which independence judgments should be made.  Affects the cutoff for partial
+     * correlations to be considered statistically equal to zero.
+     */
+    private void setCutoff() {
+        this.twoCycleCutoff = StatUtils.getZForAlpha(twoCycleAlpha);
+    }
+
+    /**
+     * @return The depth of search for the Fast Adjacency Search (FAS).
+     */
+
+    public int getDepth() {
+        return depth;
+    }
+
+    /**
+     * @param depth The depth of search for the Fast Adjacency Search (S). The default is -1.
+     *              unlimited. Making this too high may results in statistical errors.
+     */
+    public void setDepth(int depth) {
+        this.depth = depth;
+    }
+
+    /**
+     * @return The elapsed time in milliseconds.
+     */
+    public long getElapsedTime() {
+        return elapsed;
+    }
+
+    /**
+     * @return Returns the penalty discount used for the adjacency search. The default is 1,
+     * though a higher value is recommended, say, 2, 3, or 4.
+     */
+    public double getPenaltyDiscount() {
+        return penaltyDiscount;
+    }
+
+    /**
+     * @param penaltyDiscount Sets the penalty discount used for the adjacency search.
+     *                        The default is 1, though a higher value is recommended, say,
+     *                        2, 3, or 4.
+     */
+    public void setPenaltyDiscount(double penaltyDiscount) {
+        this.penaltyDiscount = penaltyDiscount;
+    }
+
+    /**
+     * @return the current knowledge.
+     */
+    public IKnowledge getKnowledge() {
+        return knowledge;
+    }
+
+    /**
+     * @param knowledge Knowledge of forbidden and required edges.
+     */
+    public void setKnowledge(IKnowledge knowledge) {
+        this.knowledge = knowledge;
+    }
 
     /**
      * Runs the search on the concatenated data, returning a graph, possibly cyclic, possibly with
@@ -167,14 +279,47 @@ public final class Fask_B implements GraphSearch {
                             graph.addDirectedEdge(X, Y);
                         } else if (knowledgeOrients(Y, X)) {
                             graph.addDirectedEdge(Y, X);
+                        } else if (!leftright(x, y) && !leftright(y, x)) {
+                            graph.addDirectedEdge(X, Y);
+                            graph.addDirectedEdge(Y, X);
                         } else if (!leftright(y, x)) {
                             graph.addDirectedEdge(X, Y);
                         } else if (!leftright(x, y)) {
                             graph.addDirectedEdge(Y, X);
-                        } else if (!leftright(x, y) && !leftright(y, x)) {
-                            graph.addDirectedEdge(X, Y);
-                            graph.addDirectedEdge(Y, X);
                         }
+                    }
+                }
+            }
+        }
+
+        EDGES:
+        for (Edge edge : new ArrayList<>(graph.getEdges())) {
+            if (edge.isDirected()) {
+                Node tail = Edges.getDirectedEdgeTail(edge);
+                Node head = Edges.getDirectedEdgeHead(edge);
+
+                List<Node> parents = graph.getParents(head);
+                parents.remove(tail);
+
+                for (Node p : new ArrayList<>(parents)) {
+                    if (!graph.existsDirectedPathFromTo(tail, p)) {
+                        parents.remove(p);
+                    }
+                }
+
+                final int depth = this.depth == -1 ? 1000 : this.depth;
+                final int min = min(depth, parents.size());
+
+                ChoiceGenerator gen = new ChoiceGenerator(parents.size(), min);
+                int[] choice;
+
+                while ((choice = gen.next()) != null) {
+                    if (choice.length == 0) continue;
+                    List<Node> Z = GraphUtils.asList(choice, parents);
+
+                    if (!skewAdjacent(tail, head, Z)) {
+                        graph.removeEdge(edge);
+                        continue EDGES;
                     }
                 }
             }
@@ -193,8 +338,6 @@ public final class Fask_B implements GraphSearch {
                     if (bidirected(x, y, G0, X, Y)) {
                         Edge edge1 = Edges.directedEdge(X, Y);
                         Edge edge2 = Edges.directedEdge(Y, X);
-                        edge1.setBold(true);
-                        edge2.setBold(true);
                         graph.addEdge(edge1);
                         graph.addEdge(edge2);
                     }
@@ -209,6 +352,76 @@ public final class Fask_B implements GraphSearch {
         this.elapsed = stop - start;
 
         return graph;
+    }
+
+    //======================================== PRIVATE METHODS ====================================//
+
+    private boolean skewAdjacent(double[] x, double[] y) {
+        double pc1 = StatUtils.cov(x, y, x, 0, +1)[1];
+        double pc2 = StatUtils.cov(x, y, y, 0, +1)[1];
+
+        int nc1 = StatUtils.getRows(x, 0, +1).size();
+        int nc2 = StatUtils.getRows(y, 0, +1).size();
+
+        double z1 = 0.5 * (log(1.0 + pc1) - log(1.0 - pc1));
+        double z2 = 0.5 * (log(1.0 + pc2) - log(1.0 - pc2));
+
+        final double cutoff = StatUtils.getZForAlpha(getSkewEdgeAlpha());
+
+        double diff = (z1 - z2) / (2.0 * cutoff);
+
+        double zv3 = abs(diff) / sqrt((1.0 / ((double) nc1 - 3) + 1.0 / ((double) nc2 - 3)));
+
+        return abs(zv3) > cutoff;
+    }
+
+    private boolean skewAdjacent(Node x, Node y, List<Node> Z) {
+        final double[] _x = data[nodes.indexOf(x)];
+        final double[] _y = data[nodes.indexOf(y)];
+
+        List<Integer> rowsx = StatUtils.getRows(_x, 0, +1);
+        int[] _rowsx = new int[rowsx.size()];
+        for (int i = 0; i < rowsx.size(); i++) _rowsx[i] = rowsx.get(i);
+
+        List<Integer> rowsy = StatUtils.getRows(_y, 0, +1);
+        int[] _rowsy = new int[rowsy.size()];
+        for (int i = 0; i < rowsy.size(); i++) _rowsy[i] = rowsy.get(i);
+
+        regressionDataset.setRows(_rowsx);
+        double[] rxzx = regressionDataset.regress(x, Z).getResiduals().toArray();
+        double[] ryzx = regressionDataset.regress(y, Z).getResiduals().toArray();
+
+        regressionDataset.setRows(_rowsy);
+        double[] rxzy = regressionDataset.regress(x, Z).getResiduals().toArray();
+        double[] ryzy = regressionDataset.regress(y, Z).getResiduals().toArray();
+
+        double[] sxyx = new double[rxzx.length];
+
+        for (int i = 0; i < rxzx.length; i++) {
+            sxyx[i] = rxzx[i] * ryzx[i];
+        }
+
+        double[] sxyy = new double[rxzy.length];
+
+        for (int i = 0; i < rxzy.length; i++) {
+            sxyy[i] = rxzy[i] * ryzy[i];
+        }
+
+        double zv3 = (mean(sxyx)) / sqrt((variance(sxyx) / sxyx.length));
+        double zv4 = (mean(sxyy)) / sqrt((variance(sxyy) / sxyy.length));
+
+        final double cutoff = StatUtils.getZForAlpha(getSkewEdgeAlpha());
+
+        double diff = (zv3 - zv4) / (2.0 * cutoff);
+
+        return abs(diff) > cutoff;
+    }
+
+    private double[] correctSkewnesses(double[] data) {
+        double skewness = StatUtils.skewness(data);
+        double[] data2 = new double[data.length];
+        for (int i = 0; i < data.length; i++) data2[i] = data[i] * Math.signum(skewness);
+        return data2;
     }
 
     private boolean bidirected(double[] x, double[] y, Graph G0, Node X, Node Y) {
@@ -322,70 +535,6 @@ public final class Fask_B implements GraphSearch {
         return StatUtils.partialCorrelation(m);
     }
 
-    /**
-     * Sets the significance level at which independence judgments should be made.  Affects the cutoff for partial
-     * correlations to be considered statistically equal to zero.
-     */
-    private void setCutoff() {
-        this.twoCycleCutoff = StatUtils.getZForAlpha(twoCycleAlpha);
-    }
-
-    /**
-     * @return The depth of search for the Fast Adjacency Search (FAS).
-     */
-
-    public int getDepth() {
-        return depth;
-    }
-
-    /**
-     * @param depth The depth of search for the Fast Adjacency Search (S). The default is -1.
-     *              unlimited. Making this too high may results in statistical errors.
-     */
-    public void setDepth(int depth) {
-        this.depth = depth;
-    }
-
-    /**
-     * @return The elapsed time in milliseconds.
-     */
-    public long getElapsedTime() {
-        return elapsed;
-    }
-
-    /**
-     * @return Returns the penalty discount used for the adjacency search. The default is 1,
-     * though a higher value is recommended, say, 2, 3, or 4.
-     */
-    public double getPenaltyDiscount() {
-        return penaltyDiscount;
-    }
-
-    /**
-     * @param penaltyDiscount Sets the penalty discount used for the adjacency search.
-     *                        The default is 1, though a higher value is recommended, say,
-     *                        2, 3, or 4.
-     */
-    public void setPenaltyDiscount(double penaltyDiscount) {
-        this.penaltyDiscount = penaltyDiscount;
-    }
-
-    /**
-     * @return the current knowledge.
-     */
-    public IKnowledge getKnowledge() {
-        return knowledge;
-    }
-
-    /**
-     * @param knowledge Knowledge of forbidden and required edges.
-     */
-    public void setKnowledge(IKnowledge knowledge) {
-        this.knowledge = knowledge;
-    }
-
-    //======================================== PRIVATE METHODS ====================================//
-
     private boolean knowledgeOrients(Node left, Node right) {
         return knowledge.isForbidden(right.getName(), left.getName()) || knowledge.isRequired(left.getName(), right.getName());
     }
@@ -394,53 +543,12 @@ public final class Fask_B implements GraphSearch {
         return knowledge.isForbidden(right.getName(), left.getName()) && knowledge.isForbidden(left.getName(), right.getName());
     }
 
-    public static synchronized double partialCorrelation(TetradMatrix submatrix) {
+    private static synchronized double partialCorrelation(TetradMatrix submatrix) {
         TetradMatrix inverse = submatrix.inverse();
         return -(1.0 * inverse.get(0, 1)) / Math.sqrt(inverse.get(0, 0) * inverse.get(1, 1));
     }
 
-
-    public Graph getInitialGraph() {
-        return initialGraph;
-    }
-
-    public void setInitialGraph(Graph initialGraph) {
-        this.initialGraph = initialGraph;
-    }
-
-    public double getExtraEdgeThreshold() {
-        return extraEdgeThreshold;
-    }
-
-    public void setExtraEdgeThreshold(double extraEdgeThreshold) {
-        this.extraEdgeThreshold = extraEdgeThreshold;
-    }
-
-    public boolean isUseFasAdjacencies() {
-        return useFasAdjacencies;
-    }
-
-    private boolean isUseSkewAdjacencies() {
-        return useSkewAdjacencies;
-    }
-
-    public void setUseSkewAdjacencies(boolean useSkewAdjacencies) {
-        this.useSkewAdjacencies = useSkewAdjacencies;
-    }
-
-    public double getDelta() {
-        return delta;
-    }
-
-    public void setDelta(double delta) {
-        this.delta = delta;
-    }
-
-    public void setUseFasAdjacencies(boolean useFasAdjacencies) {
-        this.useFasAdjacencies = useFasAdjacencies;
-    }
-
-    public static double[][] covMatrix(double[] x, double[] y, double[][] z, double[] condition,
+    private static double[][] covMatrix(double[] x, double[] y, double[][] z, double[] condition,
                                        double threshold, double direction) {
         List<Integer> rows = getRows(x, condition, threshold, direction);
 
@@ -476,7 +584,7 @@ public final class Fask_B implements GraphSearch {
         return cov;
     }
 
-    public static List<Integer> getRows(double[] x, double[] condition, double threshold, double direction) {
+    private static List<Integer> getRows(double[] x, double[] condition, double threshold, double direction) {
         List<Integer> rows = new ArrayList<>();
 
         for (int k = 0; k < x.length; k++) {
@@ -496,25 +604,6 @@ public final class Fask_B implements GraphSearch {
         }
 
         return rows;
-    }
-
-    private boolean skewAdjacent(double[] x, double[] y) {
-        double pc1 = StatUtils.cov(x, y, x, 0, +1)[1];
-        double pc2 = StatUtils.cov(x, y, y, 0, +1)[1];
-
-        int nc1 = StatUtils.getRows(x, 0, +1).size();
-        int nc2 = StatUtils.getRows(y, 0, +1).size();
-
-        double z1 = 0.5 * (log(1.0 + pc1) - log(1.0 - pc1));
-        double z2 = 0.5 * (log(1.0 + pc2) - log(1.0 - pc2));
-
-        double zv3 = (z1 - z2) / sqrt((1.0 / ((double) nc1 - 3) + 1.0 / ((double) nc2 - 3)));
-
-        return abs(zv3) > getExtraEdgeThreshold();
-    }
-
-    public void setTwoCycleAlpha(double twoCycleAlpha) {
-        this.twoCycleAlpha = twoCycleAlpha;
     }
 }
 

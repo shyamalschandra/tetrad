@@ -61,7 +61,7 @@ public class Fask_BConcatenated implements MultiDataSetAlgorithm, HasKnowledge, 
             edu.cmu.tetrad.search.Fask_B search = new edu.cmu.tetrad.search.Fask_B(dataSet, test.getTest(dataSet, parameters));
             search.setDepth(parameters.getInt("depth"));
             search.setPenaltyDiscount(parameters.getDouble("penaltyDiscount"));
-            search.setExtraEdgeThreshold(parameters.getDouble("extraEdgeThreshold"));
+            search.setSkewEdgeAlpha(parameters.getDouble("skewEdgeAlpha"));
             search.setUseFasAdjacencies(parameters.getBoolean("useFasAdjacencies"));
             search.setUseSkewAdjacencies(parameters.getBoolean("useCorrDiffAdjacencies"));
             search.setTwoCycleAlpha(parameters.getDouble("twoCycleAlpha"));
@@ -164,7 +164,7 @@ public class Fask_BConcatenated implements MultiDataSetAlgorithm, HasKnowledge, 
         List<String> parameters = test.getParameters();
         parameters.add("depth");
         parameters.add("twoCycleAlpha");
-        parameters.add("extraEdgeThreshold");
+        parameters.add("skewEdgeAlpha");
         parameters.add("faskDelta");
 
         parameters.add("useFasAdjacencies");
