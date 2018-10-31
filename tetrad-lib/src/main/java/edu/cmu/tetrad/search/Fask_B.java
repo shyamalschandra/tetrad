@@ -32,10 +32,9 @@ import org.apache.commons.math3.linear.SingularMatrixException;
 
 import java.util.*;
 
-import static edu.cmu.tetrad.util.StatUtils.correlation;
-import static edu.cmu.tetrad.util.StatUtils.mean;
-import static edu.cmu.tetrad.util.StatUtils.variance;
+import static edu.cmu.tetrad.util.StatUtils.*;
 import static java.lang.Math.*;
+import static java.lang.Math.min;
 
 /**
  * Fast adjacency search followed by robust skew orientation. Checks are done for adding
@@ -55,7 +54,7 @@ public final class Fask_B implements GraphSearch {
     // Elapsed time of the search, in milliseconds.
     private long elapsed = 0;
 
-    // The data sets being analyzed. They must all have the same variables and the same
+    // The colData sets being analyzed. They must all have the same variables and the same
     // number of records.
     private DataSet dataSet;
 
@@ -72,7 +71,7 @@ public final class Fask_B implements GraphSearch {
     private IKnowledge knowledge = new Knowledge2();
 
     // Data as a double[][].
-    private final double[][] data;
+    private final double[][] colData;
 
     // A threshold for including extra adjacencies due to skewness.
     private double skewEdgeAlpha = 0.3;
@@ -90,8 +89,7 @@ public final class Fask_B implements GraphSearch {
     private double twoCycleCutoff;
 
     private RegressionDataset regressionDataset;
-    private final List<Node> nodes;
-
+    private final List<Node> variables;
 
     /**
      * @param dataSet These datasets must all have the same variables, in the same order.
@@ -100,8 +98,9 @@ public final class Fask_B implements GraphSearch {
         this.dataSet = dataSet;
         this.test = test;
 
-        data = dataSet.getDoubleData().transpose().toArray();
-        this.nodes = dataSet.getVariables();
+        dataSet = DataUtils.standardizeData(dataSet);
+        colData = dataSet.getDoubleData().transpose().toArray();
+        this.variables = dataSet.getVariables();
         regressionDataset = new RegressionDataset(dataSet);
     }
 
@@ -227,11 +226,6 @@ public final class Fask_B implements GraphSearch {
 
         setCutoff();
 
-        DataSet dataSet = DataUtils.standardizeData(this.dataSet);
-
-        List<Node> variables = dataSet.getVariables();
-        double[][] colData = dataSet.getDoubleData().transpose().toArray();
-
         Graph G0;
 
         if (getInitialGraph() != null) {
@@ -273,7 +267,7 @@ public final class Fask_B implements GraphSearch {
                 final double[] y = colData[j];
 
                 if ((isUseFasAdjacencies() && G0.isAdjacentTo(X, Y))
-                        || (isUseSkewAdjacencies() && skewAdjacent(x, y))) {
+                        || (isUseSkewAdjacencies() && skewAdjacent(X, Y, Collections.emptyList()))) {
                     if (!edgeForbiddenByKnowledge(X, Y)) {
                         if (knowledgeOrients(X, Y)) {
                             graph.addDirectedEdge(X, Y);
@@ -292,8 +286,10 @@ public final class Fask_B implements GraphSearch {
             }
         }
 
+        Set<Edge> edges = graph.getEdges();
+
         EDGES:
-        for (Edge edge : new ArrayList<>(graph.getEdges())) {
+        for (Edge edge : new ArrayList<>(edges)) {
             if (edge.isDirected()) {
                 Node tail = Edges.getDirectedEdgeTail(edge);
                 Node head = Edges.getDirectedEdgeHead(edge);
@@ -302,9 +298,13 @@ public final class Fask_B implements GraphSearch {
                 parents.remove(tail);
 
                 for (Node p : new ArrayList<>(parents)) {
-                    if (!graph.existsDirectedPathFromTo(tail, p)) {
+                    if (GraphUtils.directedPathsFromTo(graph, tail, p, 3).isEmpty()) {
                         parents.remove(p);
                     }
+
+//                    if (!graph.existsDirectedPathFromTo(tail, p)) {
+//                        parents.remove(p);
+//                    }
                 }
 
                 final int depth = this.depth == -1 ? 1000 : this.depth;
@@ -317,6 +317,9 @@ public final class Fask_B implements GraphSearch {
                     if (choice.length == 0) continue;
                     List<Node> Z = GraphUtils.asList(choice, parents);
 
+                    final double[] x = colData[variables.indexOf(tail)];
+                    final double[] y = colData[variables.indexOf(head)];
+
                     if (!skewAdjacent(tail, head, Z)) {
                         graph.removeEdge(edge);
                         continue EDGES;
@@ -325,24 +328,23 @@ public final class Fask_B implements GraphSearch {
             }
         }
 
-        for (int i = 0; i < variables.size(); i++) {
-            for (int j = i + 1; j < variables.size(); j++) {
-                Node X = variables.get(i);
-                Node Y = variables.get(j);
+        for (Edge edge : edges) {
+            Node X = edge.getNode1();
+            Node Y = edge.getNode2();
 
-                // Centered
-                final double[] x = colData[i];
-                final double[] y = colData[j];
+            // Centered
+            final double[] x = colData[variables.indexOf(X)];
+            final double[] y = colData[variables.indexOf(Y)];
 
-                if (!(knowledgeOrients(X, Y) || knowledgeOrients(Y, X))) {
-                    if (bidirected(x, y, G0, X, Y)) {
-                        Edge edge1 = Edges.directedEdge(X, Y);
-                        Edge edge2 = Edges.directedEdge(Y, X);
-                        graph.addEdge(edge1);
-                        graph.addEdge(edge2);
-                    }
+            if (!(knowledgeOrients(X, Y) || knowledgeOrients(Y, X))) {
+                if (bidirected(x, y, G0, X, Y)) {
+                    Edge edge1 = Edges.directedEdge(X, Y);
+                    Edge edge2 = Edges.directedEdge(Y, X);
+                    graph.addEdge(edge1);
+                    graph.addEdge(edge2);
                 }
             }
+
         }
 
         System.out.println();
@@ -356,28 +358,12 @@ public final class Fask_B implements GraphSearch {
 
     //======================================== PRIVATE METHODS ====================================//
 
-    private boolean skewAdjacent(double[] x, double[] y) {
-        double pc1 = StatUtils.cov(x, y, x, 0, +1)[1];
-        double pc2 = StatUtils.cov(x, y, y, 0, +1)[1];
+    private boolean skewAdjacent(Node X, Node Y, List<Node> Z) {
+        final double[] _x = colData[variables.indexOf(X)];
+        final double[] _y = colData[variables.indexOf(Y)];
 
-        int nc1 = StatUtils.getRows(x, 0, +1).size();
-        int nc2 = StatUtils.getRows(y, 0, +1).size();
-
-        double z1 = 0.5 * (log(1.0 + pc1) - log(1.0 - pc1));
-        double z2 = 0.5 * (log(1.0 + pc2) - log(1.0 - pc2));
-
-        final double cutoff = StatUtils.getZForAlpha(getSkewEdgeAlpha());
-
-        double diff = (z1 - z2) / (2.0 * cutoff);
-
-        double zv3 = abs(diff) / sqrt((1.0 / ((double) nc1 - 3) + 1.0 / ((double) nc2 - 3)));
-
-        return abs(zv3) > cutoff;
-    }
-
-    private boolean skewAdjacent(Node x, Node y, List<Node> Z) {
-        final double[] _x = data[nodes.indexOf(x)];
-        final double[] _y = data[nodes.indexOf(y)];
+        int nc1 = StatUtils.getRows(_x, 0, +1).size();
+        int nc2 = StatUtils.getRows(_y, 0, +1).size();
 
         List<Integer> rowsx = StatUtils.getRows(_x, 0, +1);
         int[] _rowsx = new int[rowsx.size()];
@@ -388,12 +374,12 @@ public final class Fask_B implements GraphSearch {
         for (int i = 0; i < rowsy.size(); i++) _rowsy[i] = rowsy.get(i);
 
         regressionDataset.setRows(_rowsx);
-        double[] rxzx = regressionDataset.regress(x, Z).getResiduals().toArray();
-        double[] ryzx = regressionDataset.regress(y, Z).getResiduals().toArray();
+        double[] rxzx = regressionDataset.regress(X, Z).getResiduals().toArray();
+        double[] ryzx = regressionDataset.regress(Y, Z).getResiduals().toArray();
 
         regressionDataset.setRows(_rowsy);
-        double[] rxzy = regressionDataset.regress(x, Z).getResiduals().toArray();
-        double[] ryzy = regressionDataset.regress(y, Z).getResiduals().toArray();
+        double[] rxzy = regressionDataset.regress(X, Z).getResiduals().toArray();
+        double[] ryzy = regressionDataset.regress(Y, Z).getResiduals().toArray();
 
         double[] sxyx = new double[rxzx.length];
 
@@ -401,20 +387,66 @@ public final class Fask_B implements GraphSearch {
             sxyx[i] = rxzx[i] * ryzx[i];
         }
 
+        double exyx = e(rxzx, ryzx, _x);
+        double exxx = e(rxzx, rxzx, _x);
+
         double[] sxyy = new double[rxzy.length];
 
         for (int i = 0; i < rxzy.length; i++) {
             sxyy[i] = rxzy[i] * ryzy[i];
         }
 
-        double zv3 = (mean(sxyx)) / sqrt((variance(sxyx) / sxyx.length));
-        double zv4 = (mean(sxyy)) / sqrt((variance(sxyy) / sxyy.length));
+        double exx = 0;
+
+        double exyy = e(rxzy, ryzy, _y);
+        double exxy = e(rxzy, rxzy, _y);
+
+        double d1 = exyx / exxx;
+        double d2 = exyy / exxy;
+
+
+        for (int i = 0; i < rowsx.size(); i++) {
+            exx += _x[rowsx.get(i)];
+        }
+
+        exx /= rowsx.size();
+
+        double exy = 0;
+
+        for (int i = 0; i < rowsy.size(); i++) {
+            exy += _x[rowsy.get(i)];
+        }
+
+        exy /= rowsy.size();
+
+        double eyx = 0;
+
+        for (int i = 0; i < rowsx.size(); i++) {
+            eyx += _y[rowsx.get(i)];
+        }
+
+        eyx /= rowsx.size();
+
+        double eyy = 0;
+
+        for (int i = 0; i < rowsy.size(); i++) {
+            eyy += _y[rowsy.get(i)];
+        }
+
+        eyy /= rowsy.size();
 
         final double cutoff = StatUtils.getZForAlpha(getSkewEdgeAlpha());
 
-        double diff = (zv3 - zv4) / (2.0 * cutoff);
+//        double diff = (mean(sxyx) - mean(sxyy)) / (max(exx, max(exy, max(eyx, (eyy)))));
+//        double diff = (mean(sxyx) - mean(sxyy)) / (2 * max(e(_x, _x, _y), e(_y, _y, _x)));
+//        double diff = mean(sxyx) / e(_x, _x, _x) - mean(sxyy) / e(_x, _x, _y);// / ((e(_x, _x, _y)));
+        double diff = d1 - d2;// / ((e(_x, _x, _y)));
 
-        return abs(diff) > cutoff;
+//        double zv5 = sqrt(_x.length) * (log(1 + diff) - log(1 - diff));
+//
+        double zv5 = abs(diff) / sqrt((1.0 / ((double) nc1) + 1.0 / ((double) nc2)));
+
+        return abs(zv5) > cutoff;
     }
 
     private double[] correctSkewnesses(double[] data) {
@@ -441,7 +473,7 @@ public final class Fask_B implements GraphSearch {
             for (int f = 0; f < _adj.size(); f++) {
                 Node _z = _adj.get(f);
                 int column = dataSet.getColumn(_z);
-                _Z[f] = data[column];
+                _Z[f] = colData[column];
             }
 
             double pc;
@@ -492,12 +524,12 @@ public final class Fask_B implements GraphSearch {
 
     // If x->y, returns true
     private boolean leftright(double[] x, double[] y) {
-        final double cxyx = cov(x, y, x);
-        final double cxyy = cov(x, y, y);
-        final double cxxx = cov(x, x, x);
-        final double cyyx = cov(y, y, x);
-        final double cxxy = cov(x, x, y);
-        final double cyyy = cov(y, y, y);
+        final double cxyx = e(x, y, x);
+        final double cxyy = e(x, y, y);
+        final double cxxx = e(x, x, x);
+        final double cyyx = e(y, y, x);
+        final double cxxy = e(x, x, y);
+        final double cyyy = e(y, y, y);
 
         double a1 = cxyx / cxxx;
         double a2 = cxyy / cxxy;
@@ -513,7 +545,7 @@ public final class Fask_B implements GraphSearch {
         return lr > 0;
     }
 
-    private static double cov(double[] x, double[] y, double[] condition) {
+    private static double e(double[] x, double[] y, double[] condition) {
         double exy = 0.0;
 
         int n = 0;
@@ -549,7 +581,7 @@ public final class Fask_B implements GraphSearch {
     }
 
     private static double[][] covMatrix(double[] x, double[] y, double[][] z, double[] condition,
-                                       double threshold, double direction) {
+                                        double threshold, double direction) {
         List<Integer> rows = getRows(x, condition, threshold, direction);
 
         double[][] allData = new double[z.length + 2][];
@@ -605,6 +637,7 @@ public final class Fask_B implements GraphSearch {
 
         return rows;
     }
+
 }
 
 
