@@ -28,6 +28,7 @@ import edu.cmu.tetrad.data.Knowledge2;
 import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.regression.RegressionDataset;
 import edu.cmu.tetrad.util.*;
+import org.apache.commons.math3.distribution.NormalDistribution;
 import org.apache.commons.math3.linear.SingularMatrixException;
 
 import java.util.*;
@@ -267,7 +268,7 @@ public final class Fask_B implements GraphSearch {
                 final double[] y = colData[j];
 
                 if ((isUseFasAdjacencies() && G0.isAdjacentTo(X, Y))
-                        || (isUseSkewAdjacencies() && skewAdjacent(X, Y, Collections.emptyList()))) {
+                        || (isUseSkewAdjacencies() && (skewAdjacent(X, Y, Collections.emptyList())))) {
                     if (!edgeForbiddenByKnowledge(X, Y)) {
                         if (knowledgeOrients(X, Y)) {
                             graph.addDirectedEdge(X, Y);
@@ -301,10 +302,6 @@ public final class Fask_B implements GraphSearch {
                     if (GraphUtils.directedPathsFromTo(graph, tail, p, 3).isEmpty()) {
                         parents.remove(p);
                     }
-
-//                    if (!graph.existsDirectedPathFromTo(tail, p)) {
-//                        parents.remove(p);
-//                    }
                 }
 
                 final int depth = this.depth == -1 ? 1000 : this.depth;
@@ -381,72 +378,24 @@ public final class Fask_B implements GraphSearch {
         double[] rxzy = regressionDataset.regress(X, Z).getResiduals().toArray();
         double[] ryzy = regressionDataset.regress(Y, Z).getResiduals().toArray();
 
-        double[] sxyx = new double[rxzx.length];
-
-        for (int i = 0; i < rxzx.length; i++) {
-            sxyx[i] = rxzx[i] * ryzx[i];
-        }
-
-        double exyx = e(rxzx, ryzx, _x);
-        double exxx = e(rxzx, rxzx, _x);
-
-        double[] sxyy = new double[rxzy.length];
-
-        for (int i = 0; i < rxzy.length; i++) {
-            sxyy[i] = rxzy[i] * ryzy[i];
-        }
-
-        double exx = 0;
-
-        double exyy = e(rxzy, ryzy, _y);
-        double exxy = e(rxzy, rxzy, _y);
-
-        double d1 = exyx / exxx;
-        double d2 = exyy / exxy;
-
+        double[] D1 = new double[rowsx.size()];
 
         for (int i = 0; i < rowsx.size(); i++) {
-            exx += _x[rowsx.get(i)];
+            D1[i] = rxzx[i] * ryzx[i];
         }
 
-        exx /= rowsx.size();
-
-        double exy = 0;
+        double[] D2 = new double[rowsy.size()];
 
         for (int i = 0; i < rowsy.size(); i++) {
-            exy += _x[rowsy.get(i)];
+            D2[i] = rxzy[i] * ryzy[i];
         }
 
-        exy /= rowsy.size();
+        double z = abs(mean(D1) - mean(D2)) / sqrt((variance(D1) / ((double) nc1) + variance(D2) / ((double) nc2)));
 
-        double eyx = 0;
+        NormalDistribution dist = new NormalDistribution(0, 1);
+        double cutoff = dist.inverseCumulativeProbability(1.0 - alpha / 2.0);
 
-        for (int i = 0; i < rowsx.size(); i++) {
-            eyx += _y[rowsx.get(i)];
-        }
-
-        eyx /= rowsx.size();
-
-        double eyy = 0;
-
-        for (int i = 0; i < rowsy.size(); i++) {
-            eyy += _y[rowsy.get(i)];
-        }
-
-        eyy /= rowsy.size();
-
-        final double cutoff = StatUtils.getZForAlpha(getSkewEdgeAlpha());
-
-//        double diff = (mean(sxyx) - mean(sxyy)) / (max(exx, max(exy, max(eyx, (eyy)))));
-//        double diff = (mean(sxyx) - mean(sxyy)) / (2 * max(e(_x, _x, _y), e(_y, _y, _x)));
-//        double diff = mean(sxyx) / e(_x, _x, _x) - mean(sxyy) / e(_x, _x, _y);// / ((e(_x, _x, _y)));
-        double diff = d1 - d2;// / ((e(_x, _x, _y)));
-
-//        double zv5 = sqrt(_x.length) * (log(1 + diff) - log(1 - diff));
-//
-        double zv5 = abs(diff) / sqrt((1.0 / ((double) nc1) + 1.0 / ((double) nc2)));
-
-        return abs(zv5) > cutoff;
+        return abs(z) > cutoff;
     }
 
     private double[] correctSkewnesses(double[] data) {
@@ -523,7 +472,7 @@ public final class Fask_B implements GraphSearch {
     }
 
     // If x->y, returns true
-    private boolean leftright(double[] x, double[] y) {
+    private boolean leftright1(double[] x, double[] y) {
         final double cxyx = e(x, y, x);
         final double cxyy = e(x, y, y);
         final double cxxx = e(x, x, x);
@@ -543,6 +492,20 @@ public final class Fask_B implements GraphSearch {
 
         if (correlation(x, y) < 0) lr += getDelta();
         return lr > 0;
+    }
+
+    // If x->y, returns true
+    private boolean leftright(double[] x, double[] y) {
+        final double cxyx = e(x, y, x);
+        final double cxyy = e(x, y, y);
+        final double cxxx = e(x, x, x);
+        final double cxxy = e(x, x, y);
+
+        double exeyy = (cxyy / cxxy - cxyx / cxxx) * cxxy;
+
+        if (correlation(x, y) < 0 && correlation(x, y) > getDelta()) exeyy *= -1;
+
+        return exeyy < 0;
     }
 
     private static double e(double[] x, double[] y, double[] condition) {
