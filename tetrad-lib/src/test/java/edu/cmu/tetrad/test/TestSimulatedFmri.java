@@ -229,7 +229,7 @@ public class TestSimulatedFmri {
         parameters.set("skewEdgeAlpha", 0.01);
 
         parameters.set("numRuns", 5);
-        parameters.set("randomSelectionSize", 5);
+        parameters.set("randomSelectionSize", 1);
 
         parameters.set("Structure", "Placeholder");
 

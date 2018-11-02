@@ -274,15 +274,12 @@ public final class Fask_B implements GraphSearch {
                             final boolean leftrightxy = leftright(X, Y);
                             final boolean leftrightyx = leftright(Y, X);
 
-                            if (leftrightxy && leftrightyx) {
+                            if (leftrightxy && !leftrightyx) {
                                 graph.addDirectedEdge(X, Y);
+                            } else if (leftrightyx && !leftrightxy) {
                                 graph.addDirectedEdge(Y, X);
-                            } else if (!leftrightxy && !leftrightyx) {
-                                graph.addDirectedEdge(X, Y);
-                                graph.addDirectedEdge(Y, X);
-                            } else if (leftrightxy) {
-                                graph.addDirectedEdge(X, Y);
                             } else {
+                                graph.addDirectedEdge(X, Y);
                                 graph.addDirectedEdge(Y, X);
                             }
                         }
@@ -355,6 +352,7 @@ public final class Fask_B implements GraphSearch {
         final double[] _x = colData[variables.indexOf(X)];
         final double[] _y = colData[variables.indexOf(Y)];
 
+
         List<Integer> rowsx = StatUtils.getRows(_x, 0, +1);
         List<Integer> rowsy = StatUtils.getRows(_y, 0, +1);
 
@@ -387,7 +385,30 @@ public final class Fask_B implements GraphSearch {
             d2[i] = rxzy[i] * ryzy[i];
         }
 
-        // Unequal variances, uequal sample sizes, T test, 2-sided
+        double[] d3 = new double[rowsx.size()];
+
+        for (int i = 0; i < rowsx.size(); i++) {
+            d3[i] = rxzx[i] * rxzx[i];
+        }
+
+        double[] d4 = new double[rowsy.size()];
+
+        for (int i = 0; i < rowsy.size(); i++) {
+            d4[i] = ryzy[i] * ryzy[i];
+        }
+
+        double D3 = mean(d3);
+        double D4 = mean(d4);
+
+        for (int i = 0; i < d1.length; i++) {
+            d1[i] /= D3;
+        }
+
+        for (int i = 0; i < d2.length; i++) {
+            d2[i] /= D4;
+        }
+
+        // Unequal variances, unequal sample sizes, T test, 2-sided
         double e2 = variance(d2) / ((double) n2);
         double e1 = variance(d1) / ((double) n1);
         double t = abs(mean(d2) - mean(d1)) / sqrt(e2 + e1);
@@ -425,8 +446,8 @@ public final class Fask_B implements GraphSearch {
 
     // If x->y, returns true
     private boolean leftright(Node X, Node Y) {
-        final double[] x = colData[variables.indexOf(X)];
-        final double[] y = colData[variables.indexOf(Y)];
+        double[] x = colData[variables.indexOf(X)];
+        double[] y = colData[variables.indexOf(Y)];
 
         final double cxyx = e(x, y, x);
         final double cxyy = e(x, y, y);
@@ -435,7 +456,17 @@ public final class Fask_B implements GraphSearch {
 
         double exeyy = (cxyy / cxxy - cxyx / cxxx) * cxxy;
 
-        if (correlation(x, y) < 0 && correlation(x, y) > getDelta()) exeyy *= -1;
+//        double[] residuals = residuals(x, y);
+//        double skewX = skewness(x);
+//        double skewResiduals = skewness(residuals);
+//
+//        final double r = correlation(x, y);
+
+//        if (skewX > 0.05 && skewResiduals > 0.05) {
+//            if (r < getDelta()) exeyy *= -1;
+//        } else if (skewX > 0.05 && skewResiduals < -0.05) {
+//            if (r > 0 && r < -getDelta()) exeyy *= -1;
+//        }
 
         return exeyy < 0;
     }
@@ -485,20 +516,25 @@ public final class Fask_B implements GraphSearch {
             double zx = 0.5 * (log(1.0 + rx) - log(1.0 - rx));
             double zy = 0.5 * (log(1.0 + ry) - log(1.0 - ry));
 
+            double zv = (z) / sqrt((1.0 / ((double) n - 3)));
             double zvx = (z - zx) / sqrt((1.0 / ((double) n - 3) + 1.0 / ((double) nx - 3)));
             double zvy = (z - zy) / sqrt((1.0 / ((double) n - 3) + 1.0 / ((double) ny - 3)));
+
+            boolean rejectedzv = abs(zv) > twoCycleCutoff;
 
             boolean rejectedx = abs(zvx) > twoCycleCutoff;
             boolean rejectedy = abs(zvy) > twoCycleCutoff;
 
             boolean possibleCycle = false;
 
-            if (zvx < 0 && zvy > 0 && rejectedx) {
-                possibleCycle = true;
-            } else if (zvx > 0 && zvy < 0 && rejectedy) {
-                possibleCycle = true;
-            } else if (rejectedx && rejectedy) {
-                possibleCycle = true;
+            if (rejectedzv) {
+                if (zvx < 0 && zvy > 0 && rejectedx) {
+                    possibleCycle = true;
+                } else if (zvx > 0 && zvy < 0 && rejectedy) {
+                    possibleCycle = true;
+                } else if (rejectedx && rejectedy) {
+                    possibleCycle = true;
+                }
             }
 
             if (!possibleCycle) {
@@ -597,13 +633,41 @@ public final class Fask_B implements GraphSearch {
         return rows;
     }
 
-    private double[] correctSkewnesses(double[] data) {
+    private double[] correctSkewness(double[] data) {
         double skewness = StatUtils.skewness(data);
-        double[] data2 = new double[data.length];
-        for (int i = 0; i < data.length; i++) data2[i] = data[i] * Math.signum(skewness);
-        return data2;
+
+//        long n = data.length;
+
+        // Variance of skewness if Normal.
+//        double var = (6 * n * (n + 1)) / ((double) ((n - 2) * (n + 1) * (n + 3)));
+//        double sd = sqrt(var);
+
+        if (abs(skewness) > 0.05) {
+            double[] data2 = new double[data.length];
+            for (int i = 0; i < data.length; i++) data2[i] = data[i] * Math.signum(skewness);
+            return data2;
+        }
+
+        return data;
+    }
+
+    public double[] residuals(double[] _x, double[] _y) {
+        TetradMatrix x = new TetradMatrix(new double[][]{_x}).transpose();
+        TetradMatrix y = new TetradMatrix(new double[][]{_y}).transpose();
+
+        TetradMatrix xT = x.transpose();
+        TetradMatrix xTx = xT.times(x);
+        TetradMatrix xTxInv = xTx.inverse();
+        TetradMatrix xTy = xT.times(y);
+        TetradMatrix b = xTxInv.times(xTy);
+
+        TetradMatrix yHat = x.times(b);
+        if (yHat.columns() == 0) yHat = y.like();
+
+        return y.minus(yHat).getColumn(0).toArray();
     }
 }
+
 
 
 
