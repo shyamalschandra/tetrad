@@ -259,9 +259,25 @@ public final class Fask_B implements GraphSearch {
                             if (!leftrightxy && !leftrightyx) {
 
                                 // These might be bidirected edges. We will check. If not, remove.
-                                graph.addUndirectedEdge(X, Y);
+//                                graph.addUndirectedEdge(X, Y);
+//                                graph.getEdge(X, Y).setLineColor(Color.MAGENTA);
+
+//                                graph.addUndirectedEdge(X, Y);
+//                                graph.addDirectedEdge(Y, X);
+
+                                graph.addDirectedEdge(X, Y);
+                                graph.addDirectedEdge(Y, X);
+
                             } else if (leftrightxy && leftrightyx) {
+//                                graph.addUndirectedEdge(X, Y);
+//                                graph.getEdge(X, Y).setLineColor(Color.GRAY);
                                 // This should not happen. It's a mistake.
+
+                                graph.addDirectedEdge(X, Y);
+                                graph.addDirectedEdge(Y, X);
+
+//                                graph.addUndirectedEdge(X, Y);
+//                                graph.addDirectedEdge(Y, X);
                             } else if (!leftrightyx) {
                                 graph.addDirectedEdge(X, Y);
 
@@ -328,7 +344,11 @@ public final class Fask_B implements GraphSearch {
                     graph.addEdge(edge1);
                     graph.addEdge(edge2);
                 } else if (Edges.isUndirectedEdge(edge)) {
-                    graph.removeEdge(edge);
+//                    graph.removeEdges(X, Y);
+//                    Edge edge1 = Edges.directedEdge(X, Y);
+//                    Edge edge2 = Edges.directedEdge(Y, X);
+//                    graph.addEdge(edge1);
+//                    graph.addEdge(edge2);
                 }
             }
         }
