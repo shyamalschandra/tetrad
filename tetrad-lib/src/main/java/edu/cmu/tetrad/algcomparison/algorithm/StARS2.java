@@ -155,7 +155,7 @@ public class StARS2 implements Algorithm, TakesInitialGraph {
 //            if (archive.containsKey(paramValue)) {
 //                return archive.get(paramValue);
 //            }
-//            double D = getD(params, paramName, paramValue, samples, numSamples, algorithm, archive);
+//            double D = getRxy(params, paramName, paramValue, samples, numSamples, algorithm, archive);
 //            if (D > cutoff) return -10000;
 //            archive.put(paramValue, D);
 //            return D;

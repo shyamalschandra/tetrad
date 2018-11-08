@@ -77,9 +77,9 @@ public class StARS implements Algorithm, TakesInitialGraph {
             }
         }
 
-//        double D1 = getD(parameters, parameter, low, samples, algorithm);
+//        double D1 = getRxy(parameters, parameter, low, samples, algorithm);
 //        System.out.println("D1 (low) = " + D1);
-//        double D2 = getD(parameters, parameter, high, samples, algorithm);
+//        double D2 = getRxy(parameters, parameter, high, samples, algorithm);
 //        System.out.println("D2 (high) = " + D2);
 //
 //        double lastD;
@@ -105,7 +105,7 @@ public class StARS implements Algorithm, TakesInitialGraph {
 //
 //        while (abs(pFrom - pTo) > tolerance) {
 //            pMid = (pFrom + pTo) / 2.0;
-//            double D = getD(parameters, parameter, pMid, samples, algorithm);
+//            double D = getRxy(parameters, parameter, pMid, samples, algorithm);
 //            System.out.println("pFrom = " + pFrom + " pTo = " + pTo + " pMid = " + pMid + " D = " + D);
 //
 //            if (D1 > D2) {

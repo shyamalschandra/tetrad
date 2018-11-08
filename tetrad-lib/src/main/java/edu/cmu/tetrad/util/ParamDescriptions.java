@@ -264,6 +264,11 @@ public class ParamDescriptions {
                 "Threshold for judging negative coefficient edges as X->Y",
                 0.0, Double.NaN, Double.POSITIVE_INFINITY));
 
+        map.put("smallCorrelation", new ParamDescription(
+                "Abolute threshold below which edges are reversed and drawn in orange",
+                0.01, 0.0, 1.0));
+
+
 
         map.put("numLags", new ParamDescription(
                 "The number of lags in the time lag model",

@@ -57,14 +57,16 @@ public class TestSimulatedFmri {
     private void task(boolean testing) {
         Parameters parameters = new Parameters();
         parameters.set("penaltyDiscount", 1);
-        parameters.set("twoCycleAlpha", .0000001);
-        parameters.set("faskDelta", -.3);
+        parameters.set("faskDelta", -.2);
         parameters.set("depth", 5);
         parameters.set("extraEdgeThreshold", 10);
-        parameters.set("skewEdgeAlpha", 0.01);
+        parameters.set("skewEdgeAlpha", 0.001);
+        parameters.set("twoCycleAlpha", .00001);
+        parameters.set("smallCorrelation", 0.01);
+
 
         parameters.set("numRuns", 5);
-        parameters.set("randomSelectionSize", 1);
+        parameters.set("randomSelectionSize", 2);
 
         parameters.set("useFasAdjacencies", true);
         parameters.set("useCorrDiffAdjacencies", true);
@@ -223,13 +225,14 @@ public class TestSimulatedFmri {
         Parameters parameters = new Parameters();
         parameters.set("penaltyDiscount", 1);
         parameters.set("twoCycleAlpha", .0000001);
-        parameters.set("faskDelta", -.3);
+        parameters.set("faskDelta", -.2);
         parameters.set("depth", 5);
         parameters.set("extraEdgeThreshold", 10);
         parameters.set("skewEdgeAlpha", 0.01);
+        parameters.set("smallCorrelation", 0.001);
 
         parameters.set("numRuns", 5);
-        parameters.set("randomSelectionSize", 1);
+        parameters.set("randomSelectionSize", 5);
 
         parameters.set("Structure", "Placeholder");
 
@@ -300,83 +303,6 @@ public class TestSimulatedFmri {
 
         comparison.compareFromSimulations(directory, simulations, algorithms, statistics, parameters);
     }
-
-    //    @Test
-    public void testTough() {
-        Parameters parameters = new Parameters();
-
-        parameters.set("penaltyDiscount", 2);
-        parameters.set("depth", 5);
-        parameters.set("twoCycleAlpha", .01);
-
-        parameters.set("numRuns", 1);
-        parameters.set("randomSelectionSize", 10);
-
-        parameters.set("Structure", "Placeholder");
-
-        Statistics statistics = new Statistics();
-
-        statistics.add(new ParameterColumn("Structure"));
-        statistics.add(new AdjacencyPrecision());
-        statistics.add(new AdjacencyRecall());
-        statistics.add(new MathewsCorrAdj());
-        statistics.add(new ArrowheadPrecision());
-        statistics.add(new ArrowheadRecall());
-        statistics.add(new TwoCyclePrecision());
-        statistics.add(new TwoCycleRecall());
-        statistics.add(new TwoCycleFalsePositive());
-        statistics.add(new TwoCycleFalseNegative());
-        statistics.add(new TwoCycleTruePositive());
-        statistics.add(new ElapsedTime());
-
-        statistics.setWeight("AP", 1.0);
-        statistics.setWeight("AR", 1.0);
-        statistics.setWeight("AHP", 1.0);
-        statistics.setWeight("AHR", 1.0);
-        statistics.setWeight("2CP", 1.0);
-        statistics.setWeight("2CR", 1.0);
-        statistics.setWeight("2CFP", 1.0);
-
-        Simulations simulations = new Simulations();
-
-        String dir = "/Users/jdramsey/Downloads/";
-        String subdir = "data_fslfilter";
-
-        simulations.add(new LoadContinuousDataAndSingleGraph(
-                dir + "Markov_dist_thresh36", subdir));
-
-        Algorithms algorithms = new Algorithms();
-
-//        algorithms.add(new FasLofs(Lofs2.Rule.R1));
-//        algorithms.add(new FasLofs(Lofs2.Rule.R2));
-//        algorithms.add(new FasLofs(Lofs2.Rule.R3));
-//        algorithms.add(new FasLofs(Lofs2.Rule.Patel));
-//        algorithms.add(new FasLofs(Lofs2.Rule.Skew));
-//        algorithms.add(new FasLofs(Lofs2.Rule.RSkew));
-//
-//        algorithms.add(new FgesConcatenated(new edu.cmu.tetrad.algcomparison.score.SemBicScore(), true));
-//        algorithms.add(new PcStableMaxConcatenated(new SemBicTest(), true));
-        algorithms.add(new SkewSearch());
-//        algorithms.add(new FasLofsConcatenated(Lofs2.Rule.R1));
-//        algorithms.add(new FasLofsConcatenated(Lofs2.Rule.R2));
-//        algorithms.add(new FasLofsConcatenated(Lofs2.Rule.R3));
-//        algorithms.add(new FasLofsConcatenated(Lofs2.Rule.Patel));
-//        algorithms.add(new FasLofsConcatenated(Lofs2.Rule.Skew));
-//        algorithms.add(new FasLofsConcatenated(Lofs2.Rule.RSkew));
-
-        Comparison comparison = new Comparison();
-
-        comparison.setShowAlgorithmIndices(true);
-        comparison.setShowSimulationIndices(true);
-        comparison.setSortByUtility(false);
-        comparison.setShowUtilities(false);
-        comparison.setParallelized(false);
-        comparison.setSaveGraphs(false);
-        comparison.setTabDelimitedTables(false);
-
-        comparison.compareFromSimulations("comparison", simulations, algorithms, statistics, parameters);
-    }
-
 
     public static void main(String... args) {
         new TestSimulatedFmri().task(false);
