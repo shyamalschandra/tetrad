@@ -21,10 +21,7 @@
 
 package edu.cmu.tetrad.search;
 
-import edu.cmu.tetrad.data.DataSet;
-import edu.cmu.tetrad.data.DataUtils;
-import edu.cmu.tetrad.data.IKnowledge;
-import edu.cmu.tetrad.data.Knowledge2;
+import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.regression.RegressionDataset;
 import edu.cmu.tetrad.util.*;
@@ -32,7 +29,9 @@ import org.apache.commons.math3.distribution.NormalDistribution;
 import org.apache.commons.math3.distribution.TDistribution;
 import org.apache.commons.math3.linear.SingularMatrixException;
 
+import java.awt.*;
 import java.util.*;
+import java.util.List;
 
 import static edu.cmu.tetrad.util.StatUtils.*;
 import static java.lang.Math.*;
@@ -99,6 +98,14 @@ public final class Fask_B implements GraphSearch {
         for (int i = 0; i < variables.size(); i++) {
             System.out.println(variables.get(i) + " skewness = " + skewness(variables.get(i)));
         }
+
+        double[][] colData2 = dataSet.getDoubleData().transpose().toArray();
+
+        for (int i = 0; i < colData2.length; i++) {
+            colData2[i] = correctSkewness(colData2[i]);
+        }
+
+        DataSet data2 = new BoxDataSet(new VerticalDoubleDataBox(colData2), dataSet.getVariables());
 
         regressionDataset = new RegressionDataset(dataSet);
     }
@@ -254,9 +261,18 @@ public final class Fask_B implements GraphSearch {
 
                             if (leftRight(X, Y)) {
                                 graph.addDirectedEdge(X, Y);
+
+                                if (abs(p) > 0.03 || (abs(skewness(X)) < 0.03 && abs(skewness(Y)) < 0.3)) {
+                                    graph.getEdge(X, Y).setLineColor(Color.ORANGE);
+                                }
                             } else if (leftRight(Y, X)) {
                                 graph.addDirectedEdge(Y, X);
+
+                                if (abs(p) > smallCorrelation || (abs(skewness(X)) < smallCorrelation && abs(skewness(Y)) < smallCorrelation)) {
+                                    graph.getEdge(X, Y).setLineColor(Color.ORANGE);
+                                }
                             }
+
                         }
                     }
                 }
@@ -388,69 +404,28 @@ public final class Fask_B implements GraphSearch {
         double[] x = colData[variables.indexOf(X)];
         double[] y = colData[variables.indexOf(Y)];
 
+        x = correctSkewness(x);
+        y = correctSkewness(y);
+
         final double cxyx = e(x, y, x);
         final double cxxx = e(x, x, x);
         final double cxyy = e(x, y, y);
         final double cxxy = e(x, x, y);
 
-        double exeyy = (cxyy / cxxy - cxyx / cxxx) * cxxy;
-        exeyy *= skewness(X);
-        double skx = skewness(X);
-
-        if (corr(X, Y) < 0 || skewness(Y) < 0) {
-            exeyy *= -1;
-            skx *= -1;
-        }
-
-        if (skx < 0) {
-            exeyy *= -1;
-        }
-
-        return exeyy;
+        return (cxyy / cxxy - cxyx / cxxx) * cxxy;
     }
 
     private boolean leftRight(Node X, Node Y) {
-        double[] x = colData[variables.indexOf(X)];
-        double[] y = colData[variables.indexOf(Y)];
-
-        final double cxyx = e(x, y, x);
-        final double cxxx = e(x, x, x);
-        final double cxyy = e(x, y, y);
-        final double cxxy = e(x, x, y);
-
-
         double exeyy = exeyy(X, Y);
-        double eyexx = exeyy(Y, X);
-
-        System.out.println("*** X = " + X + " Y = " + Y + " exeyy = " + exeyy + " eyexx = " + eyexx);
-
-//        double a = abs(exeyy) - abs(exeyx);
-
-//        return (abs(exeyy) - abs(eyexx)) * skewness(X) * skewness((Y)) < 0;
-
         return exeyy < 0;
-
-//        final double cxyx = e(x, y, x);
-//        final double cxxx = e(x, x, x);
-//        final double cxyy = e(x, y, y);
-//        final double cxxy = e(x, x, y);
-//
-//        double lr = (cxyx / cxxx - cxyy / cxxy) * cxxy;
-////        double lr = cxyx - cxyy;
-////        final double corr = corr(X, Y);
-////        lr *= (skewness(X)) * (skewness(Y));
-////        lr *= corr;
-//
-////        System.out.println("X = " + X + " Y = " + Y + " LR = " + lr + " corr = " + corr);
-//
-////        if (corr(X, Y) < -.2) lr *= -1;
-//
-//        return lr < 0;
     }
 
     private boolean twocycle(Node X, Node Y, Graph G0) {
-        final double[] x = colData[variables.indexOf(X)];
-        final double[] y = colData[variables.indexOf(Y)];
+        double[] x = colData[variables.indexOf(X)];
+        double[] y = colData[variables.indexOf(Y)];
+
+        x = correctSkewness(x);
+        y = correctSkewness(y);
 
         Set<Node> adjSet = new HashSet<>(G0.getAdjacentNodes(X));
         adjSet.addAll(G0.getAdjacentNodes(Y));
@@ -675,6 +650,9 @@ public final class Fask_B implements GraphSearch {
             regressionDataset.setRows(_rows);
             double[] rx = regressionDataset.regress(x, z).getResiduals().toArray();
             double[] ry = regressionDataset.regress(y, z).getResiduals().toArray();
+
+            rx = correctSkewness(rx);
+            ry = correctSkewness(ry);
 
             double[] rxy = new double[rows.size()];
 
