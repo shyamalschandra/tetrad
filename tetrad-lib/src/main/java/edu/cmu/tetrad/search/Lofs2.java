@@ -1494,11 +1494,13 @@ public class Lofs2 {
             double mxx = mean(xx);
             double myy = mean(yy);
 
+            double lr = correlation(xData, yData) *  (mxx - myy);
+
             graph.removeEdge(edge);
 
-            if (mxx > myy) {
+            if (lr > 0) {
                 graph.addDirectedEdge(x, y);
-            } else if (myy > mxx) {
+            } else if (lr < 0) {
                 graph.addDirectedEdge(y, x);
             } else {
                 graph.addUndirectedEdge(x, y);

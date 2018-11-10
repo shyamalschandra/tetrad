@@ -32,9 +32,7 @@ import org.apache.commons.math3.distribution.NormalDistribution;
 import org.apache.commons.math3.distribution.TDistribution;
 import org.apache.commons.math3.linear.SingularMatrixException;
 
-import java.awt.*;
 import java.util.*;
-import java.util.List;
 
 import static edu.cmu.tetrad.util.StatUtils.*;
 import static java.lang.Math.*;
@@ -98,9 +96,9 @@ public final class Fask_B implements GraphSearch {
         colData = dataSet.getDoubleData().transpose().toArray();
         this.variables = dataSet.getVariables();
 
-//        for (int i = 0; i < variables.size(); i++) {
-//            System.out.println(variables.get(i) + " skewness = " + skewness(colData[i]));
-//        }
+        for (int i = 0; i < variables.size(); i++) {
+            System.out.println(variables.get(i) + " skewness = " + skewness(variables.get(i)));
+        }
 
         regressionDataset = new RegressionDataset(dataSet);
     }
@@ -246,50 +244,18 @@ public final class Fask_B implements GraphSearch {
                         } else if (knowledgeOrients(Y, X)) {
                             graph.addDirectedEdge(Y, X);
                         } else {
-                            final boolean leftrightxy = leftright(X, Y);
-                            final boolean leftrightyx = leftright(Y, X);
+                            final double exeyy = exeyy(X, Y);
+                            final double exeyx = exeyy(Y, X);
 
                             final double r = corr(X, Y);
                             final double z = 0.5 * sqrt(dataSet.getNumRows()) * (log(1 + r) - log(1 - r));
                             double p = 1.0 - new NormalDistribution(0, 1).cumulativeProbability(abs(z));
-//                            System.out.println("corr(" + X + ", " + Y + " = " + r + " p = " + p);
+                            System.out.println("corr(" + X + ", " + Y + ") = " + r + " p = " + p + " exeyy = " + exeyy + " exeyx = " + exeyx);
 
-                            boolean zero = p > 0.01;
-
-                            if (!leftrightxy && !leftrightyx) {
-
-                                // These might be bidirected edges. We will check. If not, remove.
-//                                graph.addUndirectedEdge(X, Y);
-//                                graph.getEdge(X, Y).setLineColor(Color.MAGENTA);
-
-//                                graph.addUndirectedEdge(X, Y);
-//                                graph.addDirectedEdge(Y, X);
-
+                            if (leftRight(X, Y)) {
                                 graph.addDirectedEdge(X, Y);
+                            } else if (leftRight(Y, X)) {
                                 graph.addDirectedEdge(Y, X);
-
-                            } else if (leftrightxy && leftrightyx) {
-//                                graph.addUndirectedEdge(X, Y);
-//                                graph.getEdge(X, Y).setLineColor(Color.GRAY);
-                                // This should not happen. It's a mistake.
-
-                                graph.addDirectedEdge(X, Y);
-                                graph.addDirectedEdge(Y, X);
-
-//                                graph.addUndirectedEdge(X, Y);
-//                                graph.addDirectedEdge(Y, X);
-                            } else if (!leftrightyx) {
-                                graph.addDirectedEdge(X, Y);
-
-                                if (zero) {
-                                    graph.getEdge(X, Y).setLineColor(Color.ORANGE);
-                                }
-                            } else if (!leftrightxy) {
-                                graph.addDirectedEdge(Y, X);
-
-                                if (zero) {
-                                    graph.getEdge(Y, X).setLineColor(Color.ORANGE);
-                                }
                             }
                         }
                     }
@@ -343,12 +309,6 @@ public final class Fask_B implements GraphSearch {
                     Edge edge2 = Edges.directedEdge(Y, X);
                     graph.addEdge(edge1);
                     graph.addEdge(edge2);
-                } else if (Edges.isUndirectedEdge(edge)) {
-//                    graph.removeEdges(X, Y);
-//                    Edge edge1 = Edges.directedEdge(X, Y);
-//                    Edge edge2 = Edges.directedEdge(Y, X);
-//                    graph.addEdge(edge1);
-//                    graph.addEdge(edge2);
                 }
             }
         }
@@ -367,6 +327,12 @@ public final class Fask_B implements GraphSearch {
         double[] y = colData[variables.indexOf(Y)];
 
         return correlation(x, y);
+    }
+
+    private double skewness(Node X) {
+        double[] x = colData[variables.indexOf(X)];
+
+        return StatUtils.skewness(x);
     }
 
     //======================================== PRIVATE METHODS ====================================//
@@ -391,7 +357,7 @@ public final class Fask_B implements GraphSearch {
             double df = ((exyy + exyx) * (exyy + exyx)) / ((exyy * exyy) / (ny - 1)) + ((exyx * exyx) / (nx - 1));
 
             double p = new TDistribution(df).cumulativeProbability(t);
-            b1 = p  < skewEdgeAlpha;
+            b1 = p < skewEdgeAlpha;
         }
 
         {
@@ -418,7 +384,7 @@ public final class Fask_B implements GraphSearch {
     }
 
     // If x->y, returns true
-    private boolean leftright(Node X, Node Y) {
+    private double exeyy(Node X, Node Y) {
         double[] x = colData[variables.indexOf(X)];
         double[] y = colData[variables.indexOf(Y)];
 
@@ -427,7 +393,59 @@ public final class Fask_B implements GraphSearch {
         final double cxyy = e(x, y, y);
         final double cxxy = e(x, x, y);
 
-        return cxyx / cxxx > cxyy / cxxy;
+        double exeyy = (cxyy / cxxy - cxyx / cxxx) * cxxy;
+        exeyy *= skewness(X);
+        double skx = skewness(X);
+
+        if (corr(X, Y) < 0 || skewness(Y) < 0) {
+            exeyy *= -1;
+            skx *= -1;
+        }
+
+        if (skx < 0) {
+            exeyy *= -1;
+        }
+
+        return exeyy;
+    }
+
+    private boolean leftRight(Node X, Node Y) {
+        double[] x = colData[variables.indexOf(X)];
+        double[] y = colData[variables.indexOf(Y)];
+
+        final double cxyx = e(x, y, x);
+        final double cxxx = e(x, x, x);
+        final double cxyy = e(x, y, y);
+        final double cxxy = e(x, x, y);
+
+
+        double exeyy = exeyy(X, Y);
+        double eyexx = exeyy(Y, X);
+
+        System.out.println("*** X = " + X + " Y = " + Y + " exeyy = " + exeyy + " eyexx = " + eyexx);
+
+//        double a = abs(exeyy) - abs(exeyx);
+
+//        return (abs(exeyy) - abs(eyexx)) * skewness(X) * skewness((Y)) < 0;
+
+        return exeyy < 0;
+
+//        final double cxyx = e(x, y, x);
+//        final double cxxx = e(x, x, x);
+//        final double cxyy = e(x, y, y);
+//        final double cxxy = e(x, x, y);
+//
+//        double lr = (cxyx / cxxx - cxyy / cxxy) * cxxy;
+////        double lr = cxyx - cxyy;
+////        final double corr = corr(X, Y);
+////        lr *= (skewness(X)) * (skewness(Y));
+////        lr *= corr;
+//
+////        System.out.println("X = " + X + " Y = " + Y + " LR = " + lr + " corr = " + corr);
+//
+////        if (corr(X, Y) < -.2) lr *= -1;
+//
+//        return lr < 0;
     }
 
     private boolean twocycle(Node X, Node Y, Graph G0) {
