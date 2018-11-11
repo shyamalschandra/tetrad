@@ -257,7 +257,6 @@ public final class Fask_B implements GraphSearch {
                             final double r = corr(X, Y);
                             final double z = 0.5 * sqrt(dataSet.getNumRows()) * (log(1 + r) - log(1 - r));
                             double p = 1.0 - new NormalDistribution(0, 1).cumulativeProbability(abs(z));
-                            System.out.println("corr(" + X + ", " + Y + ") = " + r + " p = " + p + " exeyy = " + exeyy + " exeyx = " + exeyx);
 
                             if (leftRight(X, Y)) {
                                 graph.addDirectedEdge(X, Y);
@@ -417,6 +416,9 @@ public final class Fask_B implements GraphSearch {
 
     private boolean leftRight(Node X, Node Y) {
         double exeyy = exeyy(X, Y);
+
+        System.out.println("### corr(" + X + ", " + Y + ") = " + corr(X, Y) + " exeyy = " + exeyy);
+
         return exeyy < 0;
     }
 
