@@ -262,7 +262,9 @@ public final class Fask_B implements GraphSearch {
                         } else {
                             final double r = corr(X, Y);
 
-                            if (leftRight(X, Y) == leftRight(Y, X)) {
+                            if (leftRight(X, Y) && leftRight(Y, X)) {
+                                graph.addBidirectedEdge(X, Y);
+                            } else if (!leftRight(X, Y) && !leftRight(Y, X)) {
                                 graph.addBidirectedEdge(X, Y);
                             } else if (!leftRight(Y, X)) {
                                 graph.addDirectedEdge(X, Y);
@@ -424,8 +426,32 @@ public final class Fask_B implements GraphSearch {
     private boolean leftRight(Node X, Node Y) {
         double[] x = colData[variables.indexOf(X)];
         double[] y = colData[variables.indexOf(Y)];
+        double a = correlation(x, y);
 
-        return exeyx(x, y) > exeyy(x, y);
+        if (a > 0) {
+            double lr = exeyx(x, y, true) - exeyy2(x, y, true);
+            lr *= skewness(X) * skewness(Y);
+            return lr > 0;
+        } else {
+            double lr = exeyx(x, y, false) - exeyy2(x, y, true);
+            lr *= skewness(X) * skewness(Y);
+            return lr > 0;
+        }
+    }
+
+    private boolean leftRight2(Node X, Node Y) {
+        double[] x = colData[variables.indexOf(X)];
+        double[] y = colData[variables.indexOf(Y)];
+
+        return bryanformula(x, y) < bryanformula(y, x);
+    }
+
+    private double bryanformula(double[] x, double[] y) {
+        double a = (e(x, y, x, true) * e(x, x, x, true) + e(x, y, x, false) * e(x, x, x, false))
+                / (e(x, x, x, true) * e(x, x, x, true) + e(x, x, x, false) * e(x, x, x, false));
+
+        return Math.pow(e(x, y, x, true) - a * e(x, x, x, true), 2.0)
+                + Math.pow(e(x, y, x, false) - a * e(x, x, x, false), 2.0);
     }
 
     private double exeyy(double[] x, double[] y) {
@@ -437,9 +463,31 @@ public final class Fask_B implements GraphSearch {
         return (cxyy / cxxy - cxyx / cxxx) * cxxy;
     }
 
-    private double exeyx(double[] x, double[] y) {
+    private double exeyx(double[] x, double[] y, boolean positive) {
         double a = correlation(x, y);
-        return e(x, y, x, true) - a * e(x, x, x, true);
+
+//        double a = (e(x, y, x, true) * e(x, x, x, true) + e(x, y, x, false) * e(x, x, x, false))
+//                / (e(x, x, x, true) * e(x, x, x, true) + e(x, x, x, false) * e(x, x, x, false));
+
+        if (a > 0) {
+            return e(x, y, x, true) - a * e(x, x, x, positive);
+        } else {
+            return e(x, y, x, false) - a * e(x, x, x, positive);
+        }
+
+//        return e(x, y, x, true) - a * e(x, x, x, true);
+    }
+
+    private double exeyy2(double[] x, double[] y, boolean positive) {
+        double a = correlation(x, y);
+
+        if (a > 0) {
+            return e(x, y, y, true) - a * e(x, x, y, positive);
+        } else {
+            return e(x, y, y, false) - a * e(x, x, y, positive);
+        }
+
+//        return e(x, y, x, true) - a * e(x, x, x, true);
     }
 
     private boolean twocycle(Node X, Node Y, Graph graph) {
