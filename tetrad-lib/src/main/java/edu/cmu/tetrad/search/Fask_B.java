@@ -68,6 +68,9 @@ public final class Fask_B implements GraphSearch {
     // Data as a double[][].
     private final double[][] colData;
 
+    // Data with skew corrected.
+    private final double[][] skewCorrected;
+
     // A threshold for including extra adjacencies due to skewness.
     private double skewEdgeAlpha = 0.3;
 
@@ -83,6 +86,7 @@ public final class Fask_B implements GraphSearch {
     private RegressionDataset regressionDataset;
     private final List<Node> variables;
     private double smallCorrelation = 0.01;
+    private double maskThreshold = 0.1;
 
     /**
      * @param dataSet These datasets must all have the same variables, in the same order.
@@ -99,13 +103,11 @@ public final class Fask_B implements GraphSearch {
             System.out.println(variables.get(i) + " skewness = " + skewness(variables.get(i)));
         }
 
-        double[][] colData2 = dataSet.getDoubleData().transpose().toArray();
+        skewCorrected = new double[colData.length][];
 
-        for (int i = 0; i < colData2.length; i++) {
-            colData2[i] = correctSkewness(colData2[i]);
+        for (int i = 0; i < skewCorrected.length; i++) {
+            skewCorrected[i] = correctSkewness(colData[i]);
         }
-
-        DataSet data2 = new BoxDataSet(new VerticalDoubleDataBox(colData2), dataSet.getVariables());
 
         regressionDataset = new RegressionDataset(dataSet);
     }
@@ -207,7 +209,7 @@ public final class Fask_B implements GraphSearch {
 
         setCutoff();
 
-        Graph G0;
+        Graph fasGraph;
 
         if (getInitialGraph() != null) {
             Graph g1 = new EdgeListGraph(getInitialGraph().getNodes());
@@ -221,7 +223,7 @@ public final class Fask_B implements GraphSearch {
 
             g1 = GraphUtils.replaceNodes(g1, dataSet.getVariables());
 
-            G0 = g1;
+            fasGraph = g1;
         } else {
             System.out.println("FAS");
 
@@ -229,104 +231,141 @@ public final class Fask_B implements GraphSearch {
             fas.setDepth(getDepth());
             fas.setVerbose(false);
             fas.setKnowledge(knowledge);
-            G0 = fas.search();
+            fasGraph = fas.search();
         }
 
-        SearchGraphUtils.pcOrientbk(knowledge, G0, G0.getNodes());
+        SearchGraphUtils.pcOrientbk(knowledge, fasGraph, fasGraph.getNodes());
 
         System.out.println("Orientation");
 
         Graph graph = new EdgeListGraph(variables);
 
-        for (int i = 0; i < variables.size(); i++) {
+        for (int i = 0; i < variables.size(); i++)
             for (int j = i + 1; j < variables.size(); j++) {
                 Node X = variables.get(i);
                 Node Y = variables.get(j);
 
-                if ((isUseFasAdjacencies() && G0.isAdjacentTo(X, Y))
-                        || (isUseSkewAdjacencies() && (skewAdjacent(X, Y, Collections.emptyList())))) {
+                final double[] x = colData[i];
+                final double[] y = colData[j];
+
+                double c1 = StatUtils.cov(x, y, x, 0, +1)[1];
+                double c2 = StatUtils.cov(x, y, y, 0, +1)[1];
+
+                if ((isUseFasAdjacencies() && fasGraph.isAdjacentTo(X, Y))
+                        || (isUseSkewAdjacencies() && getMaskThreshold() != 0 ?
+                        Math.abs(c1 - c2) > getMaskThreshold() : ((skewAdjacent(X, Y, Collections.emptyList()))))) {
                     if (!edgeForbiddenByKnowledge(X, Y)) {
                         if (knowledgeOrients(X, Y)) {
                             graph.addDirectedEdge(X, Y);
                         } else if (knowledgeOrients(Y, X)) {
                             graph.addDirectedEdge(Y, X);
                         } else {
-                            final double exeyy = exeyy(X, Y);
-                            final double exeyx = exeyy(Y, X);
-
                             final double r = corr(X, Y);
                             final double z = 0.5 * sqrt(dataSet.getNumRows()) * (log(1 + r) - log(1 - r));
                             double p = 1.0 - new NormalDistribution(0, 1).cumulativeProbability(abs(z));
 
-                            if (leftRight(X, Y)) {
-                                graph.addDirectedEdge(X, Y);
-
-                                if (abs(p) > 0.03 || (abs(skewness(X)) < 0.03 && abs(skewness(Y)) < 0.3)) {
-                                    graph.getEdge(X, Y).setLineColor(Color.ORANGE);
+                            if (!leftRight(X, Y) == !leftRight(Y, X)) {
+                                graph.addUndirectedEdge(X, Y);
+                                graph.getEdge(X, Y).setLineColor(Color.RED);
+                            } else if (!leftRight(Y, X)) {
+                                if (abs(p) > smallCorrelation) {// || (abs(skewness(X)) < smallCorrelation && abs(skewness(Y)) < smallCorrelation)) {
+                                    graph.addDirectedEdge(X, Y);
+//                                    graph.getEdge(X, Y).setLineColor(Color.ORANGE);
+                                } else {
+                                    graph.addDirectedEdge(X, Y);
                                 }
-                            } else if (leftRight(Y, X)) {
-                                graph.addDirectedEdge(Y, X);
-
-                                if (abs(p) > smallCorrelation || (abs(skewness(X)) < smallCorrelation && abs(skewness(Y)) < smallCorrelation)) {
-                                    graph.getEdge(X, Y).setLineColor(Color.ORANGE);
+                            } else if (!leftRight(X, Y)) {
+                                if (abs(p) > smallCorrelation) {/// || (abs(skewness(X)) < smallCorrelation && abs(skewness(Y)) < smallCorrelation)) {
+                                    graph.addDirectedEdge(Y, X);
+//                                    graph.getEdge(X, Y).setLineColor(Color.ORANGE);
+                                } else {
+                                    graph.addDirectedEdge(Y, X);
                                 }
                             }
-
                         }
                     }
                 }
             }
-        }
 
-        Set<Edge> edges = graph.getEdges();
+        for (Node head : variables) {
+            List<Node> allParents1 = graph.getParents(head);
+            List<Node> remove = new ArrayList<>();
 
-        EDGES:
-        for (Edge edge : new ArrayList<>(edges)) {
-            if (edge.isDirected()) {
-                Node tail = Edges.getDirectedEdgeTail(edge);
-                Node head = Edges.getDirectedEdgeHead(edge);
+            TAIL:
+            for (Node parent : allParents1) {
+                Edge edge3 = graph.getDirectedEdge(parent, head);
+                Node tail = Edges.getDirectedEdgeTail(edge3);
 
-                List<Node> parents = graph.getParents(head);
-                parents.remove(tail);
+                if (!graph.isAdjacentTo(tail, head)) continue;
 
-                for (Node p : new ArrayList<>(parents)) {
-                    if (GraphUtils.directedPathsFromTo(graph, tail, p, 3).isEmpty()) {
-                        parents.remove(p);
+                List<Node> parents1 = graph.getParents(head);
+                parents1.remove(tail);
+                List<Node> c = new ArrayList<>();
+
+                P1:
+                for (Node p1 : new ArrayList<>(parents1)) {
+                    final List<List<Node>> paths = GraphUtils.directedPathsFromTo(graph, tail, p1, 3);
+
+                    for (List<Node> path : paths) {
+                        if (path.size() > 2) {
+                            Node a = path.get(path.size() - 2);
+                            Node b = path.get(path.size() - 1);
+                            if (graph.getEdges(a, b).size() != 2) {
+                                c.add(p1);
+                                break P1;
+                            }
+                        }
                     }
                 }
 
-                final int depth = this.depth == -1 ? 1000 : this.depth;
-                final int min = min(depth, parents.size());
+                final int depth2 = this.depth == -1 ? 1000 : this.depth;
 
-                ChoiceGenerator gen = new ChoiceGenerator(parents.size(), min);
+                DepthChoiceGenerator gen = new DepthChoiceGenerator(c.size(), min(depth2, c.size()));
                 int[] choice;
 
                 while ((choice = gen.next()) != null) {
                     if (choice.length == 0) continue;
-                    List<Node> Z = GraphUtils.asList(choice, parents);
+                    List<Node> Z = GraphUtils.asList(choice, parents1);
 
                     if (!skewAdjacent(tail, head, Z)) {
-                        graph.removeEdge(edge);
-                        continue EDGES;
+                        System.out.println("Removing " + tail + "---" + head + " | " + Z);
+                        remove.add(tail);
+                        continue TAIL;
                     }
+                }
+            }
+
+            if (!new HashSet<>(remove).equals(new HashSet<>(allParents1))) {
+                for (Node tail1 : remove) {
+                    graph.removeEdge(tail1, head);
                 }
             }
         }
 
-        for (Edge edge : edges) {
+        List<Edge> twoCycles = new ArrayList<>();
+
+        for (Edge edge : graph.getEdges()) {
             Node X = edge.getNode1();
             Node Y = edge.getNode2();
 
             if (!(knowledgeOrients(X, Y) || knowledgeOrients(Y, X))) {
-                if (twocycle(X, Y, G0)) {
-                    graph.removeEdges(X, Y);
-                    Edge edge1 = Edges.directedEdge(X, Y);
-                    Edge edge2 = Edges.directedEdge(Y, X);
-                    graph.addEdge(edge1);
-                    graph.addEdge(edge2);
+                if (twocycle(X, Y, graph)) {
+                    twoCycles.add(Edges.undirectedEdge(X, Y));
                 }
             }
         }
+
+        for (Edge edge : twoCycles) {
+            Node X = edge.getNode1();
+            Node Y = edge.getNode2();
+
+            graph.removeEdges(X, Y);
+            Edge edge1 = Edges.directedEdge(X, Y);
+            Edge edge2 = Edges.directedEdge(Y, X);
+            graph.addEdge(edge1);
+            graph.addEdge(edge2);
+        }
+
 
         System.out.println();
         System.out.println("Done");
@@ -398,39 +437,33 @@ public final class Fask_B implements GraphSearch {
         return b1 || b2;
     }
 
-    // If x->y, returns true
-    private double exeyy(Node X, Node Y) {
+    private boolean leftRight(Node X, Node Y) {
         double[] x = colData[variables.indexOf(X)];
         double[] y = colData[variables.indexOf(Y)];
 
-        x = correctSkewness(x);
-        y = correctSkewness(y);
+        return exeyx(x, y) > exeyy(x, y);
+    }
 
-        final double cxyx = e(x, y, x);
-        final double cxxx = e(x, x, x);
-        final double cxyy = e(x, y, y);
-        final double cxxy = e(x, x, y);
+    private double exeyy(double[] x, double[] y) {
+        final double cxyx = e(x, y, x, true);
+        final double cxxx = e(x, x, x, true);
+        final double cxyy = e(x, y, y, true);
+        final double cxxy = e(x, x, y, true);
 
         return (cxyy / cxxy - cxyx / cxxx) * cxxy;
     }
 
-    private boolean leftRight(Node X, Node Y) {
-        double exeyy = exeyy(X, Y);
-
-        System.out.println("### corr(" + X + ", " + Y + ") = " + corr(X, Y) + " exeyy = " + exeyy);
-
-        return exeyy < 0;
+    private double exeyx(double[] x, double[] y) {
+        double a = correlation(x, y);
+        return e(x, y, x, true) - a * e(x, x, x, true);
     }
 
-    private boolean twocycle(Node X, Node Y, Graph G0) {
+    private boolean twocycle(Node X, Node Y, Graph graph) {
         double[] x = colData[variables.indexOf(X)];
         double[] y = colData[variables.indexOf(Y)];
 
-        x = correctSkewness(x);
-        y = correctSkewness(y);
-
-        Set<Node> adjSet = new HashSet<>(G0.getAdjacentNodes(X));
-        adjSet.addAll(G0.getAdjacentNodes(Y));
+        Set<Node> adjSet = new HashSet<>(graph.getAdjacentNodes(X));
+        adjSet.addAll(graph.getAdjacentNodes(Y));
         List<Node> adj = new ArrayList<>(adjSet);
         adj.remove(X);
         adj.remove(Y);
@@ -470,25 +503,20 @@ public final class Fask_B implements GraphSearch {
             double zx = 0.5 * (log(1.0 + rx) - log(1.0 - rx));
             double zy = 0.5 * (log(1.0 + ry) - log(1.0 - ry));
 
-            double zv = (z) / sqrt((1.0 / ((double) n - 3)));
             double zvx = (z - zx) / sqrt((1.0 / ((double) n - 3) + 1.0 / ((double) nx - 3)));
             double zvy = (z - zy) / sqrt((1.0 / ((double) n - 3) + 1.0 / ((double) ny - 3)));
-
-            boolean rejectedzv = abs(zv) > twoCycleCutoff;
 
             boolean rejectedx = abs(zvx) > twoCycleCutoff;
             boolean rejectedy = abs(zvy) > twoCycleCutoff;
 
             boolean possibleCycle = false;
 
-            if (rejectedzv) {
-                if (zvx < 0 && zvy > 0 && rejectedx) {
-                    possibleCycle = true;
-                } else if (zvx > 0 && zvy < 0 && rejectedy) {
-                    possibleCycle = true;
-                } else if (rejectedx && rejectedy) {
-                    possibleCycle = true;
-                }
+            if (zvx < 0 && zvy > 0 && rejectedx) {
+                possibleCycle = true;
+            } else if (zvx > 0 && zvy < 0 && rejectedy) {
+                possibleCycle = true;
+            } else if (rejectedx && rejectedy) {
+                possibleCycle = true;
             }
 
             if (!possibleCycle) {
@@ -499,13 +527,16 @@ public final class Fask_B implements GraphSearch {
         return true;
     }
 
-    private static double e(double[] x, double[] y, double[] condition) {
+    private static double e(double[] x, double[] y, double[] condition, boolean positive) {
         double exy = 0.0;
 
         int n = 0;
 
         for (int k = 0; k < x.length; k++) {
-            if (condition[k] > 0) {
+            if (positive && condition[k] > 0) {
+                exy += x[k] * y[k];
+                n++;
+            } else if (!positive && condition[k] < 0) {
                 exy += x[k] * y[k];
                 n++;
             }
@@ -618,6 +649,14 @@ public final class Fask_B implements GraphSearch {
         this.smallCorrelation = smallCorrelation;
     }
 
+    public void setMaskThreshold(double maskThreshold) {
+        this.maskThreshold = maskThreshold;
+    }
+
+    public double getMaskThreshold() {
+        return maskThreshold;
+    }
+
     private class E {
         private Node x;
         private Node y;
@@ -653,8 +692,8 @@ public final class Fask_B implements GraphSearch {
             double[] rx = regressionDataset.regress(x, z).getResiduals().toArray();
             double[] ry = regressionDataset.regress(y, z).getResiduals().toArray();
 
-            rx = correctSkewness(rx);
-            ry = correctSkewness(ry);
+//            rx = correctSkewness(rx);
+//            ry = correctSkewness(ry);
 
             double[] rxy = new double[rows.size()];
 

@@ -58,8 +58,8 @@ public class TestSimulatedFmri {
         Parameters parameters = new Parameters();
         parameters.set("penaltyDiscount", 1);
         parameters.set("faskDelta", -.2);
-        parameters.set("depth", 5);
-        parameters.set("extraEdgeThreshold", 10);
+        parameters.set("depth", -1);
+        parameters.set("extraEdgeThreshold", 3);
         parameters.set("skewEdgeAlpha", 0.001);
         parameters.set("twoCycleAlpha", .00001);
         parameters.set("smallCorrelation", 0.01);
