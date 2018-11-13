@@ -244,6 +244,10 @@ public class ParamDescriptions {
                 "Threshold for including extra edges",
                 0.3, 0.0, Double.POSITIVE_INFINITY));
 
+        map.put("maskThreshold", new ParamDescription(
+                "Mask threshold for including extra edges (default 3)",
+                0.3, 0.0, Double.POSITIVE_INFINITY));
+
         map.put("skewEdgeAlpha", new ParamDescription(
                 "Alpha for including extra edges based on skewness",
                 0.3, 0.0, Double.POSITIVE_INFINITY));
