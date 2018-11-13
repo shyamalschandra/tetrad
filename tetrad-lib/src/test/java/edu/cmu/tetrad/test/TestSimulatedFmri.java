@@ -305,7 +305,7 @@ public class TestSimulatedFmri {
     }
 
     public static void main(String... args) {
-        new TestSimulatedFmri().task(true);
+        new TestSimulatedFmri().task(false);
     }
 }
 
