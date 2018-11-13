@@ -240,7 +240,7 @@ public final class Fask_B implements GraphSearch {
 
         Graph graph = new EdgeListGraph(variables);
 
-        for (int i = 0; i < variables.size(); i++)
+        for (int i = 0; i < variables.size(); i++) {
             for (int j = i + 1; j < variables.size(); j++) {
                 Node X = variables.get(i);
                 Node Y = variables.get(j);
@@ -261,31 +261,27 @@ public final class Fask_B implements GraphSearch {
                             graph.addDirectedEdge(Y, X);
                         } else {
                             final double r = corr(X, Y);
-                            final double z = 0.5 * sqrt(dataSet.getNumRows()) * (log(1 + r) - log(1 - r));
-                            double p = 1.0 - new NormalDistribution(0, 1).cumulativeProbability(abs(z));
 
-                            if (!leftRight(X, Y) == !leftRight(Y, X)) {
-                                graph.addUndirectedEdge(X, Y);
-                                graph.getEdge(X, Y).setLineColor(Color.RED);
+                            if (leftRight(X, Y) == leftRight(Y, X)) {
+                                graph.addBidirectedEdge(X, Y);
                             } else if (!leftRight(Y, X)) {
-                                if (abs(p) > smallCorrelation) {// || (abs(skewness(X)) < smallCorrelation && abs(skewness(Y)) < smallCorrelation)) {
-                                    graph.addDirectedEdge(X, Y);
-//                                    graph.getEdge(X, Y).setLineColor(Color.ORANGE);
-                                } else {
-                                    graph.addDirectedEdge(X, Y);
+                                graph.addDirectedEdge(X, Y);
+
+                                if (abs(r) < smallCorrelation) {
+                                    graph.getEdge(X, Y).setLineColor(Color.ORANGE);
                                 }
                             } else if (!leftRight(X, Y)) {
-                                if (abs(p) > smallCorrelation) {/// || (abs(skewness(X)) < smallCorrelation && abs(skewness(Y)) < smallCorrelation)) {
-                                    graph.addDirectedEdge(Y, X);
-//                                    graph.getEdge(X, Y).setLineColor(Color.ORANGE);
-                                } else {
-                                    graph.addDirectedEdge(Y, X);
+                                graph.addDirectedEdge(Y, X);
+
+                                if (abs(r) < smallCorrelation) {
+                                    graph.getEdge(X, Y).setLineColor(Color.ORANGE);
                                 }
                             }
                         }
                     }
                 }
             }
+        }
 
         for (Node head : variables) {
             List<Node> allParents1 = graph.getParents(head);
@@ -296,25 +292,23 @@ public final class Fask_B implements GraphSearch {
                 Edge edge3 = graph.getDirectedEdge(parent, head);
                 Node tail = Edges.getDirectedEdgeTail(edge3);
 
+                if (graph.getEdges(tail, head).size() == 2) {
+                    continue;
+                }
+
                 if (!graph.isAdjacentTo(tail, head)) continue;
 
                 List<Node> parents1 = graph.getParents(head);
                 parents1.remove(tail);
                 List<Node> c = new ArrayList<>();
 
-                P1:
                 for (Node p1 : new ArrayList<>(parents1)) {
-                    final List<List<Node>> paths = GraphUtils.directedPathsFromTo(graph, tail, p1, 3);
+//                    if (graph.getEdges(p1, head).size() == 2) {
+//                        continue;
+//                    }
 
-                    for (List<Node> path : paths) {
-                        if (path.size() > 2) {
-                            Node a = path.get(path.size() - 2);
-                            Node b = path.get(path.size() - 1);
-                            if (graph.getEdges(a, b).size() != 2) {
-                                c.add(p1);
-                                break P1;
-                            }
-                        }
+                    if (!GraphUtils.directedPathsFromTo(graph, tail, p1, 3).isEmpty()) {
+                        c.add(p1);
                     }
                 }
 
@@ -337,35 +331,25 @@ public final class Fask_B implements GraphSearch {
 
             if (!new HashSet<>(remove).equals(new HashSet<>(allParents1))) {
                 for (Node tail1 : remove) {
-                    graph.removeEdge(tail1, head);
+                    graph.removeEdges(tail1, head);
                 }
             }
         }
-
-        List<Edge> twoCycles = new ArrayList<>();
 
         for (Edge edge : graph.getEdges()) {
             Node X = edge.getNode1();
             Node Y = edge.getNode2();
 
             if (!(knowledgeOrients(X, Y) || knowledgeOrients(Y, X))) {
-                if (twocycle(X, Y, graph)) {
-                    twoCycles.add(Edges.undirectedEdge(X, Y));
+                if (graph.getEdges(X, Y).size() == 1 && twocycle(X, Y, graph)) {
+                    graph.removeEdge(X, Y);
+                    Edge edge1 = Edges.directedEdge(X, Y);
+                    Edge edge2 = Edges.directedEdge(Y, X);
+                    graph.addEdge(edge1);
+                    graph.addEdge(edge2);
                 }
             }
         }
-
-        for (Edge edge : twoCycles) {
-            Node X = edge.getNode1();
-            Node Y = edge.getNode2();
-
-            graph.removeEdges(X, Y);
-            Edge edge1 = Edges.directedEdge(X, Y);
-            Edge edge2 = Edges.directedEdge(Y, X);
-            graph.addEdge(edge1);
-            graph.addEdge(edge2);
-        }
-
 
         System.out.println();
         System.out.println("Done");
@@ -462,8 +446,23 @@ public final class Fask_B implements GraphSearch {
         double[] x = colData[variables.indexOf(X)];
         double[] y = colData[variables.indexOf(Y)];
 
-        Set<Node> adjSet = new HashSet<>(graph.getAdjacentNodes(X));
-        adjSet.addAll(graph.getAdjacentNodes(Y));
+        final List<Node> adjX = graph.getAdjacentNodes(X);
+        final List<Node> adjY = graph.getAdjacentNodes(Y);
+
+        for (Node a : new ArrayList<>(adjX)) {
+            if (graph.getEdges(a, X).size() == 2 || Edges.isBidirectedEdge(graph.getEdge(a, X))) {
+                adjX.remove(a);
+            }
+        }
+
+        for (Node a : new ArrayList<>(adjY)) {
+            if (graph.getEdges(a, Y).size() == 2 || Edges.isBidirectedEdge(graph.getEdge(a, Y))) {
+                adjY.remove(a);
+            }
+        }
+
+        Set<Node> adjSet = new HashSet<>(adjX);
+        adjSet.addAll(adjY);
         List<Node> adj = new ArrayList<>(adjSet);
         adj.remove(X);
         adj.remove(Y);
