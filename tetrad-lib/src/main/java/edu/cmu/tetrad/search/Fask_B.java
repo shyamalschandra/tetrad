@@ -33,9 +33,7 @@ import edu.cmu.tetrad.util.TetradLogger;
 import edu.cmu.tetrad.util.TetradMatrix;
 import org.apache.commons.math3.distribution.TDistribution;
 import org.apache.commons.math3.linear.SingularMatrixException;
-import org.omg.PortableServer.POA;
 
-import java.awt.*;
 import java.util.*;
 import java.util.List;
 
@@ -430,23 +428,54 @@ public final class Fask_B implements GraphSearch {
         return b1 || b2;
     }
 
+    // If x->y, returns true
     private boolean leftRight(Node X, Node Y) {
+        double[] x = colData[variables.indexOf(X)];
+        double[] y = colData[variables.indexOf(Y)];
+
+        final double cxyx = e(x, y, x, true);
+        final double cxyy = e(x, y, y, true);
+        final double cxxx = e(x, x, x, true);
+        final double cyyx = e(y, y, x, true);
+        final double cxxy = e(x, x, y, true);
+        final double cyyy = e(y, y, y, true);
+
+        double a1 = cxyx / cxxx;
+        double a2 = cxyy / cxxy;
+        double b1 = cxyy / cyyy;
+        double b2 = cxyx / cyyx;
+
+        double Q = (a2 > 0) ? a1 / a2 : a2 / a1;
+        double R = (b2 > 0) ? b1 / b2 : b2 / b1;
+
+        double lr = Q - R;
+
+//        if (correlation(x, y) < 0) lr += getDelta();
+        return lr > 0;
+    }
+
+    private boolean leftRight3(Node X, Node Y) {
+        return LR(X, Y) > LR(Y, X);
+    }
+
+    private double LR(Node X, Node Y) {
         double[] x = colData[variables.indexOf(X)];
         double[] y = colData[variables.indexOf(Y)];
         double a = correlation(x, y);
 
-//        double a = (e(x, y, x, true) * e(x, x, x, true) + e(x, y, x, false) * e(x, x, x, false))
-//                / (e(x, x, x, true) * e(x, x, x, true) + e(x, x, x, false) * e(x, x, x, false));
-
         if (a > 0) {
-            double lr = exeyx(x, y, true) - exeyy2(x, y, true);
-            lr *= skewness(X) * skewness(Y);
-            return lr > 0;
+            double lr = exey(x, y, x, true, a) - exey(x, y, y, true, a);
+            lr *= signum(skewness(X)) * signum(skewness(Y));
+            return lr;
         } else {
-            double lr = exeyx(x, y, false) - exeyy2(x, y, true);
-            lr *= skewness(X) * skewness(Y);
-            return lr > 0;
+            double lr = exey(x, y, x, false, a) - exey(x, y, y, true, a);
+            lr *= signum(skewness(X)) * signum(skewness(Y));
+            return lr;
         }
+    }
+
+    private double exey(double[] x, double[] y, double[] cond, boolean positive, double a) {
+        return e(x, y, cond, positive) - a * e(x, x, cond, positive);
     }
 
     private boolean leftRight2(Node X, Node Y) {
@@ -473,36 +502,43 @@ public final class Fask_B implements GraphSearch {
         return (cxyy / cxxy - cxyx / cxxx) * cxxy;
     }
 
-    private double exeyx(double[] x, double[] y, boolean positive) {
-//        double a = correlation(x, y);
+
+    private double exeyy(double[] x, double[] y, boolean positive) {
+        double a = correlation(x, y);
+
+        return e(x, y, y, positive) - a * e(x, x, y, positive);
+    }
+
+//    private double exeyx(double[] x, double[] y, boolean positive) {
+////        double a = correlation(x, y);
+////
+//        double a = (e(x, y, x, true) * e(x, x, x, true) + e(x, y, x, false) * e(x, x, x, false))
+//                / (e(x, x, x, true) * e(x, x, x, true) + e(x, x, x, false) * e(x, x, x, false));
 //
-        double a = (e(x, y, x, true) * e(x, x, x, true) + e(x, y, x, false) * e(x, x, x, false))
-                / (e(x, x, x, true) * e(x, x, x, true) + e(x, x, x, false) * e(x, x, x, false));
-
-        if (a > 0) {
-            return e(x, y, x, true) - a * e(x, x, x, positive);
-        } else {
-            return e(x, y, x, false) - a * e(x, x, x, positive);
-        }
-
-//        return e(x, y, x, true) - a * e(x, x, x, true);
-    }
-
-    private double exeyy2(double[] x, double[] y, boolean positive) {
-//        double a = correlation(x, y);
-
-        double a = (e(x, y, x, true) * e(x, x, x, true) + e(x, y, x, false) * e(x, x, x, false))
-                / (e(x, x, x, true) * e(x, x, x, true) + e(x, x, x, false) * e(x, x, x, false));
-
-
-        if (a > 0) {
-            return e(x, y, y, true) - a * e(x, x, y, positive);
-        } else {
-            return e(x, y, y, false) - a * e(x, x, y, positive);
-        }
-
-//        return e(x, y, x, true) - a * e(x, x, x, true);
-    }
+//        if (a > 0) {
+//            return e(x, y, x, true) - a * e(x, x, x, positive);
+//        } else {
+//            return e(x, y, x, false) - a * e(x, x, x, positive);
+//        }
+//
+////        return e(x, y, x, true) - a * e(x, x, x, true);
+//    }
+//
+//    private double exeyy2(double[] x, double[] y, boolean positive) {
+////        double a = correlation(x, y);
+//
+//        double a = (e(x, y, x, true) * e(x, x, x, true) + e(x, y, x, false) * e(x, x, x, false))
+//                / (e(x, x, x, true) * e(x, x, x, true) + e(x, x, x, false) * e(x, x, x, false));
+//
+//
+//        if (a > 0) {
+//            return e(x, y, y, true) - a * e(x, x, y, positive);
+//        } else {
+//            return e(x, y, y, false) - a * e(x, x, y, positive);
+//        }
+//
+////        return e(x, y, x, true) - a * e(x, x, x, true);
+//    }
 
     private boolean twocycle(Node X, Node Y, Graph graph) {
         double[] x = colData[variables.indexOf(X)];

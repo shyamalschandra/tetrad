@@ -67,7 +67,7 @@ public class TestSimulatedFmri {
 
 
         parameters.set("numRuns", 5);
-        parameters.set("randomSelectionSize", 2);
+        parameters.set("randomSelectionSize", 3);
 
         parameters.set("useFasAdjacencies", true);
         parameters.set("useCorrDiffAdjacencies", true);
@@ -190,7 +190,7 @@ public class TestSimulatedFmri {
         Algorithms algorithms = new Algorithms();
 
         algorithms.add(new FaskConcatenated(new SemBicScore()));
-        algorithms.add(new Fask_BConcatenated(new SemBicTest()));
+//        algorithms.add(new Fask_BConcatenated(new SemBicTest()));
 //        algorithms.add(new SkewSearchConcatenated(new FisherZSkew()));
 //        algorithms.add(new FaskConcatenated(new SemBicScore()));
 //        algorithms.add(new Fask_BConcatenated(new SemBicTest()));
@@ -278,7 +278,7 @@ public class TestSimulatedFmri {
 //        algorithms.add(new LofsConcatenated(Lofs2.Rule.SkewE));
 //        algorithms.add(new LofsConcatenated(Lofs2.Rule.Patel));
 
-        algorithms.add(new FaskConcatenated(new SemBicScore()));
+//        algorithms.add(new FaskConcatenated(new SemBicScore()));
         algorithms.add(new Fask_BConcatenated(new SemBicTest()));
 //        algorithms.add(new SkewSearchConcatenated());
 
