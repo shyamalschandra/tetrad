@@ -449,8 +449,6 @@ public final class Fask_B implements GraphSearch {
         double R = (b2 > 0) ? b1 / b2 : b2 / b1;
 
         double lr = Q - R;
-
-//        if (correlation(x, y) < 0) lr += getDelta();
         return lr > 0;
     }
 
