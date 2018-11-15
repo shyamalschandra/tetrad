@@ -264,9 +264,9 @@ public final class Fask_B implements GraphSearch {
                             graph.addDirectedEdge(Y, X);
                         } else {
                             if (leftRight(X, Y) && leftRight(Y, X)) {
-                                graph.addBidirectedEdge(X, Y);
+                                graph.addUndirectedEdge(X, Y);
                             } else if (!leftRight(X, Y) && !leftRight(Y, X)) {
-                                graph.addBidirectedEdge(X, Y);
+                                graph.addUndirectedEdge(X, Y);
                             } else if (!leftRight(Y, X)) {
                                 graph.addDirectedEdge(X, Y);
                             } else if (!leftRight(X, Y)) {
@@ -304,6 +304,33 @@ public final class Fask_B implements GraphSearch {
         long stop = System.currentTimeMillis();
         this.elapsed = stop - start;
 
+        for (Node X : variables) {
+            double[] x = colData[variables.indexOf(X)];
+
+            List<Node> parents = new ArrayList<>(graph.getParents(X));
+
+            double[][] _parents = new double[parents.size()][];
+
+            for (int i = 0; i < parents.size(); i++) {
+                _parents[i] = colData[variables.indexOf(parents.get(i))];
+            }
+
+            if (_parents.length == 0) {
+                final double resSk = StatUtils.skewness(x);
+                System.out.println("X = " + X.getName() + " Residual skewness = " + resSk);
+            } else {
+                final double resSk = StatUtils.skewness(residuals(x, _parents));
+                System.out.println("X = " + X.getName() + " Residual skewness = " + resSk);
+
+                for (Node p : parents) {
+                    if (resSk < -.5 && graph.getEdges(X, p).size() < 2) {
+//                        graph.removeEdge(X, p);
+//                        graph.addDirectedEdge(X, p);
+                    }
+                }
+            }
+        }
+
         return graph;
     }
 
@@ -333,7 +360,7 @@ public final class Fask_B implements GraphSearch {
                         continue;
                     }
 //
-                    if (Edges.isBidirectedEdge(graph.getEdge(p1, head))) {
+                    if (Edges.isUndirectedEdge(graph.getEdge(p1, head))) {
                         continue;
                     }
 
@@ -433,6 +460,27 @@ public final class Fask_B implements GraphSearch {
         double[] x = colData[variables.indexOf(X)];
         double[] y = colData[variables.indexOf(Y)];
 
+//        y = correctSkewness(y);
+
+        double skxy = StatUtils.skewness(residuals(x, new double[][]{y}));
+        double skyx = StatUtils.skewness(residuals(y, new double[][]{x}));
+
+//        System.out.println("skxy " + X + " | " + Y + " = " + skxy);
+
+        if (skxy > 0) {
+            return qr(x, y) > 0;
+        } else if (skyx < 0) {
+            return qr(y, x) < 0;
+        }
+
+        return false;
+
+//        if (skxy < 0) return false;
+//
+//        return qr(x, y) > 0;
+    }
+
+    private double qr(double[] x, double[] y) {
         final double cxyx = e(x, y, x, true);
         final double cxyy = e(x, y, y, true);
         final double cxxx = e(x, x, x, true);
@@ -448,8 +496,7 @@ public final class Fask_B implements GraphSearch {
         double Q = (a2 > 0) ? a1 / a2 : a2 / a1;
         double R = (b2 > 0) ? b1 / b2 : b2 / b1;
 
-        double lr = Q - R;
-        return lr > 0;
+        return Q - R;
     }
 
     private boolean leftRight3(Node X, Node Y) {
@@ -546,13 +593,13 @@ public final class Fask_B implements GraphSearch {
         final List<Node> adjY = graph.getAdjacentNodes(Y);
 
         for (Node a : new ArrayList<>(adjX)) {
-            if (graph.getEdges(a, X).size() == 2 || Edges.isBidirectedEdge(graph.getEdge(a, X))) {
+            if (graph.getEdges(a, X).size() == 2 || Edges.isUndirectedEdge(graph.getEdge(a, X))) {
                 adjX.remove(a);
             }
         }
 
         for (Node a : new ArrayList<>(adjY)) {
-            if (graph.getEdges(a, Y).size() == 2 || Edges.isBidirectedEdge(graph.getEdge(a, Y))) {
+            if (graph.getEdges(a, Y).size() == 2 || Edges.isUndirectedEdge(graph.getEdge(a, Y))) {
                 adjY.remove(a);
             }
         }
@@ -734,6 +781,15 @@ public final class Fask_B implements GraphSearch {
         if (yHat.columns() == 0) yHat = y.like();
 
         return y.minus(yHat).getColumn(0).toArray();
+    }
+
+    private double coef(double[] _x, double[][] _y) {
+        TetradMatrix x = new TetradMatrix(new double[][]{_x}).transpose();
+        TetradMatrix y = new TetradMatrix(_y).transpose();
+
+        TetradMatrix b = x.transpose().times(x).inverse().times(x.transpose().times(y));
+
+        return b.get(0, 0);
     }
 
     public void setMaskThreshold(double maskThreshold) {

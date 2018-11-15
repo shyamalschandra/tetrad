@@ -29,7 +29,6 @@ import edu.cmu.tetrad.util.dist.Uniform;
 
 import java.io.PrintStream;
 
-import static java.lang.Math.signum;
 import static java.lang.Math.sqrt;
 
 import java.util.*;
@@ -807,7 +806,6 @@ public final class LargeScaleSimulation {
             varDist = new UniformRealDistribution(varLow, varHigh);
         } else {
             distribution = new BetaDistribution(new Well1024a(++seed), getBetaLeftValue(), getBetaRightValue());
-            varDist = new UniformRealDistribution(varLow, varHigh);
         }
 
         int numVars = variableNodes.size();
@@ -819,18 +817,8 @@ public final class LargeScaleSimulation {
             for (int i = 0; i < sampleSize; i++) {
                 double sample = distribution.sample();
 
-                final double varSample = varDist.sample();
-
                 if (errorsNormal) {
-                    sample *= sqrt(varSample);
-                } else {
-                    double a = betaLeftValue;
-                    double b = betaRightValue;
-
-                    double var = sqrt((a * b) / ((a + b) * (a + b) * (a + b + 1)));
-
-                    sample /= var;
-                    sample *= sqrt(varSample);
+                    sample *= sqrt(varDist.sample());
                 }
 
                 shocks[i][j] = sample;

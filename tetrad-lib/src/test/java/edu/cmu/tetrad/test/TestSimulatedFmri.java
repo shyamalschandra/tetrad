@@ -189,8 +189,8 @@ public class TestSimulatedFmri {
 
         Algorithms algorithms = new Algorithms();
 
-        algorithms.add(new FaskConcatenated(new SemBicScore()));
-//        algorithms.add(new Fask_BConcatenated(new SemBicTest()));
+//        algorithms.add(new FaskConcatenated(new SemBicScore()));
+        algorithms.add(new Fask_BConcatenated(new SemBicTest()));
 //        algorithms.add(new SkewSearchConcatenated(new FisherZSkew()));
 //        algorithms.add(new FaskConcatenated(new SemBicScore()));
 //        algorithms.add(new Fask_BConcatenated(new SemBicTest()));
