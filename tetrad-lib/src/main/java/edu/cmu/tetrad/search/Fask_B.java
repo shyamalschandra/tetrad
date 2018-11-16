@@ -460,10 +460,6 @@ public final class Fask_B implements GraphSearch {
         double[] x = colData[variables.indexOf(X)];
         double[] y = colData[variables.indexOf(Y)];
 
-//        if (true) {
-//            return qr(x, y) * StatUtils.skewness(residuals(x, new double[][]{y})) > 0;
-//        }
-
         if (StatUtils.skewness(residuals(x, new double[][]{y})) > 0) {
             return qr(x, y) > 0;
         } else if (StatUtils.skewness(residuals(y, new double[][]{x})) < 0) {
