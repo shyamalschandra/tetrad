@@ -264,9 +264,9 @@ public final class Fask_B implements GraphSearch {
                             graph.addDirectedEdge(Y, X);
                         } else {
                             if (leftRight(X, Y) && leftRight(Y, X)) {
-                                graph.addUndirectedEdge(X, Y);
+//                                graph.addUndirectedEdge(X, Y);
                             } else if (!leftRight(X, Y) && !leftRight(Y, X)) {
-                                graph.addUndirectedEdge(X, Y);
+//                                graph.addUndirectedEdge(X, Y);
                             } else if (!leftRight(Y, X)) {
                                 graph.addDirectedEdge(X, Y);
                             } else if (!leftRight(X, Y)) {
@@ -460,6 +460,10 @@ public final class Fask_B implements GraphSearch {
         double[] x = colData[variables.indexOf(X)];
         double[] y = colData[variables.indexOf(Y)];
 
+//        if (true) {
+//            return qr(x, y) * StatUtils.skewness(residuals(x, new double[][]{y})) > 0;
+//        }
+
         if (StatUtils.skewness(residuals(x, new double[][]{y})) > 0) {
             return qr(x, y) > 0;
         } else if (StatUtils.skewness(residuals(y, new double[][]{x})) < 0) {
@@ -481,6 +485,10 @@ public final class Fask_B implements GraphSearch {
         double a2 = cxyy / cxxy;
         double b1 = cxyy / cyyy;
         double b2 = cxyx / cyyx;
+
+        if (true) {
+            return a1 - a2;
+        }
 
         double Q = (a2 > 0) ? a1 / a2 : a2 / a1;
         double R = (b2 > 0) ? b1 / b2 : b2 / b1;
