@@ -31,9 +31,11 @@ import edu.cmu.tetrad.util.DepthChoiceGenerator;
 import edu.cmu.tetrad.util.StatUtils;
 import edu.cmu.tetrad.util.TetradLogger;
 import edu.cmu.tetrad.util.TetradMatrix;
+import org.apache.commons.math3.distribution.NormalDistribution;
 import org.apache.commons.math3.distribution.TDistribution;
 import org.apache.commons.math3.linear.SingularMatrixException;
 
+import java.awt.*;
 import java.util.*;
 import java.util.List;
 
@@ -90,6 +92,7 @@ public final class Fask_B implements GraphSearch {
     private RegressionDataset regressionDataset;
     private final List<Node> variables;
     private double maskThreshold = 0.1;
+    private double orangeEdgeTreshold = 0.03;
 
     /**
      * @param dataSet These datasets must all have the same variables, in the same order.
@@ -263,14 +266,32 @@ public final class Fask_B implements GraphSearch {
                         } else if (knowledgeOrients(Y, X)) {
                             graph.addDirectedEdge(Y, X);
                         } else {
-                            if (leftRight(X, Y) && leftRight(Y, X)) {
-//                                graph.addUndirectedEdge(X, Y);
-                            } else if (!leftRight(X, Y) && !leftRight(Y, X)) {
-//                                graph.addUndirectedEdge(X, Y);
-                            } else if (!leftRight(Y, X)) {
-                                graph.addDirectedEdge(X, Y);
-                            } else if (!leftRight(X, Y)) {
-                                graph.addDirectedEdge(Y, X);
+                            final boolean lrxy = leftRight(X, Y);
+                            final boolean lryx = leftRight(Y, X);
+
+                            double N = dataSet.getNumRows();
+                            double r = corr(X, Y);
+                            double z = sqrt(N) * (log(1 + r) - log(1 - r));
+                            double p = 2 * (1.0 - new NormalDistribution(0, 1).cumulativeProbability(abs(z)));
+
+                            if (lrxy != lryx) {
+                                if (lrxy) {
+                                    if (p > orangeEdgeTreshold) {
+                                        graph.addDirectedEdge(X, Y);
+                                        graph.getEdge(X, Y).setLineColor(Color.ORANGE);
+                                    } else {
+                                        graph.addDirectedEdge(X, Y);
+
+                                    }
+                                } else if (lryx) {
+                                    if (p > orangeEdgeTreshold) {
+                                        graph.addDirectedEdge(Y, X);
+
+                                        graph.getEdge(X, Y).setLineColor(Color.ORANGE);
+                                    } else {
+                                        graph.addDirectedEdge(Y, X);
+                                    }
+                                }
                             }
                         }
                     }
@@ -463,7 +484,7 @@ public final class Fask_B implements GraphSearch {
         if (StatUtils.skewness(residuals(x, new double[][]{y})) > 0) {
             return qr(x, y) > 0;
         } else if (StatUtils.skewness(residuals(y, new double[][]{x})) < 0) {
-            return qr(y, x) < 0;
+            return qr(y, x) > 0;
         }
 
         return false;
@@ -791,6 +812,14 @@ public final class Fask_B implements GraphSearch {
 
     public double getMaskThreshold() {
         return maskThreshold;
+    }
+
+    public double getOrangeEdgeTreshold() {
+        return orangeEdgeTreshold;
+    }
+
+    public void setOrangeEdgeTreshold(double orangeEdgeTreshold) {
+        this.orangeEdgeTreshold = orangeEdgeTreshold;
     }
 
     private class E {

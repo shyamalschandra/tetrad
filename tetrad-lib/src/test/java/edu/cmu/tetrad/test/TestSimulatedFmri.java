@@ -62,7 +62,7 @@ public class TestSimulatedFmri {
         parameters.set("extraEdgeThreshold", 3);
         parameters.set("maskThreshold", 3);
         parameters.set("skewEdgeAlpha", 0.001);
-        parameters.set("twoCycleAlpha", .00001);
+        parameters.set("twoCycleAlpha", .001);
         parameters.set("smallCorrelation", 0.01);
 
 

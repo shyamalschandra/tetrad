@@ -63,7 +63,8 @@ public class Fask_BConcatenated implements MultiDataSetAlgorithm, HasKnowledge, 
             search.setDepth(parameters.getInt("depth"));
             search.setTwoCycleAlpha(parameters.getDouble("twoCycleAlpha"));
             search.setSkewEdgeAlpha(parameters.getDouble("skewEdgeAlpha"));
-            search.setMaskThreshold(parameters.getDouble("extraEdgeThreshold"));
+            search.setMaskThreshold(parameters.getDouble("maskThreshold"));
+            search.setOrangeEdgeTreshold(parameters.getDouble("orangeEdgeThreshold"));
 
             search.setUseFasAdjacencies(parameters.getBoolean("useFasAdjacencies"));
             search.setUseSkewAdjacencies(parameters.getBoolean("useCorrDiffAdjacencies"));
@@ -163,6 +164,7 @@ public class Fask_BConcatenated implements MultiDataSetAlgorithm, HasKnowledge, 
         parameters.add("twoCycleAlpha");
         parameters.add("skewEdgeAlpha");
         parameters.add("maskThreshold");
+        parameters.add("orangeEdgeThreshold");
 
         parameters.add("useFasAdjacencies");
         parameters.add("useCorrDiffAdjacencies");

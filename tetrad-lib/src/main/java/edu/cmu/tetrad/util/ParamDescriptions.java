@@ -248,6 +248,10 @@ public class ParamDescriptions {
                 "Mask threshold for including extra edges (default 3)",
                 0.3, 0.0, Double.POSITIVE_INFINITY));
 
+        map.put("orangeEdgeThreshold", new ParamDescription(
+                "Edges with correlations smaller than this will be highlighted in orange",
+                0.03, 0.0, Double.POSITIVE_INFINITY));
+
         map.put("skewEdgeAlpha", new ParamDescription(
                 "Alpha for including extra edges based on skewness",
                 0.3, 0.0, Double.POSITIVE_INFINITY));
