@@ -175,6 +175,8 @@ public final class IndTestFisherZ implements IndependenceTest {
         int n = sampleSize();
         double r;
 
+        if (z == null) z = new ArrayList<>();
+
         try {
             r = partialCorrelation(x, y, z);
         } catch (SingularMatrixException e) {
