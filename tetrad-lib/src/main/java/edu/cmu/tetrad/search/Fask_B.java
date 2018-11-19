@@ -201,6 +201,9 @@ public final class Fask_B implements GraphSearch {
         this.knowledge = knowledge;
     }
 
+    Set<Edge> possible2cycle = new HashSet<>();
+
+
     /**
      * Runs the search on the concatenated data, returning a graph, possibly cyclic, possibly with
      * two-cycles. Runs the fast adjacency search (FAS, Spirtes et al., 2000) follows by a modification
@@ -212,6 +215,7 @@ public final class Fask_B implements GraphSearch {
      */
     public Graph search() {
         long start = System.currentTimeMillis();
+        possible2cycle = new HashSet<>();
 
         setCutoff();
 
@@ -274,18 +278,15 @@ public final class Fask_B implements GraphSearch {
                             double z = sqrt(N) * (log(1 + r) - log(1 - r));
                             double p = (1.0 - new NormalDistribution(0, 1).cumulativeProbability(abs(z)));
 
-                            if (lrxy && lryx) {
+                            if (possible2cycle.contains(Edges.undirectedEdge(X, Y))) {
                                 graph.addBidirectedEdge(X, Y);
-                            }
-
-                            if (lrxy != lryx) {
+                            } else {
                                 if (lrxy) {
                                     if (p > zeroCorrelationthreshold) {
                                         graph.addDirectedEdge(X, Y);
-                                        graph.getEdge(X, Y).setLineColor(Color.ORANGE);
+                                        graph.getEdge(Y, X).setLineColor(Color.ORANGE);
                                     } else {
                                         graph.addDirectedEdge(X, Y);
-
                                     }
                                 } else if (lryx) {
                                     if (p > zeroCorrelationthreshold) {
@@ -310,10 +311,6 @@ public final class Fask_B implements GraphSearch {
             for (Node parent : allParents1) {
                 Edge edge3 = graph.getDirectedEdge(parent, head);
                 Node tail = Edges.getDirectedEdgeTail(edge3);
-
-                if (graph.getEdges(tail, head).size() == 2) {
-                    continue;
-                }
 
                 if (!graph.isAdjacentTo(tail, head)) continue;
 
@@ -340,11 +337,27 @@ public final class Fask_B implements GraphSearch {
             }
         }
 
-        for (Edge edge : graph.getEdges()) {
-            if (Edges.isBidirectedEdge(edge)) {
-                graph.removeEdge(edge);
-                graph.addDirectedEdge(edge.getNode1(), edge.getNode2());
-                graph.addDirectedEdge(edge.getNode2(), edge.getNode1());
+        for (Edge edge : possible2cycle) {
+            final Node X = edge.getNode1();
+            final Node Y = edge.getNode2();
+
+            if (Edges.isBidirectedEdge(graph.getEdge(X, Y))) {
+                if (twocycle(X, Y, graph)) {
+                    graph.removeEdge(X, Y);
+                    graph.addDirectedEdge(X, Y);
+                    graph.addDirectedEdge(Y, X);
+                } else {
+                    final boolean lrxy = leftRight(X, Y);
+                    final boolean lryx = leftRight(Y, X);
+
+                    if (lrxy && !lryx) {
+                        graph.removeEdge(X, Y);
+                        graph.addDirectedEdge(X, Y);
+                    } else if (lryx && !lrxy) {
+                        graph.removeEdge(X, Y);
+                        graph.addDirectedEdge(Y, X);
+                    }
+                }
             }
         }
 
@@ -458,64 +471,22 @@ public final class Fask_B implements GraphSearch {
         return b1 || b2;
     }
 
-    private boolean leftRightF(Node X, Node Y) {
-        double[] x = colData[variables.indexOf(X)];
-        double[] y = colData[variables.indexOf(Y)];
-
-        final double cxyx = cu(x, y, x);
-        final double cxyy = cu(x, y, y);
-
-        double left = cxyx / sqrt(cu(x, x, x) * cu(y, y, x));
-        double right = cxyy / sqrt(cu(x, x, y) * cu(y, y, y));
-
-        double lr = left - right;
-
-        double r = StatUtils.correlation(x, y);
-        double sx = StatUtils.skewness(x);
-        double sy = StatUtils.skewness(y);
-
-        r *= signum(sx) * signum(sy);
-        lr *= signum(r);
-//        if (r < -.2) lr *= -1;
-
-//        x = correctSkewness(x);
-//        y = correctSkewness(y);
-//
-//        final double skyx = StatUtils.skewness(residuals(y, new double[][]{x}));
-//
-//        if (skyx < -.1) {
-//            lr *= -1;
-//        }
-
-        return lr > 0;
-    }
-
-    private static double cu(double[] x, double[] y, double[] condition) {
-        double exy = 0.0;
-
-        int n = 0;
-
-        for (int k = 0; k < x.length; k++) {
-            if (condition[k] > 0) {
-                exy += x[k] * y[k];
-                n++;
-            }
-        }
-
-        return exy / n;
-    }
-
     // If x->y, returns true
     private boolean leftRight(Node X, Node Y) {
         System.out.println(Edges.directedEdge(X, Y));
 
-        double[] x = colData[variables.indexOf(X)];
-        double[] y = colData[variables.indexOf(Y)];
+        double[] x = skewCorrected[variables.indexOf(X)];
+        double[] y = skewCorrected[variables.indexOf(Y)];
 
-        x = correctSkewness(x);
-        y = correctSkewness(y);
+        final double cxyx = e(x, y, x, true);
+        final double cxyy = e(x, y, y, true);
+        final double cxxx = e(x, x, x, true);
+        final double cxxy = e(x, x, y, true);
 
-        double lr = qr(x, y);
+        double a1 = cxyx / cxxx;
+        double a2 = cxyy / cxxy;
+
+        double lr = (a1 - a2);
 
         final double skyx = StatUtils.skewness(residuals(y, new double[][]{x}));
 
@@ -524,42 +495,13 @@ public final class Fask_B implements GraphSearch {
         }
 
         if (skyx < -.1) {
-            lr *= -1;
+            possible2cycle.add(Edges.undirectedEdge(X, Y));
         }
 
         return lr > 0;
     }
 
-    private double qr(double[] x, double[] y) {
-        final double cxyx = e(x, y, x, true);
-        final double cxyy = e(x, y, y, true);
-        final double cxxx = e(x, x, x, true);
-        final double cyyx = e(y, y, x, true);
-        final double cxxy = e(x, x, y, true);
-        final double cyyy = e(y, y, y, true);
-
-        double a1 = cxyx / cxxx;
-        double a2 = cxyy / cxxy;
-        double b1 = cxyy / cyyy;
-        double b2 = cxyx / cyyx;
-
-        return (a1 - a2);
-
-//        return -1;
-
-//        if (skyx > 0) {
-//            return (a1 - a2);
-//        } else {
-//            return -1;
-//        }
-
-//        double Q = (a2 > 0) ? a1 / a2 : a2 / a1;
-//        double R = (b2 > 0) ? b1 / b2 : b2 / b1;
-//
-//        return Q - R;
-    }
-
-    private boolean twocycle(Node X, Node Y, Graph graph) {
+        private boolean twocycle(Node X, Node Y, Graph graph) {
         double[] x = colData[variables.indexOf(X)];
         double[] y = colData[variables.indexOf(Y)];
 
