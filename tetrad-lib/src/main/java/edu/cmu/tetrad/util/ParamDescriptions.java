@@ -150,7 +150,7 @@ public class ParamDescriptions {
 
         map.put("ngAlpha", new ParamDescription("Alpha for testing non-Gaussianity (min = 0.0)", 0.05, 0.0, 1.0));
 
-        map.put("twoCycleAlpha", new ParamDescription("Alpha orienting 2-cycles (min = 0.0)", 1e-6, 0.0, 1.0));
+        map.put("twoCycleAlpha", new ParamDescription("Alpha orienting 2-cycles (min = 0.0)", .05, 0.0, 1.0));
 
         map.put("symmetricFirstStep", new ParamDescription("Yes if the first step step for FGES should do scoring for both X->Y and Y->X", false));
 
@@ -249,12 +249,12 @@ public class ParamDescriptions {
                 0.3, 0.0, Double.POSITIVE_INFINITY));
 
         map.put("orangeEdgeThreshold", new ParamDescription(
-                "Edges with correlations smaller than this will be highlighted in orange",
+                "Alpha for judging zero correlations (orange edges)",
                 0.03, 0.0, Double.POSITIVE_INFINITY));
 
         map.put("skewEdgeAlpha", new ParamDescription(
                 "Alpha for including extra edges based on skewness",
-                0.3, 0.0, Double.POSITIVE_INFINITY));
+                0.05, 0.0, Double.POSITIVE_INFINITY));
 
         map.put("useFasAdjacencies", new ParamDescription(
                 "Yes if adjacencies from the FAS search should be used",

@@ -92,7 +92,7 @@ public final class Fask_B implements GraphSearch {
     private RegressionDataset regressionDataset;
     private final List<Node> variables;
     private double maskThreshold = 0.1;
-    private double orangeEdgeTreshold = 0.03;
+    private double zeroCorrelationthreshold = 0.03;
 
     /**
      * @param dataSet These datasets must all have the same variables, in the same order.
@@ -272,11 +272,15 @@ public final class Fask_B implements GraphSearch {
                             double N = dataSet.getNumRows();
                             double r = corr(X, Y);
                             double z = sqrt(N) * (log(1 + r) - log(1 - r));
-                            double p = 2 * (1.0 - new NormalDistribution(0, 1).cumulativeProbability(abs(z)));
+                            double p = (1.0 - new NormalDistribution(0, 1).cumulativeProbability(abs(z)));
+
+                            if (lrxy && lryx) {
+                                graph.addBidirectedEdge(X, Y);
+                            }
 
                             if (lrxy != lryx) {
                                 if (lrxy) {
-                                    if (p > orangeEdgeTreshold) {
+                                    if (p > zeroCorrelationthreshold) {
                                         graph.addDirectedEdge(X, Y);
                                         graph.getEdge(X, Y).setLineColor(Color.ORANGE);
                                     } else {
@@ -284,9 +288,8 @@ public final class Fask_B implements GraphSearch {
 
                                     }
                                 } else if (lryx) {
-                                    if (p > orangeEdgeTreshold) {
+                                    if (p > zeroCorrelationthreshold) {
                                         graph.addDirectedEdge(Y, X);
-
                                         graph.getEdge(X, Y).setLineColor(Color.ORANGE);
                                     } else {
                                         graph.addDirectedEdge(Y, X);
@@ -299,63 +302,6 @@ public final class Fask_B implements GraphSearch {
             }
         }
 
-        Graph graph1 = new EdgeListGraph(graph);
-        removeExtraEdges(graph1);
-
-        for (Edge edge : graph1.getEdges()) {
-            Node X = edge.getNode1();
-            Node Y = edge.getNode2();
-
-            if (!(knowledgeOrients(X, Y) || knowledgeOrients(Y, X))) {
-                if (graph.getEdges(X, Y).size() == 1 && twocycle(X, Y, graph1)) {
-                    graph.removeEdge(X, Y);
-                    Edge edge1 = Edges.directedEdge(X, Y);
-                    Edge edge2 = Edges.directedEdge(Y, X);
-                    graph.addEdge(edge1);
-                    graph.addEdge(edge2);
-                }
-            }
-        }
-
-        removeExtraEdges(graph);
-
-        System.out.println();
-        System.out.println("Done");
-
-        long stop = System.currentTimeMillis();
-        this.elapsed = stop - start;
-
-        for (Node X : variables) {
-            double[] x = colData[variables.indexOf(X)];
-
-            List<Node> parents = new ArrayList<>(graph.getParents(X));
-
-            double[][] _parents = new double[parents.size()][];
-
-            for (int i = 0; i < parents.size(); i++) {
-                _parents[i] = colData[variables.indexOf(parents.get(i))];
-            }
-
-            if (_parents.length == 0) {
-                final double resSk = StatUtils.skewness(x);
-                System.out.println("X = " + X.getName() + " Residual skewness = " + resSk);
-            } else {
-                final double resSk = StatUtils.skewness(residuals(x, _parents));
-                System.out.println("X = " + X.getName() + " Residual skewness = " + resSk);
-
-                for (Node p : parents) {
-                    if (resSk < -.5 && graph.getEdges(X, p).size() < 2) {
-//                        graph.removeEdge(X, p);
-//                        graph.addDirectedEdge(X, p);
-                    }
-                }
-            }
-        }
-
-        return graph;
-    }
-
-    private void removeExtraEdges(Graph graph) {
         for (Node head : variables) {
             List<Node> allParents1 = graph.getParents(head);
             List<Node> remove = new ArrayList<>();
@@ -371,25 +317,7 @@ public final class Fask_B implements GraphSearch {
 
                 if (!graph.isAdjacentTo(tail, head)) continue;
 
-                List<Node> parents1 = graph.getParents(head);
-                parents1.remove(tail);
-                List<Node> c = new ArrayList<>();
-
-                for (Node p1 : new ArrayList<>(parents1)) {
-
-                    if (graph.getEdges(p1, head).size() == 2) {
-                        continue;
-                    }
-//
-                    if (Edges.isUndirectedEdge(graph.getEdge(p1, head))) {
-                        continue;
-                    }
-
-                    if (!GraphUtils.directedPathsFromTo(graph, tail, p1, 3).isEmpty()) {
-                        c.add(p1);
-                    }
-                }
-
+                List<Node> c = getC(graph, head, tail);
                 final int depth2 = this.depth == -1 ? 1000 : this.depth;
 
                 DepthChoiceGenerator gen = new DepthChoiceGenerator(c.size(), min(c.size(), depth2));
@@ -397,7 +325,7 @@ public final class Fask_B implements GraphSearch {
 
                 while ((choice = gen.next()) != null) {
                     if (choice.length == 0) continue;
-                    List<Node> Z = GraphUtils.asList(choice, parents1);
+                    List<Node> Z = GraphUtils.asList(choice, c);
 
                     if (!skewAdjacent(tail, head, Z)) {
                         System.out.println("Removing " + tail + "---" + head + " | " + Z);
@@ -407,12 +335,66 @@ public final class Fask_B implements GraphSearch {
                 }
             }
 
-            if (!new HashSet<>(remove).equals(new HashSet<>(allParents1))) {
-                for (Node tail1 : remove) {
-                    graph.removeEdges(tail1, head);
+            for (Node tail1 : remove) {
+                graph.removeEdges(tail1, head);
+            }
+        }
+
+        for (Edge edge : graph.getEdges()) {
+            if (Edges.isBidirectedEdge(edge)) {
+                graph.removeEdge(edge);
+                graph.addDirectedEdge(edge.getNode1(), edge.getNode2());
+                graph.addDirectedEdge(edge.getNode2(), edge.getNode1());
+            }
+        }
+
+        System.out.println();
+        System.out.println("Done");
+
+        long stop = System.currentTimeMillis();
+        this.elapsed = stop - start;
+
+        return graph;
+    }
+
+    private List<Node> getC(Graph graph, Node head, Node tail) {
+        List<Node> parents1 = graph.getParents(head);
+        parents1.addAll(graph.getParents(tail));
+        parents1.remove(head);
+        parents1.remove(tail);
+        List<Node> c = new ArrayList<>();
+
+        for (Node p1 : new ArrayList<>(parents1)) {
+
+            if (graph.getEdges(p1, head).size() == 2) {
+                continue;
+            }
+
+            if (graph.getEdges(p1, tail).size() == 2) {
+                continue;
+            }
+
+            Edge edge = graph.getEdge(p1, head);
+
+            if (edge != null && Edges.isUndirectedEdge(edge)) {
+                continue;
+            }
+
+            Edge edge2 = graph.getEdge(p1, tail);
+
+            if (edge2 != null && Edges.isUndirectedEdge(edge2)) {
+                continue;
+            }
+
+            if (!GraphUtils.directedPathsFromTo(graph, tail, p1, 3).isEmpty()
+                    || !GraphUtils.directedPathsFromTo(graph, head, p1, 3).isEmpty()) {
+                if (!c.contains(p1)) {
+                    c.add(p1);
                 }
             }
         }
+
+        return c;
     }
 
     private double corr(Node X, Node Y) {
@@ -476,18 +458,76 @@ public final class Fask_B implements GraphSearch {
         return b1 || b2;
     }
 
-    // If x->y, returns true
-    private boolean leftRight(Node X, Node Y) {
+    private boolean leftRightF(Node X, Node Y) {
         double[] x = colData[variables.indexOf(X)];
         double[] y = colData[variables.indexOf(Y)];
 
-        if (StatUtils.skewness(residuals(x, new double[][]{y})) > 0) {
-            return qr(x, y) > 0;
-        } else if (StatUtils.skewness(residuals(y, new double[][]{x})) < 0) {
-            return qr(y, x) > 0;
+        final double cxyx = cu(x, y, x);
+        final double cxyy = cu(x, y, y);
+
+        double left = cxyx / sqrt(cu(x, x, x) * cu(y, y, x));
+        double right = cxyy / sqrt(cu(x, x, y) * cu(y, y, y));
+
+        double lr = left - right;
+
+        double r = StatUtils.correlation(x, y);
+        double sx = StatUtils.skewness(x);
+        double sy = StatUtils.skewness(y);
+
+        r *= signum(sx) * signum(sy);
+        lr *= signum(r);
+//        if (r < -.2) lr *= -1;
+
+//        x = correctSkewness(x);
+//        y = correctSkewness(y);
+//
+//        final double skyx = StatUtils.skewness(residuals(y, new double[][]{x}));
+//
+//        if (skyx < -.1) {
+//            lr *= -1;
+//        }
+
+        return lr > 0;
+    }
+
+    private static double cu(double[] x, double[] y, double[] condition) {
+        double exy = 0.0;
+
+        int n = 0;
+
+        for (int k = 0; k < x.length; k++) {
+            if (condition[k] > 0) {
+                exy += x[k] * y[k];
+                n++;
+            }
         }
 
-        return false;
+        return exy / n;
+    }
+
+    // If x->y, returns true
+    private boolean leftRight(Node X, Node Y) {
+        System.out.println(Edges.directedEdge(X, Y));
+
+        double[] x = colData[variables.indexOf(X)];
+        double[] y = colData[variables.indexOf(Y)];
+
+        x = correctSkewness(x);
+        y = correctSkewness(y);
+
+        double lr = qr(x, y);
+
+        final double skyx = StatUtils.skewness(residuals(y, new double[][]{x}));
+
+        if (correlation(x, y) < 0 && skyx > .2) {
+            lr *= -1;
+        }
+
+        if (skyx < -.1) {
+            lr *= -1;
+        }
+
+        return lr > 0;
     }
 
     private double qr(double[] x, double[] y) {
@@ -503,101 +543,21 @@ public final class Fask_B implements GraphSearch {
         double b1 = cxyy / cyyy;
         double b2 = cxyx / cyyx;
 
-        if (true) {
-            return a1 - a2;
-        }
+        return (a1 - a2);
 
-        double Q = (a2 > 0) ? a1 / a2 : a2 / a1;
-        double R = (b2 > 0) ? b1 / b2 : b2 / b1;
+//        return -1;
 
-        return Q - R;
-    }
-
-    private boolean leftRight3(Node X, Node Y) {
-        return LR(X, Y) > LR(Y, X);
-    }
-
-    private double LR(Node X, Node Y) {
-        double[] x = colData[variables.indexOf(X)];
-        double[] y = colData[variables.indexOf(Y)];
-        double a = correlation(x, y);
-
-        if (a > 0) {
-            double lr = exey(x, y, x, true, a) - exey(x, y, y, true, a);
-            lr *= signum(skewness(X)) * signum(skewness(Y));
-            return lr;
-        } else {
-            double lr = exey(x, y, x, false, a) - exey(x, y, y, true, a);
-            lr *= signum(skewness(X)) * signum(skewness(Y));
-            return lr;
-        }
-    }
-
-    private double exey(double[] x, double[] y, double[] cond, boolean positive, double a) {
-        return e(x, y, cond, positive) - a * e(x, x, cond, positive);
-    }
-
-    private boolean leftRight2(Node X, Node Y) {
-        double[] x = colData[variables.indexOf(X)];
-        double[] y = colData[variables.indexOf(Y)];
-
-        return bryanformula(x, y) < bryanformula(y, x);
-    }
-
-    private double bryanformula(double[] x, double[] y) {
-        double a = (e(x, y, x, true) * e(x, x, x, true) + e(x, y, x, false) * e(x, x, x, false))
-                / (e(x, x, x, true) * e(x, x, x, true) + e(x, x, x, false) * e(x, x, x, false));
-
-        return Math.pow(e(x, y, x, true) - a * e(x, x, x, true), 2.0)
-                + Math.pow(e(x, y, x, false) - a * e(x, x, x, false), 2.0);
-    }
-
-    private double exeyy(double[] x, double[] y) {
-        final double cxyx = e(x, y, x, true);
-        final double cxxx = e(x, x, x, true);
-        final double cxyy = e(x, y, y, true);
-        final double cxxy = e(x, x, y, true);
-
-        return (cxyy / cxxy - cxyx / cxxx) * cxxy;
-    }
-
-
-    private double exeyy(double[] x, double[] y, boolean positive) {
-        double a = correlation(x, y);
-
-        return e(x, y, y, positive) - a * e(x, x, y, positive);
-    }
-
-//    private double exeyx(double[] x, double[] y, boolean positive) {
-////        double a = correlation(x, y);
-////
-//        double a = (e(x, y, x, true) * e(x, x, x, true) + e(x, y, x, false) * e(x, x, x, false))
-//                / (e(x, x, x, true) * e(x, x, x, true) + e(x, x, x, false) * e(x, x, x, false));
-//
-//        if (a > 0) {
-//            return e(x, y, x, true) - a * e(x, x, x, positive);
+//        if (skyx > 0) {
+//            return (a1 - a2);
 //        } else {
-//            return e(x, y, x, false) - a * e(x, x, x, positive);
+//            return -1;
 //        }
+
+//        double Q = (a2 > 0) ? a1 / a2 : a2 / a1;
+//        double R = (b2 > 0) ? b1 / b2 : b2 / b1;
 //
-////        return e(x, y, x, true) - a * e(x, x, x, true);
-//    }
-//
-//    private double exeyy2(double[] x, double[] y, boolean positive) {
-////        double a = correlation(x, y);
-//
-//        double a = (e(x, y, x, true) * e(x, x, x, true) + e(x, y, x, false) * e(x, x, x, false))
-//                / (e(x, x, x, true) * e(x, x, x, true) + e(x, x, x, false) * e(x, x, x, false));
-//
-//
-//        if (a > 0) {
-//            return e(x, y, y, true) - a * e(x, x, y, positive);
-//        } else {
-//            return e(x, y, y, false) - a * e(x, x, y, positive);
-//        }
-//
-////        return e(x, y, x, true) - a * e(x, x, x, true);
-//    }
+//        return Q - R;
+    }
 
     private boolean twocycle(Node X, Node Y, Graph graph) {
         double[] x = colData[variables.indexOf(X)];
@@ -781,9 +741,9 @@ public final class Fask_B implements GraphSearch {
         return data2;
     }
 
-    private double[] residuals(double[] _x, double[][] _y) {
-        TetradMatrix x = new TetradMatrix(new double[][]{_x}).transpose();
-        TetradMatrix y = new TetradMatrix(_y).transpose();
+    private double[] residuals(double[] _y, double[][] _x) {
+        TetradMatrix y = new TetradMatrix(new double[][]{_y}).transpose();
+        TetradMatrix x = new TetradMatrix(_x).transpose();
 
         TetradMatrix xT = x.transpose();
         TetradMatrix xTx = xT.times(x);
@@ -792,7 +752,7 @@ public final class Fask_B implements GraphSearch {
         TetradMatrix b = xTxInv.times(xTy);
 
         TetradMatrix yHat = x.times(b);
-        if (yHat.columns() == 0) yHat = y.like();
+        if (yHat.columns() == 0) yHat = y.copy();
 
         return y.minus(yHat).getColumn(0).toArray();
     }
@@ -814,12 +774,12 @@ public final class Fask_B implements GraphSearch {
         return maskThreshold;
     }
 
-    public double getOrangeEdgeTreshold() {
-        return orangeEdgeTreshold;
+    public double getZeroCorrelationthreshold() {
+        return zeroCorrelationthreshold;
     }
 
-    public void setOrangeEdgeTreshold(double orangeEdgeTreshold) {
-        this.orangeEdgeTreshold = orangeEdgeTreshold;
+    public void setZeroCorrelationthreshold(double zeroCorrelationthreshold) {
+        this.zeroCorrelationthreshold = zeroCorrelationthreshold;
     }
 
     private class E {

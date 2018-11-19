@@ -60,11 +60,12 @@ public class TestSimulatedFmri {
         parameters.set("faskDelta", -.2);
         parameters.set("depth", -1);
         parameters.set("extraEdgeThreshold", 3);
-        parameters.set("maskThreshold", 3);
+        parameters.set("maskThreshold", 0);
         parameters.set("skewEdgeAlpha", 0.001);
-        parameters.set("twoCycleAlpha", .001);
+        parameters.set("twoCycleAlpha", 0.001);
         parameters.set("smallCorrelation", 0.01);
 
+        testing = false;
 
         parameters.set("numRuns", 5);
         parameters.set("randomSelectionSize", 3);
@@ -189,8 +190,8 @@ public class TestSimulatedFmri {
 
         Algorithms algorithms = new Algorithms();
 
-//        algorithms.add(new FaskConcatenated(new SemBicScore()));
-        algorithms.add(new Fask_BConcatenated(new SemBicTest()));
+        algorithms.add(new FaskConcatenated(new SemBicScore()));
+//        algorithms.add(new Fask_BConcatenated(new SemBicTest()));
 //        algorithms.add(new SkewSearchConcatenated(new FisherZSkew()));
 //        algorithms.add(new FaskConcatenated(new SemBicScore()));
 //        algorithms.add(new Fask_BConcatenated(new SemBicTest()));
