@@ -21,10 +21,7 @@
 
 package edu.cmu.tetrad.search;
 
-import edu.cmu.tetrad.data.DataSet;
-import edu.cmu.tetrad.data.DataUtils;
-import edu.cmu.tetrad.data.IKnowledge;
-import edu.cmu.tetrad.data.Knowledge2;
+import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.regression.RegressionDataset;
 import edu.cmu.tetrad.util.DepthChoiceGenerator;
@@ -53,7 +50,7 @@ import static java.lang.Math.min;
 public final class Fask_B implements GraphSearch {
 
     // The score to be used for the FAS adjacency search.
-    private final IndependenceTest test;
+    private IndependenceTest test;
 
     // An initial graph to orient, skipping the adjacency step.
     private Graph initialGraph = null;
@@ -248,6 +245,8 @@ public final class Fask_B implements GraphSearch {
 
         System.out.println("Orientation");
 
+        double delta = 0.3;
+
         Graph graph = new EdgeListGraph(variables);
 
         for (int i = 0; i < variables.size(); i++) {
@@ -270,32 +269,15 @@ public final class Fask_B implements GraphSearch {
                         } else if (knowledgeOrients(Y, X)) {
                             graph.addDirectedEdge(Y, X);
                         } else {
-                            final boolean lrxy = leftRight(X, Y);
-                            final boolean lryx = leftRight(Y, X);
+                            final boolean lrxy = leftRight(X, Y, delta, false);
+                            final boolean lryx = leftRight(Y, X, delta, false);
 
-                            double N = dataSet.getNumRows();
-                            double r = corr(X, Y);
-                            double z = sqrt(N) * (log(1 + r) - log(1 - r));
-                            double p = (1.0 - new NormalDistribution(0, 1).cumulativeProbability(abs(z)));
+                            if (lrxy) {
+                                graph.addDirectedEdge(X, Y);
+                            }
 
-                            if (possible2cycle.contains(Edges.undirectedEdge(X, Y))) {
-                                graph.addBidirectedEdge(X, Y);
-                            } else {
-                                if (lrxy) {
-                                    if (p > zeroCorrelationthreshold) {
-                                        graph.addDirectedEdge(X, Y);
-                                        graph.getEdge(Y, X).setLineColor(Color.ORANGE);
-                                    } else {
-                                        graph.addDirectedEdge(X, Y);
-                                    }
-                                } else if (lryx) {
-                                    if (p > zeroCorrelationthreshold) {
-                                        graph.addDirectedEdge(Y, X);
-                                        graph.getEdge(X, Y).setLineColor(Color.ORANGE);
-                                    } else {
-                                        graph.addDirectedEdge(Y, X);
-                                    }
-                                }
+                            if (lryx) {
+                                graph.addDirectedEdge(Y, X);
                             }
                         }
                     }
@@ -325,7 +307,7 @@ public final class Fask_B implements GraphSearch {
                     List<Node> Z = GraphUtils.asList(choice, c);
 
                     if (!skewAdjacent(tail, head, Z)) {
-                        System.out.println("Removing " + tail + "---" + head + " | " + Z);
+                        System.out.println("Removing " + tail + "-->" + head + " | " + Z);
                         remove.add(tail);
                         continue TAIL;
                     }
@@ -334,30 +316,6 @@ public final class Fask_B implements GraphSearch {
 
             for (Node tail1 : remove) {
                 graph.removeEdges(tail1, head);
-            }
-        }
-
-        for (Edge edge : possible2cycle) {
-            final Node X = edge.getNode1();
-            final Node Y = edge.getNode2();
-
-            if (Edges.isBidirectedEdge(graph.getEdge(X, Y))) {
-                if (twocycle(X, Y, graph)) {
-                    graph.removeEdge(X, Y);
-                    graph.addDirectedEdge(X, Y);
-                    graph.addDirectedEdge(Y, X);
-                } else {
-                    final boolean lrxy = leftRight(X, Y);
-                    final boolean lryx = leftRight(Y, X);
-
-                    if (lrxy && !lryx) {
-                        graph.removeEdge(X, Y);
-                        graph.addDirectedEdge(X, Y);
-                    } else if (lryx && !lrxy) {
-                        graph.removeEdge(X, Y);
-                        graph.addDirectedEdge(Y, X);
-                    }
-                }
             }
         }
 
@@ -472,9 +430,7 @@ public final class Fask_B implements GraphSearch {
     }
 
     // If x->y, returns true
-    private boolean leftRight(Node X, Node Y) {
-        System.out.println(Edges.directedEdge(X, Y));
-
+    private boolean leftRight(Node X, Node Y, double delta, boolean printStuff) {
         double[] x = skewCorrected[variables.indexOf(X)];
         double[] y = skewCorrected[variables.indexOf(Y)];
 
@@ -488,20 +444,34 @@ public final class Fask_B implements GraphSearch {
 
         double lr = (a1 - a2);
 
-        final double skyx = StatUtils.skewness(residuals(y, new double[][]{x}));
+        final double sk_ey = StatUtils.skewness(residuals(y, new double[][]{x}));
 
-        if (correlation(x, y) < 0 && skyx > .2) {
+        final double a = correlation(x, y);
+
+        if (a < 0 && sk_ey > delta) {
             lr *= -1;
         }
 
-        if (skyx < -.1) {
-            possible2cycle.add(Edges.undirectedEdge(X, Y));
+        if (sk_ey < 0) {
+            lr *= -1;
+//            possible2cycle.add(Edges.undirectedEdge(X, Y));
+//            return false;
+        }
+
+        if (true) {
+            double[] _x = x;//colData[variables.indexOf(X)];
+            double[] _y = y;//colData[variables.indexOf(Y)];
+            final double _sk_ey = StatUtils.skewness(residuals(_y, new double[][]{_x}));
+
+            System.out.println(Edges.directedEdge(X, Y) + " sk(X) = "
+                    + StatUtils.skewness(_x) + " sk(Y) = " + StatUtils.skewness(_y)
+                    + " corr(X, Y) = " + correlation(_x, _y) + " sk_ey = " + _sk_ey);
         }
 
         return lr > 0;
     }
 
-        private boolean twocycle(Node X, Node Y, Graph graph) {
+    private boolean twocycle(Node X, Node Y, Graph graph) {
         double[] x = colData[variables.indexOf(X)];
         double[] y = colData[variables.indexOf(Y)];
 
@@ -758,9 +728,6 @@ public final class Fask_B implements GraphSearch {
             regressionDataset.setRows(_rows);
             double[] rx = regressionDataset.regress(x, z).getResiduals().toArray();
             double[] ry = regressionDataset.regress(y, z).getResiduals().toArray();
-
-//            rx = correctSkewness(rx);
-//            ry = correctSkewness(ry);
 
             double[] rxy = new double[rows.size()];
 
