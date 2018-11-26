@@ -64,7 +64,7 @@ public class Fask_BConcatenated implements MultiDataSetAlgorithm, HasKnowledge, 
             search.setTwoCycleAlpha(parameters.getDouble("twoCycleAlpha"));
             search.setSkewEdgeAlpha(parameters.getDouble("skewEdgeAlpha"));
             search.setMaskThreshold(parameters.getDouble("maskThreshold"));
-            search.setZeroCorrelationthreshold(parameters.getDouble("orangeEdgeThreshold"));
+            search.setDelta(parameters.getDouble("faskDelta"));
 
             search.setUseFasAdjacencies(parameters.getBoolean("useFasAdjacencies"));
             search.setUseSkewAdjacencies(parameters.getBoolean("useCorrDiffAdjacencies"));
@@ -88,7 +88,6 @@ public class Fask_BConcatenated implements MultiDataSetAlgorithm, HasKnowledge, 
             GeneralResamplingTest search = new GeneralResamplingTest(datasets, algorithm, parameters.getInt("numberResampling"));
             search.setKnowledge(knowledge);
 
-            search.setResampleSize(parameters.getInt("resampleSize"));
             search.setResamplingWithReplacement(parameters.getBoolean("resamplingWithReplacement"));
 
             ResamplingEdgeEnsemble edgeEnsemble = ResamplingEdgeEnsemble.Highest;
@@ -121,7 +120,6 @@ public class Fask_BConcatenated implements MultiDataSetAlgorithm, HasKnowledge, 
             GeneralResamplingTest search = new GeneralResamplingTest(dataSets, algorithm, parameters.getInt("numberResampling"));
             search.setKnowledge(knowledge);
 
-            search.setResampleSize(parameters.getInt("resampleSize"));
             search.setResamplingWithReplacement(parameters.getBoolean("resamplingWithReplacement"));
 
             ResamplingEdgeEnsemble edgeEnsemble = ResamplingEdgeEnsemble.Highest;
@@ -164,7 +162,7 @@ public class Fask_BConcatenated implements MultiDataSetAlgorithm, HasKnowledge, 
         parameters.add("twoCycleAlpha");
         parameters.add("skewEdgeAlpha");
         parameters.add("maskThreshold");
-        parameters.add("orangeEdgeThreshold");
+        parameters.add("faskDelta");
 
         parameters.add("useFasAdjacencies");
         parameters.add("useCorrDiffAdjacencies");

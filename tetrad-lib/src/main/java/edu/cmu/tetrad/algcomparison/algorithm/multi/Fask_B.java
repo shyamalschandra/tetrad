@@ -53,7 +53,7 @@ public class Fask_B implements Algorithm, HasKnowledge, TakesIndependenceWrapper
             search.setSkewEdgeAlpha(parameters.getDouble("skewEdgeAlpha"));
             search.setTwoCycleAlpha(parameters.getDouble("twoCycleAlpha"));
             search.setMaskThreshold(parameters.getDouble("maskThreshold"));
-            search.setZeroCorrelationthreshold(parameters.getDouble("orangeEdgeThreshold"));
+            search.setDelta(parameters.getDouble("faskDelta"));
 
             search.setUseFasAdjacencies(parameters.getBoolean("useFasAdjacencies"));
             search.setUseSkewAdjacencies(parameters.getBoolean("useCorrDiffAdjacencies"));
@@ -68,7 +68,6 @@ public class Fask_B implements Algorithm, HasKnowledge, TakesIndependenceWrapper
             GeneralResamplingTest search = new GeneralResamplingTest(data, fask, parameters.getInt("numberResampling"));
             search.setKnowledge(knowledge);
 
-            search.setResampleSize(parameters.getInt("resampleSize"));
             search.setResamplingWithReplacement(parameters.getBoolean("resamplingWithReplacement"));
 
             ResamplingEdgeEnsemble edgeEnsemble = ResamplingEdgeEnsemble.Highest;
@@ -111,7 +110,7 @@ public class Fask_B implements Algorithm, HasKnowledge, TakesIndependenceWrapper
         parameters.add("skewEdgeAlpha");
         parameters.add("twoCycleAlpha");
         parameters.add("maskThreshold");
-        parameters.add("orangeEdgeThreshold");
+        parameters.add("faskDelta");
 
         parameters.add("useFasAdjacencies");
         parameters.add("useCorrDiffAdjacencies");
