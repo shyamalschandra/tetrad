@@ -70,7 +70,7 @@ public final class Fask_B implements GraphSearch {
     private final double[][] skewCorrected;
 
     // A threshold for including extra adjacencies due to skewness.
-    private double skewEdgeAlpha = 0.3;
+    private double skewEdgeAlpha = 0.05;
 
     // True if FAS adjacencies should be included in the output.
     private boolean useFasAdjacencies = true;
@@ -78,13 +78,24 @@ public final class Fask_B implements GraphSearch {
     // True if skew adjacencies should be included in the output.
     private boolean useSkewAdjacencies = true;
 
-    private double twoCycleAlpha = 1e-6;
+    // Alpha for orienting 2-cycles.
+    private double twoCycleAlpha = 0.05;
+
+    // Cutoff for orienting 2-cycles, calculated from twoCycleAlpha,
     private double twoCycleCutoff;
 
+    // Regression procedure (linear) for conditioning.
     private RegressionDataset regressionDataset;
+
+    // The list of variables.
     private final List<Node> variables;
-    private double maskThreshold = 0.1;
-    private double zeroCorrelationthreshold = 0.03;
+
+    // The mask threshold, if used. If this is set to zero, it will not be used and ordinary conditional reasoning
+    // will ensue. If set to non-zero, the mask will be applied, and then ordinary conditional reasoning will enssure.
+    private double maskThreshold = 0.3;
+
+    // For identifying small (negative) correlations beyond which judgment of direction should be reversed. In the
+    // range (-1, 0).
     private double delta = -0.2;
 
     /**
@@ -820,14 +831,6 @@ public final class Fask_B implements GraphSearch {
 
     private double getMaskThreshold() {
         return maskThreshold;
-    }
-
-    public double getZeroCorrelationthreshold() {
-        return zeroCorrelationthreshold;
-    }
-
-    public void setZeroCorrelationthreshold(double zeroCorrelationthreshold) {
-        this.zeroCorrelationthreshold = zeroCorrelationthreshold;
     }
 
     public double getDelta() {
