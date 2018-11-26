@@ -20,7 +20,8 @@ public class ParamDescriptions {
         map.put("numMeasures", new ParamDescription("Number of measured variables (min = 1)", 10, 1, Integer.MAX_VALUE));
         map.put("numLatents", new ParamDescription("Number of latent variables (min = 0)", 0, 0, Integer.MAX_VALUE));
         map.put("avgDegree", new ParamDescription("Average degree of graph (min = 1)", 2, 1, Integer.MAX_VALUE));
-        map.put("maxDegree", new ParamDescription("The maximum degree of the graph (min = -1)", 100, -1, Integer.MAX_VALUE));
+        map.put("maxDegree", new ParamDescription("The maximum degree of the graph (min = -1)", 4, -1, Integer.MAX_VALUE));
+        map.get("maxDegree").setLongDescription("During the search if a node reaches the max degree value additional edges will not be added to that node.");
         map.put("maxIndegree", new ParamDescription("Maximum indegree of graph (min = 1)", 100, 1, Integer.MAX_VALUE));
         map.put("maxOutdegree", new ParamDescription("Maximum outdegree of graph (min = 1)", 100, 1, Integer.MAX_VALUE));
 
@@ -67,8 +68,6 @@ public class ParamDescriptions {
         map.put("generalSemFunctionTemplateMeasured", new ParamDescription("General function template for measured variables", "TSUM(NEW(B)*$)"));
         map.put("generalSemFunctionTemplateLatent", new ParamDescription("General function template for latent variables", "TSUM(NEW(B)*$)"));
         map.put("generalSemErrorTemplate", new ParamDescription("General function for error terms", "Beta(2, 5)"));
-        map.put("generalSemParameterTemplate", new ParamDescription("General function for parameters", "Split(-1.0, -0.5, 0.5, 1.0)"));
-
         map.put("coefSymmetric", new ParamDescription("Yes if negative coefficient values should be considered", true));
         map.put("covSymmetric", new ParamDescription("Yes if negative covariance values should be considered", true));
 
@@ -105,7 +104,7 @@ public class ParamDescriptions {
         map.put("thr", new ParamDescription("THR parameter (GLASSO) (min = 0.0)", 1e-4, 0.0, Double.MAX_VALUE));
 
         map.put("targetName", new ParamDescription("Target variable name", ""));
-        map.put("verbose", new ParamDescription("Yes if verbose output should be printed or logged", false));
+        map.put("verbose", new ParamDescription("Yes if verbose output should be printed or logged", true));
         map.put("faithfulnessAssumed", new ParamDescription("Yes if (one edge) faithfulness should be assumed", true));
 
         map.put("useWishart", new ParamDescription("Yes if the Wishart test shoud be used. No if the Delta test should be used", false));
@@ -130,7 +129,7 @@ public class ParamDescriptions {
 
         map.put("useMaxPOrientationHeuristic", new ParamDescription(
                 "Yes if the heuristic for orienting unshielded colliders for max P should be used",
-                false));
+                true));
         map.put("maxPOrientationMaxPathLength", new ParamDescription("Maximum path length for the unshielded collider heuristic for max P (min = 0)", 3, 0, Integer.MAX_VALUE));
         map.put("orientTowardDConnections", new ParamDescription(
                 "Yes if Richardson's step C (orient toward d-connection) should be used",
@@ -150,7 +149,7 @@ public class ParamDescriptions {
 
         map.put("ngAlpha", new ParamDescription("Alpha for testing non-Gaussianity (min = 0.0)", 0.05, 0.0, 1.0));
 
-        map.put("twoCycleAlpha", new ParamDescription("Alpha orienting 2-cycles (min = 0.0)", .05, 0.0, 1.0));
+        map.put("twoCycleAlpha", new ParamDescription("Alpha orienting 2-cycles (min = 0.0)", 1e-6, 0.0, 1.0));
 
         map.put("symmetricFirstStep", new ParamDescription("Yes if the first step step for FGES should do scoring for both X->Y and Y->X", false));
 
@@ -171,18 +170,20 @@ public class ParamDescriptions {
 
         map.put("thresholdForReversing", new ParamDescription("Variables with skewnesses less than this value will be reversed in sign (min = 0)", 0.0, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY));
 
-        // Bootstrapping
-        map.put("bootstrapSampleSize", new ParamDescription("The number of bootstraps (min = 0)", 0, 0, Integer.MAX_VALUE));
-        map.put("bootstrapEnsemble", new ParamDescription("Ensemble method: Preserved (0), Highest (1), Majority (2)", 1, 0, 2));
-        //~Bootstrapping
+        // Resampling
+        map.put("numberResampling", new ParamDescription("The number of bootstraps/resampling iterations (min = 0)", 0, 0, Integer.MAX_VALUE));
+        map.put("percentResampleSize", new ParamDescription("The percentage of resample size (min = 0.1)", 100, 0.1, Double.MAX_VALUE));
+        map.put("resamplingWithReplacement", new ParamDescription("Yes, if sampling with replacement (bootstrapping)", true));
+        map.put("resamplingEnsemble", new ParamDescription("Ensemble method: Preserved (0), Highest (1), Majority (2)", 1, 0, 2));
+        //~Resampling
 
         map.put("fasRule", new ParamDescription(
                 "Adjacency search: 1 = PC, 2 = PC-Stable, 3 = Concurrent PC-Stable",
-                1, 1, 5));
+                1, 1, 3));
 
         map.put("colliderDiscoveryRule", new ParamDescription(
                 "Collider discovery: 1 = Lookup from adjacency sepsets, 2 = Conservative (CPC), 3 = Max-P",
-                1, 1, 3));
+                1, 1, 1));
 
         map.put("conflictRule", new ParamDescription(
                 "Collider conflicts: 1 = Overwrite, 2 = Orient bidirected, 3 = Prioritize existing colliders",
@@ -242,19 +243,7 @@ public class ParamDescriptions {
 
         map.put("extraEdgeThreshold", new ParamDescription(
                 "Threshold for including extra edges",
-                0.3, 0.0, Double.POSITIVE_INFINITY));
-
-        map.put("maskThreshold", new ParamDescription(
-                "Mask threshold for including extra edges (default 3)",
-                0.3, 0.0, Double.POSITIVE_INFINITY));
-
-        map.put("orangeEdgeThreshold", new ParamDescription(
-                "Alpha for judging zero correlations (orange edges)",
-                0.03, 0.0, Double.POSITIVE_INFINITY));
-
-        map.put("skewEdgeAlpha", new ParamDescription(
-                "Alpha for including extra edges based on skewness",
-                0.05, 0.0, Double.POSITIVE_INFINITY));
+                0.3, 0.0, 1.0));
 
         map.put("useFasAdjacencies", new ParamDescription(
                 "Yes if adjacencies from the FAS search should be used",
@@ -265,18 +254,8 @@ public class ParamDescriptions {
                 true));
 
         map.put("faskDelta", new ParamDescription(
-                "Threshold for judging negative coefficient edges as X->Y (range (-1, 0))",
+                "Threshold for judging negative coefficient edges as X->Y (range (-1, 0)",
                 -0.2, -1.0, 1.0));
-
-        map.put("faskDelta2", new ParamDescription(
-                "Threshold for judging negative coefficient edges as X->Y",
-                0.0, Double.NaN, Double.POSITIVE_INFINITY));
-
-        map.put("smallCorrelation", new ParamDescription(
-                "Abolute threshold below which edges are reversed and drawn in orange",
-                0.01, 0.0, 1.0));
-
-
 
         map.put("numLags", new ParamDescription(
                 "The number of lags in the time lag model",
@@ -292,65 +271,17 @@ public class ParamDescriptions {
                 "Number of functions to use in (truncated) basis",
                 30, 1, Integer.MAX_VALUE));
 
-        map.put("kciCutoff", new ParamDescription(
-                "Cutoff",
-                6, 1, Integer.MAX_VALUE));
-
-        map.put("kernelWidth", new ParamDescription(
-                "Kernel width",
-                1.0, Double.MIN_VALUE, Double.POSITIVE_INFINITY));
+        map.put("kernelType", new ParamDescription(
+                "Kernel type (1 = Gaussian, 2 = Epinechnikov)",
+                2, 1, 2));
 
         map.put("kernelMultiplier", new ParamDescription(
                 "Bowman and Azzalini (1997) default kernel bandwidhts should be multiplied by...",
                 1.0, Double.MIN_VALUE, Double.POSITIVE_INFINITY));
 
-        map.put("kernelType", new ParamDescription(
-                "Kernel type (1 = Gaussian, 2 = Epinechnikov)",
-                2, 1, 2));
-
         map.put("basisType", new ParamDescription(
                 "Basis type (1 = Polynomial, 2 = Cosine)",
                 2, 1, 2));
-
-        map.put("kciNumBootstraps", new ParamDescription(
-                "Number of bootstraps for Theorems 4 and Proposition 5 for KCI",
-                5000, 1, Integer.MAX_VALUE));
-
-        map.put("thresholdForNumEigenvalues", new ParamDescription(
-                "Threshold to determine how many eigenvalues to use--the lower the more (0 to 1)",
-                0.001, 0, Double.POSITIVE_INFINITY));
-
-        map.put("rcitNumFeatures", new ParamDescription(
-                "The number of random features to use",
-                10, 1, Integer.MAX_VALUE));
-
-        map.put("kciUseAppromation", new ParamDescription(
-                "Use the approximate Gamma approximation algorithm", true));
-
-        map.put("kciEpsilon", new ParamDescription(
-                "Epsilon for Proposition 5, a small positive number", 0.001, 0, Double.POSITIVE_INFINITY));
-
-        map.put("rcitApproxType", new ParamDescription(
-                "Approximation Type: 1 = LPD4, 2 = Gamma, 3 = HBE, 4 = PERM",
-                4, 1, 4));
-
-        map.put("possibleDsepDone", new ParamDescription(
-                "Yes if the possible dsep search should be done", true));
-
-        map.put("selfLoopCoef", new ParamDescription(
-                "The coefficient for the self-loop (default 0.0)", 0.0, 0.0, Double.POSITIVE_INFINITY));
-
-        map.put("tsbetathr", new ParamDescription(
-                "Threshold to determine whether a coefficient in the Beta matrix implies an edge int h graph",
-                0.01, 0, Double.POSITIVE_INFINITY));
-
-        map.put("tstheta", new ParamDescription(
-                "Alasso threshold",
-                1.0, 0, Double.POSITIVE_INFINITY));
-
-        map.put("tssigma", new ParamDescription(
-                "ICA threshold",
-                1.0, 0, Double.POSITIVE_INFINITY));
 
         map.put("fastFDR", new ParamDescription(
                 "Yes if the  possible fastFDR adjustment to alpha levels should be done", false));
@@ -358,8 +289,6 @@ public class ParamDescriptions {
         map.put("kernelRegressionSampleSize", new ParamDescription(
                 "Minimum sample size to use per conditioning for kernel regression",
                 100, 1, Double.POSITIVE_INFINITY));
-
-        map.put("kciAlpha", new ParamDescription("Cutoff for p values (alpha) (min = 0.0)", 0.05, 0.0, 1.0));
 
         map.put("cciScoreAlpha", new ParamDescription("Cutoff for p values (alpha) (min = 0.0)", 0.01, 0.0, 1.0));
 
@@ -373,8 +302,19 @@ public class ParamDescriptions {
         map.put("concurrentFAS", new ParamDescription(
                 "Yes if a concurrent FAS should be done", true));
 
-        map.put("stableFASFDR", new ParamDescription(
-                "Yes if the 'stable' FAS should be done with the StableFDR adjustment", false));
+        map.put("kciNumBootstraps", new ParamDescription(
+                "Number of bootstraps for Theorems 4 and Proposition 5 for KCI",
+                5000, 1, Integer.MAX_VALUE));
+
+        map.put("thresholdForNumEigenvalues", new ParamDescription(
+                "Threshold to determine how many eigenvalues to use--the lower the more (0 to 1)",
+                0.001, 0, Double.POSITIVE_INFINITY));
+
+        map.put("kciEpsilon", new ParamDescription(
+                "Epsilon for Proposition 5, a small positive number", 0.001, 0, Double.POSITIVE_INFINITY));
+
+        map.put("kciUseAppromation", new ParamDescription(
+                "Use the approximate Gamma approximation algorithm", true));
 
     }
 

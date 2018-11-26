@@ -52,7 +52,7 @@ public class Fci implements Algorithm, TakesInitialGraph, HasKnowledge, TakesInd
 
     @Override
     public Graph search(DataModel dataSet, Parameters parameters) {
-    	if (parameters.getInt("bootstrapSampleSize") < 1) {
+    	if (parameters.getInt("numberResampling") < 1) {
             if (algorithm != null) {
                 initialGraph = algorithm.search(dataSet, parameters);
             }
@@ -62,8 +62,6 @@ public class Fci implements Algorithm, TakesInitialGraph, HasKnowledge, TakesInd
             search.setKnowledge(knowledge);
             search.setMaxPathLength(parameters.getInt("maxPathLength"));
             search.setCompleteRuleSetUsed(parameters.getBoolean("completeRuleSetUsed"));
-            search.setPossibleDsepSearchDone(parameters.getBoolean("possibleDsepDone"));
-            search.setVerbose(parameters.getBoolean("verbose"));
 
 //            if (initialGraph != null) {
 //                search.setInitialGraph(initialGraph);
@@ -75,13 +73,14 @@ public class Fci implements Algorithm, TakesInitialGraph, HasKnowledge, TakesInd
 //          if (initialGraph != null) {
 //      		algorithm.setInitialGraph(initialGraph);
 //  		}
+
             DataSet data = (DataSet) dataSet;
             GeneralResamplingTest search = new GeneralResamplingTest(data, algorithm, parameters.getInt("numberResampling"));
             search.setKnowledge(knowledge);
-
-            search.setResampleSize(parameters.getInt("resampleSize"));
+            
+            search.setPercentResampleSize(parameters.getDouble("percentResampleSize"));
             search.setResamplingWithReplacement(parameters.getBoolean("resamplingWithReplacement"));
-
+            
             ResamplingEdgeEnsemble edgeEnsemble = ResamplingEdgeEnsemble.Highest;
             switch (parameters.getInt("resamplingEnsemble", 1)) {
                 case 0:
@@ -122,10 +121,11 @@ public class Fci implements Algorithm, TakesInitialGraph, HasKnowledge, TakesInd
         parameters.add("depth");
         parameters.add("maxPathLength");
         parameters.add("completeRuleSetUsed");
-        parameters.add("possibleDsepDone");
-        // Bootstrapping
-        parameters.add("bootstrapSampleSize");
-        parameters.add("bootstrapEnsemble");
+        // Resampling
+        parameters.add("numberResampling");
+        parameters.add("percentResampleSize");
+        parameters.add("resamplingWithReplacement");
+        parameters.add("resamplingEnsemble");
         parameters.add("verbose");
         return parameters;
     }
