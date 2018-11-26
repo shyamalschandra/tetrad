@@ -132,10 +132,6 @@ public final class Fask_B implements GraphSearch {
         this.initialGraph = initialGraph;
     }
 
-    public double getSkewEdgeAlpha() {
-        return skewEdgeAlpha;
-    }
-
     public void setSkewEdgeAlpha(double skewEdgeAlpha) {
         this.skewEdgeAlpha = skewEdgeAlpha;
     }
@@ -159,14 +155,6 @@ public final class Fask_B implements GraphSearch {
     public void setTwoCycleAlpha(double twoCycleAlpha) {
         this.twoCycleAlpha = twoCycleAlpha;
         setCutoff();
-    }
-
-    /**
-     * Sets the significance level at which independence judgments should be made.  Affects the cutoff for partial
-     * correlations to be considered statistically equal to zero.
-     */
-    private void setCutoff() {
-        this.twoCycleCutoff = StatUtils.getZForAlpha(twoCycleAlpha);
     }
 
     /**
@@ -254,8 +242,6 @@ public final class Fask_B implements GraphSearch {
 
         SearchGraphUtils.pcOrientbk(knowledge, fasGraph, fasGraph.getNodes());
 
-        System.out.println("Orientation");
-
         Graph graph = new EdgeListGraph(variables);
 
         for (int i = 0; i < variables.size(); i++) {
@@ -298,6 +284,32 @@ public final class Fask_B implements GraphSearch {
         this.elapsed = stop - start;
 
         return graph;
+    }
+
+    public void setMaskThreshold(double maskThreshold) {
+        this.maskThreshold = maskThreshold;
+    }
+
+    public double getDelta() {
+        return delta;
+    }
+
+    public void setDelta(double delta) {
+        this.delta = delta;
+    }
+
+    /////////////////////////////////////// PRIVATE METHODS ////////////////////////////////////
+
+    /**
+     * Sets the significance level at which independence judgments should be made.  Affects the cutoff for partial
+     * correlations to be considered statistically equal to zero.
+     */
+    private void setCutoff() {
+        this.twoCycleCutoff = StatUtils.getZForAlpha(twoCycleAlpha);
+    }
+
+    private double getMaskThreshold() {
+        return maskThreshold;
     }
 
     private void orientEdge(double delta, Graph graph, Node X, Node Y, boolean useTwoCycleRule) {
@@ -437,8 +449,6 @@ public final class Fask_B implements GraphSearch {
         double[] x = colData[variables.indexOf(X)];
         return StatUtils.skewness(x);
     }
-
-    //======================================== PRIVATE METHODS ====================================//
 
     private boolean skewAdjacent(Node X, Node Y, List<Node> Z) {
         boolean b1, b2;
@@ -819,22 +829,6 @@ public final class Fask_B implements GraphSearch {
         TetradMatrix b = x.transpose().times(x).inverse().times(x.transpose().times(y));
 
         return b.get(0, 0);
-    }
-
-    public void setMaskThreshold(double maskThreshold) {
-        this.maskThreshold = maskThreshold;
-    }
-
-    private double getMaskThreshold() {
-        return maskThreshold;
-    }
-
-    public double getDelta() {
-        return delta;
-    }
-
-    public void setDelta(double delta) {
-        this.delta = delta;
     }
 
     private class E {
