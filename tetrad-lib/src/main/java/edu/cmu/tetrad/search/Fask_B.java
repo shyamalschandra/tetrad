@@ -263,6 +263,8 @@ public final class Fask_B implements GraphSearch {
             }
         }
 
+        Graph graph2 = new EdgeListGraph(graph);
+
         removeExtraEdges(graph);
 
         for (int i = 0; i < variables.size(); i++) {
@@ -270,12 +272,49 @@ public final class Fask_B implements GraphSearch {
                 Node X = variables.get(i);
                 Node Y = variables.get(j);
 
-                if (graph.isAdjacentTo(X, Y)) {
+                if (graph.isAdjacentTo(X, Y) && twocycle(X, Y, graph)) {
                     graph.removeEdges(X, Y);
-                    orientEdge(getDelta(), graph, X, Y, true);
+                    graph.addDirectedEdge(X, Y);
+                    graph.addDirectedEdge(Y, X);
                 }
             }
         }
+
+        for (int i = 0; i < variables.size(); i++) {
+            for (int j = i + 1; j < variables.size(); j++) {
+                Node X = variables.get(i);
+                Node Y = variables.get(j);
+
+                final double[] x = colData[i];
+                final double[] y = colData[j];
+
+                double c1 = StatUtils.cov(x, y, x, 0, +1)[1];
+                double c2 = StatUtils.cov(x, y, y, 0, +1)[1];
+
+                if (!graph.isAdjacentTo(X, Y) && graph2.isAdjacentTo(X, Y)) {
+                    if ((isUseFasAdjacencies() && fasGraph.isAdjacentTo(X, Y))
+                            || (isUseSkewAdjacencies() && getMaskThreshold() != 0 ?
+                            Math.abs(c1 - c2) > getMaskThreshold() : ((skewAdjacent(X, Y, Collections.emptyList()))))) {
+                        orientEdge(getDelta(), graph, X, Y, false);
+                    }
+                }
+            }
+        }
+
+        removeExtraEdges(graph);
+
+//        for (int i = 0; i < variables.size(); i++) {
+//            for (int j = 0; j < variables.size(); j++) {
+//                Node X = variables.get(i);
+//                Node Y = variables.get(j);
+//
+//                if (graph.isAdjacentTo(X, Y) && twocycle(X, Y, graph)) {
+//                    graph.removeEdges(X, Y);
+//                    graph.addDirectedEdge(X, Y);
+//                    graph.addDirectedEdge(Y, X);
+//                }
+//            }
+//        }
 
         System.out.println();
         System.out.println("Done");
@@ -313,6 +352,9 @@ public final class Fask_B implements GraphSearch {
     }
 
     private void orientEdge(double delta, Graph graph, Node X, Node Y, boolean useTwoCycleRule) {
+        if (graph.getEdges(X, Y).size() == 2) return;
+        graph.removeEdges(X, Y);
+
         if (knowledgeOrients(X, Y)) {
             graph.addDirectedEdge(X, Y);
         } else if (knowledgeOrients(Y, X)) {
@@ -323,9 +365,6 @@ public final class Fask_B implements GraphSearch {
                     graph.addDirectedEdge(X, Y);
                 } else if (knowledgeOrients(Y, X)) {
                     graph.addDirectedEdge(Y, X);
-                } else if (useTwoCycleRule && twocycle(X, Y, graph)) {
-                    graph.addDirectedEdge(X, Y);
-                    graph.addDirectedEdge(Y, X);
                 } else {
                     final boolean lrxy = leftRightMinnesota(X, Y, delta, false);
                     final boolean lryx = leftRightMinnesota(Y, X, delta, false);
@@ -333,12 +372,7 @@ public final class Fask_B implements GraphSearch {
                     if (!lrxy && !lryx) {
                         graph.addBidirectedEdge(X, Y);
                     } else if (lrxy & lryx) {
-                        if (useTwoCycleRule) {
-                            graph.addNondirectedEdge(X, Y);
-                        } else {
-                            graph.addDirectedEdge(X, Y);
-                            graph.addDirectedEdge(Y, X);
-                        }
+                        graph.addNondirectedEdge(X, Y);
                     } else if (lrxy) {
                         graph.addDirectedEdge(X, Y);
                     } else {
@@ -398,6 +432,11 @@ public final class Fask_B implements GraphSearch {
     }
 
     private List<Node> getRelevantParents(Graph graph, Node tail, Node head) {
+        if (head.getName().equals("raf") && tail.getName().equals("pkc")) {
+            System.out.println();
+        }
+
+
         List<Node> parents1 = graph.getParents(head);
         parents1.addAll(graph.getParents(tail));
         parents1.remove(head);
@@ -441,6 +480,8 @@ public final class Fask_B implements GraphSearch {
                 }
             }
         }
+
+        System.out.println(Edges.directedEdge(tail, head) + " c = " + c);
 
         return c;
     }
@@ -553,6 +594,12 @@ public final class Fask_B implements GraphSearch {
 
         if (sk_ey < 0) {
             lr *= -1;
+        }
+
+        if (printStuff) {
+            System.out.println(Edges.directedEdge(X, Y) + " sk(X) = "
+                    + StatUtils.skewness(x) + " sk(Y) = " + StatUtils.skewness(y)
+                    + " corr(X, Y) = " + correlation(x, y) + " sk_ey = " + sk_ey + " LR = " + lr);
         }
 
         return lr > 0;
