@@ -54,6 +54,7 @@ public class DataStandardizer extends DataWrapper {
             List<Node> list = dataSet.getVariables();
 
             DataSet dataSet2 = ColtDataSet.makeContinuousData(list, data2);
+            dataSet2.setName(model.getName());
             outList.add(dataSet2);
         }
 

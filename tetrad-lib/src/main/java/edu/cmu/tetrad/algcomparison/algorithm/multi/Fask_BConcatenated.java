@@ -27,8 +27,8 @@ import java.util.List;
  * @author jdramsey
  */
 @edu.cmu.tetrad.annotation.Algorithm(
-        name = "FASK Concatenated",
-        command = "fask-concatenated",
+        name = "FASK-B Concatenated",
+        command = "fask-b-concatenated",
         algoType = AlgType.forbid_latent_common_causes
 )
 public class Fask_BConcatenated implements MultiDataSetAlgorithm, HasKnowledge, TakesIndependenceWrapper {
