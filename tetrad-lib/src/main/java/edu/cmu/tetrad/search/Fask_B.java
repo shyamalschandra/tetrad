@@ -109,8 +109,8 @@ public final class Fask_B implements GraphSearch {
         colData = dataSet.getDoubleData().transpose().toArray();
         this.variables = dataSet.getVariables();
 
-        for (int i = 0; i < variables.size(); i++) {
-            System.out.println(variables.get(i) + " skewness = " + skewness(variables.get(i)));
+        for (Node variable : variables) {
+            System.out.println(variable + " skewness = " + skewness(variable));
         }
 
         skewCorrected = new double[colData.length][];
@@ -206,9 +206,6 @@ public final class Fask_B implements GraphSearch {
         this.knowledge = knowledge;
     }
 
-    Set<Edge> possible2cycle = new HashSet<>();
-
-
     /**
      * Runs the search on the concatenated data, returning a graph, possibly cyclic, possibly with
      * two-cycles. Runs the fast adjacency search (FAS, Spirtes et al., 2000) follows by a modification
@@ -220,7 +217,6 @@ public final class Fask_B implements GraphSearch {
      */
     public Graph search() {
         long start = System.currentTimeMillis();
-        possible2cycle = new HashSet<>();
 
         setCutoff();
 
