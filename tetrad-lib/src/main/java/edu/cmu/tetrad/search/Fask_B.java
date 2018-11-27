@@ -21,7 +21,10 @@
 
 package edu.cmu.tetrad.search;
 
-import edu.cmu.tetrad.data.*;
+import edu.cmu.tetrad.data.DataSet;
+import edu.cmu.tetrad.data.DataUtils;
+import edu.cmu.tetrad.data.IKnowledge;
+import edu.cmu.tetrad.data.Knowledge2;
 import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.regression.RegressionDataset;
 import edu.cmu.tetrad.util.*;
@@ -29,11 +32,9 @@ import org.apache.commons.math3.distribution.TDistribution;
 import org.apache.commons.math3.linear.SingularMatrixException;
 
 import java.util.*;
-import java.util.List;
 
 import static edu.cmu.tetrad.util.StatUtils.*;
 import static java.lang.Math.*;
-import static java.lang.Math.min;
 
 /**
  * Fast adjacency search followed by robust skew orientation. Checks are done for adding
@@ -303,19 +304,6 @@ public final class Fask_B implements GraphSearch {
 
         removeExtraEdges(graph);
 
-//        for (int i = 0; i < variables.size(); i++) {
-//            for (int j = 0; j < variables.size(); j++) {
-//                Node X = variables.get(i);
-//                Node Y = variables.get(j);
-//
-//                if (graph.isAdjacentTo(X, Y) && twocycle(X, Y, graph)) {
-//                    graph.removeEdges(X, Y);
-//                    graph.addDirectedEdge(X, Y);
-//                    graph.addDirectedEdge(Y, X);
-//                }
-//            }
-//        }
-
         System.out.println();
         System.out.println("Done");
 
@@ -366,16 +354,16 @@ public final class Fask_B implements GraphSearch {
                 } else if (knowledgeOrients(Y, X)) {
                     graph.addDirectedEdge(Y, X);
                 } else {
-                    final boolean lrxy = leftRightMinnesota(X, Y, delta, false);
-                    final boolean lryx = leftRightMinnesota(Y, X, delta, false);
+                    final boolean lrxy = leftRight0(X, Y, delta, false);
+                    final boolean lryx = leftRight0(Y, X, delta, false);
 
-                    if (!lrxy && !lryx) {
+                    if (lrxy & lryx) {
+                        graph.addNondirectedEdge(X, Y); // Could be anything.
+                    } else if (!lrxy && !lryx) {
                         graph.addBidirectedEdge(X, Y);
-                    } else if (lrxy & lryx) {
-                        graph.addNondirectedEdge(X, Y);
-                    } else if (lrxy) {
+                    } else if (!lryx) {
                         graph.addDirectedEdge(X, Y);
-                    } else {
+                    } else if (!lrxy) {
                         graph.addDirectedEdge(Y, X);
                     }
                 }
@@ -432,11 +420,6 @@ public final class Fask_B implements GraphSearch {
     }
 
     private List<Node> getRelevantParents(Graph graph, Node tail, Node head) {
-        if (head.getName().equals("raf") && tail.getName().equals("pkc")) {
-            System.out.println();
-        }
-
-
         List<Node> parents1 = graph.getParents(head);
         parents1.addAll(graph.getParents(tail));
         parents1.remove(head);
@@ -538,29 +521,23 @@ public final class Fask_B implements GraphSearch {
     }
 
     private boolean leftRight0(Node X, Node Y, double delta, boolean printStuff) {
-        double[] x = skewCorrected[variables.indexOf(X)];
-        double[] y = skewCorrected[variables.indexOf(Y)];
+        final double[] x = colData[variables.indexOf(X)];
+        final double[] y = colData[variables.indexOf(Y)];
 
         final double cxyx = cu(x, y, x);
         final double cxyy = cu(x, y, y);
 
-        double left = cxyx / sqrt(cu(x, x, x) * cu(y, y, x));
-        double right = cxyy / sqrt(cu(x, x, y) * cu(y, y, y));
-
-        double lr = left - right;
+        final double left = cxyx / sqrt(cu(x, x, x) * cu(y, y, x));
+        final double right = cxyy / sqrt(cu(x, x, y) * cu(y, y, y));
 
         double r = StatUtils.correlation(x, y);
-        double sx = StatUtils.skewness(x);
-        double sy = StatUtils.skewness(y);
+        final double sx = StatUtils.skewness(x);
+        final double sy = StatUtils.skewness(y);
 
-        r *= signum(sx) * signum(sy);
-        lr *= signum(r);
-        if (r < -.2) lr *= -1;
+        double lr = (left - right) * r * sx * sy;
 
-        final double sk_ey = StatUtils.skewness(residuals(y, new double[][]{x}));
-
-        if (sk_ey < 0) {
-            lr *= -1;
+        if (StatUtils.skewness(residuals(y, new double[][]{x})) * r * sx * sy < 0) {
+            return false;
         }
 
         return lr > 0;
@@ -588,11 +565,17 @@ public final class Fask_B implements GraphSearch {
 
         double lr = Q - R;
 
-        if (StatUtils.correlation(x, y) < 0) lr += delta;
+//        if (StatUtils.correlation(x, y) < 0) lr += delta;
 
         final double sk_ey = StatUtils.skewness(residuals(y, new double[][]{x}));
 
         if (sk_ey < 0) {
+            lr *= -1;
+        }
+
+        final double a = correlation(x, y);
+
+        if (a < 0 && sk_ey > delta) {
             lr *= -1;
         }
 
@@ -652,13 +635,13 @@ public final class Fask_B implements GraphSearch {
 
         final double sk_ey = StatUtils.skewness(residuals(y, new double[][]{x}));
 
-        final double a = correlation(x, y);
-
-        if (a < 0 && sk_ey > delta) {// &&*/ abs(sk_ey) > abs(skewness(X))) {
+        if (sk_ey < 0) {
             lr *= -1;
         }
 
-        if (sk_ey < 0) {
+        final double a = correlation(x, y);
+
+        if (a < 0 && sk_ey > delta) {
             lr *= -1;
         }
 
