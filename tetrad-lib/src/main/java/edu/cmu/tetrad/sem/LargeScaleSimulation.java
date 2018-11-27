@@ -814,7 +814,7 @@ public final class LargeScaleSimulation {
         double[][] shocks = new double[sampleSize][numVars];
 
         for (int j = 0; j < numVars; j++) {
-            double dir = RandomUtil.getInstance().nextDouble() > 0.5 ? 1 : -1;
+            double dir = RandomUtil.getInstance().nextDouble() > 0.5 ? 1.0 : -1.0;
 
             for (int i = 0; i < sampleSize; i++) {
                 double sample = distribution.sample();

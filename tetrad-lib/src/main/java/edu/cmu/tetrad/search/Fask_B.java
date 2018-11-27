@@ -522,11 +522,29 @@ public final class Fask_B implements GraphSearch {
 
         double lr = (left - right) * sx * sy;
 
+        lr *= StatUtils.skewness(residuals(y, new double[][]{x}));
+
         if (r < delta) {
             lr *= -1;
         }
 
         return lr > 0;
+    }
+
+    private double[] residuals(double[] _y, double[][] _x) {
+        TetradMatrix y = new TetradMatrix(new double[][]{_y}).transpose();
+        TetradMatrix x = new TetradMatrix(_x).transpose();
+
+        TetradMatrix xT = x.transpose();
+        TetradMatrix xTx = xT.times(x);
+        TetradMatrix xTxInv = xTx.inverse();
+        TetradMatrix xTy = xT.times(y);
+        TetradMatrix b = xTxInv.times(xTy);
+
+        TetradMatrix yHat = x.times(b);
+        if (yHat.columns() == 0) yHat = y.copy();
+
+        return y.minus(yHat).getColumn(0).toArray();
     }
 
     private static double cu(double[] x, double[] y, double[] condition) {
