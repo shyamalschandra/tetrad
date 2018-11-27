@@ -33,7 +33,8 @@ import org.apache.commons.math3.linear.SingularMatrixException;
 
 import java.util.*;
 
-import static edu.cmu.tetrad.util.StatUtils.*;
+import static edu.cmu.tetrad.util.StatUtils.mean;
+import static edu.cmu.tetrad.util.StatUtils.variance;
 import static java.lang.Math.*;
 
 /**
@@ -43,7 +44,7 @@ import static java.lang.Math.*;
  *
  * @author Joseph Ramsey
  */
-public final class Fask_B implements GraphSearch {
+public final class Fask_C implements GraphSearch {
 
     // The score to be used for the FAS adjacency search.
     private IndependenceTest test;
@@ -66,6 +67,9 @@ public final class Fask_B implements GraphSearch {
 
     // Data as a double[][].
     private final double[][] colData;
+
+    // Data with skew corrected.
+//    private final double[][] skewCorrected;
 
     // A threshold for including extra adjacencies due to skewness.
     private double skewEdgeAlpha = 0.05;
@@ -99,7 +103,7 @@ public final class Fask_B implements GraphSearch {
     /**
      * @param dataSet These datasets must all have the same variables, in the same order.
      */
-    public Fask_B(DataSet dataSet, IndependenceTest test) {
+    public Fask_C(DataSet dataSet, IndependenceTest test) {
         this.dataSet = dataSet;
         this.test = test;
 
@@ -110,6 +114,12 @@ public final class Fask_B implements GraphSearch {
         for (Node variable : variables) {
             System.out.println(variable + " skewness = " + skewness(variable));
         }
+
+//        skewCorrected = new double[colData.length][];
+//
+//        for (int i = 0; i < skewCorrected.length; i++) {
+//            skewCorrected[i] = correctSkewness(colData[i]);
+//        }
 
         regressionDataset = new RegressionDataset(dataSet);
     }
@@ -153,6 +163,13 @@ public final class Fask_B implements GraphSearch {
             fas.setVerbose(false);
             fas.setKnowledge(knowledge);
             fasGraph = fas.search();
+
+//            SemBicScore score = new SemBicScore(new CovarianceMatrixOnTheFly((DataSet) test.getData()));
+//            score.setPenaltyDiscount(2);
+//            Fges fges = new Fges(score);
+//            fges.setMaxDegree(getDepth());
+//            fges.setKnowledge(knowledge);
+//            fasGraph = fges.search();
         }
 
         SearchGraphUtils.pcOrientbk(knowledge, fasGraph, fasGraph.getNodes());
@@ -464,8 +481,8 @@ public final class Fask_B implements GraphSearch {
         boolean b1, b2;
 
         {
-            Fask_B.E hx = new E(X, Y, Z, X).invoke();
-            Fask_B.E hy = new E(X, Y, Z, Y).invoke();
+            Fask_C.E hx = new E(X, Y, Z, X).invoke();
+            Fask_C.E hy = new E(X, Y, Z, Y).invoke();
 
             double[] dx = hx.getR();
             double[] dy = hy.getR();
@@ -484,8 +501,8 @@ public final class Fask_B implements GraphSearch {
         }
 
         {
-            Fask_B.E hy = new E(Y, X, Z, Y).invoke();
-            Fask_B.E hx = new E(Y, X, Z, X).invoke();
+            Fask_C.E hy = new E(Y, X, Z, Y).invoke();
+            Fask_C.E hx = new E(Y, X, Z, X).invoke();
 
             double[] dx = hx.getR();
             double[] dy = hy.getR();
@@ -529,6 +546,66 @@ public final class Fask_B implements GraphSearch {
         return lr > 0;
     }
 
+    // If x->y, returns true
+//    private boolean leftRightMinnesota(Node X, Node Y, double delta, boolean printStuff) {
+//        double[] x = skewCorrected[variables.indexOf(X)];
+//        double[] y = skewCorrected[variables.indexOf(Y)];
+//
+//        final double cxyx = cov(x, y, x);
+//        final double cxyy = cov(x, y, y);
+//        final double cxxx = cov(x, x, x);
+//        final double cyyx = cov(y, y, x);
+//        final double cxxy = cov(x, x, y);
+//        final double cyyy = cov(y, y, y);
+//
+//        double a1 = cxyx / cxxx;
+//        double a2 = cxyy / cxxy;
+//        double b1 = cxyy / cyyy;
+//        double b2 = cxyx / cyyx;
+//
+//        double Q = (a2 > 0) ? a1 / a2 : a2 / a1;
+//        double R = (b2 > 0) ? b1 / b2 : b2 / b1;
+//
+//        double lr = Q - R;
+//
+////        if (StatUtils.correlation(x, y) < 0) lr += delta;
+//
+//        final double sk_ey = StatUtils.skewness(residuals(y, new double[][]{x}));
+//
+//        if (sk_ey < 0) {
+//            lr *= -1;
+//        }
+//
+//        final double a = correlation(x, y);
+//
+//        if (a < 0 && sk_ey > delta) {
+//            lr *= -1;
+//        }
+//
+//        if (printStuff) {
+//            System.out.println(Edges.directedEdge(X, Y) + " sk(X) = "
+//                    + StatUtils.skewness(x) + " sk(Y) = " + StatUtils.skewness(y)
+//                    + " corr(X, Y) = " + correlation(x, y) + " sk_ey = " + sk_ey + " LR = " + lr);
+//        }
+//
+//        return lr > 0;
+//    }
+
+//    private static double cov(double[] x, double[] y, double[] condition) {
+//        double exy = 0.0;
+//
+//        int n = 0;
+//
+//        for (int k = 0; k < x.length; k++) {
+//            if (condition[k] > 0) {
+//                exy += x[k] * y[k];
+//                n++;
+//            }
+//        }
+//
+//        return exy / n;
+//    }
+
     private static double cu(double[] x, double[] y, double[] condition) {
         double exy = 0.0;
 
@@ -543,6 +620,42 @@ public final class Fask_B implements GraphSearch {
 
         return exy / n;
     }
+
+    // If x->y, returns true
+//    private boolean leftRight2(Node X, Node Y, double delta, boolean printStuff) {
+//        double[] x = skewCorrected[variables.indexOf(X)];
+//        double[] y = skewCorrected[variables.indexOf(Y)];
+//
+//        final double cxyx = e(x, y, x, true);
+//        final double cxyy = e(x, y, y, true);
+//        final double cxxx = e(x, x, x, true);
+//        final double cxxy = e(x, x, y, true);
+//
+//        double a1 = cxyx / cxxx;
+//        double a2 = cxyy / cxxy;
+//
+//        double lr = (a1 - a2);
+//
+//        final double sk_ey = StatUtils.skewness(residuals(y, new double[][]{x}));
+//
+//        if (sk_ey < 0) {
+//            lr *= -1;
+//        }
+//
+//        final double a = correlation(x, y);
+//
+//        if (a < 0 && sk_ey > delta) {
+//            lr *= -1;
+//        }
+//
+//        if (printStuff) {
+//            System.out.println(Edges.directedEdge(X, Y) + " sk(X) = "
+//                    + StatUtils.skewness(x) + " sk(Y) = " + StatUtils.skewness(y)
+//                    + " corr(X, Y) = " + correlation(x, y) + " sk_ey = " + sk_ey + " LR = " + lr);
+//        }
+//
+//        return lr > 0;
+//    }
 
     private boolean twocycle(Node X, Node Y, Graph graph) {
         double[] x = colData[variables.indexOf(X)];
@@ -628,6 +741,24 @@ public final class Fask_B implements GraphSearch {
         return true;
     }
 
+//    private static double e(double[] x, double[] y, double[] condition, boolean positive) {
+//        double exy = 0.0;
+//
+//        int n = 0;
+//
+//        for (int k = 0; k < x.length; k++) {
+//            if (positive && condition[k] > 0) {
+//                exy += x[k] * y[k];
+//                n++;
+//            } else if (!positive && condition[k] < 0) {
+//                exy += x[k] * y[k];
+//                n++;
+//            }
+//        }
+//
+//        return exy / n;
+//    }
+
     private double partialCorrelation(double[] x, double[] y, double[][] z, double[] condition,
                                       double threshold, double direction) throws SingularMatrixException {
         double[][] cv = covMatrix(x, y, z, condition, threshold, direction);
@@ -701,6 +832,38 @@ public final class Fask_B implements GraphSearch {
         return rows;
     }
 
+//    private double[] correctSkewness(double[] data) {
+//        double skewness = StatUtils.skewness(data);
+//        double[] data2 = new double[data.length];
+//        for (int i = 0; i < data.length; i++) data2[i] = data[i] * Math.signum(skewness);
+//        return data2;
+//    }
+
+//    private double[] residuals(double[] _y, double[][] _x) {
+//        TetradMatrix y = new TetradMatrix(new double[][]{_y}).transpose();
+//        TetradMatrix x = new TetradMatrix(_x).transpose();
+//
+//        TetradMatrix xT = x.transpose();
+//        TetradMatrix xTx = xT.times(x);
+//        TetradMatrix xTxInv = xTx.inverse();
+//        TetradMatrix xTy = xT.times(y);
+//        TetradMatrix b = xTxInv.times(xTy);
+//
+//        TetradMatrix yHat = x.times(b);
+//        if (yHat.columns() == 0) yHat = y.copy();
+//
+//        return y.minus(yHat).getColumn(0).toArray();
+//    }
+
+//    private double coef(double[] _x, double[][] _y) {
+//        TetradMatrix x = new TetradMatrix(new double[][]{_x}).transpose();
+//        TetradMatrix y = new TetradMatrix(_y).transpose();
+//
+//        TetradMatrix b = x.transpose().times(x).inverse().times(x.transpose().times(y));
+//
+//        return b.get(0, 0);
+//    }
+
     private class E {
         private Node x;
         private Node y;
@@ -724,7 +887,7 @@ public final class Fask_B implements GraphSearch {
             return rxy_over_erxx;
         }
 
-        public Fask_B.E invoke() {
+        public Fask_C.E invoke() {
             final double[] _w = colData[variables.indexOf(condition)];
 
             rows = StatUtils.getRows(_w, 0, +1);
