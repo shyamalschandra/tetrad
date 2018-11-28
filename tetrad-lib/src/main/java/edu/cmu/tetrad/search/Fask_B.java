@@ -139,6 +139,8 @@ public final class Fask_B implements GraphSearch {
     public Graph search() {
         long start = System.currentTimeMillis();
 
+        TetradLogger.getInstance().forceLogMessage("\nStarting FASK-B Algorithm");
+
         setCutoff();
 
         Graph fasGraph;
@@ -236,6 +238,8 @@ public final class Fask_B implements GraphSearch {
         }
 
         removeExtraEdges(graph);
+
+        TetradLogger.getInstance().forceLogMessage("\n\nFinal graph: \n\n" + graph);
 
         TetradLogger.getInstance().forceLogMessage("\nDone");
 

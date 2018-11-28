@@ -91,6 +91,12 @@ public final class Fask implements GraphSearch {
     // Threshold for reversing casual judgments for negative coefficients.
     private double delta = -0.2;
 
+    // The variables in the dataset.
+    private List<Node> variables;
+
+    // True iff verbose output should be printed.
+    private boolean verbose = false;
+
     /**
      * @param dataSet These datasets must all have the same variables, in the same order.
      */
@@ -99,6 +105,14 @@ public final class Fask implements GraphSearch {
         this.score = score;
 
         data = dataSet.getDoubleData().transpose().toArray();
+        variables = dataSet.getVariables();
+
+        if (isVerbose()) {
+            for (int i = 0; i < data.length; i++) {
+                TetradLogger.getInstance().forceLogMessage(variables.get(i) + " skewness = " + skewness(data[i]));
+            }
+        }
+
     }
 
     //======================================== PUBLIC METHODS ====================================//
@@ -115,6 +129,8 @@ public final class Fask implements GraphSearch {
     public Graph search() {
         long start = System.currentTimeMillis();
 
+        TetradLogger.getInstance().forceLogMessage("\nStarting FASK Algorithm");
+
         setCutoff(alpha);
 
         DataSet dataSet = DataUtils.standardizeData(this.dataSet);
@@ -124,6 +140,8 @@ public final class Fask implements GraphSearch {
         Graph G0;
 
         if (getInitialGraph() != null) {
+            TetradLogger.getInstance().forceLogMessage("\nUsing initial graph.");
+
             Graph g1 = new EdgeListGraph(getInitialGraph().getNodes());
 
             for (Edge edge : getInitialGraph().getEdges()) {
@@ -137,8 +155,9 @@ public final class Fask implements GraphSearch {
 
             G0 = g1;
         } else {
+            TetradLogger.getInstance().forceLogMessage("\nFAS");
+
             IndependenceTest test = new IndTestScore(score, dataSet);
-            System.out.println("FAS");
 
             FasStable fas = new FasStable(test);
             fas.setDepth(getDepth());
@@ -147,9 +166,8 @@ public final class Fask implements GraphSearch {
             G0 = fas.search();
         }
 
+        TetradLogger.getInstance().forceLogMessage("\nOrienting required edges");
         SearchGraphUtils.pcOrientbk(knowledge, G0, G0.getNodes());
-
-        System.out.println("Orientation");
 
         Graph graph = new EdgeListGraph(variables);
 
@@ -178,7 +196,7 @@ public final class Fask implements GraphSearch {
                         graph.addEdge(edge1);
                         graph.addEdge(edge2);
                     } else {
-                        if (leftright(x, y)) {
+                        if (leftright(X, Y)) {
                             graph.addDirectedEdge(X, Y);
                         } else {
                             graph.addDirectedEdge(Y, X);
@@ -187,6 +205,8 @@ public final class Fask implements GraphSearch {
                 }
             }
         }
+
+        TetradLogger.getInstance().forceLogMessage("\n\nFinal graph: \n\n" + graph);
 
         System.out.println();
         System.out.println("Done");
@@ -325,7 +345,10 @@ public final class Fask implements GraphSearch {
         return y.minus(yHat).getColumn(0).toArray();
     }
 
-    private boolean leftright(double[] x, double[] y) {
+    private boolean leftright(Node X, Node Y) {
+        final double[] x = data[variables.indexOf(X)];
+        final double[] y = data[variables.indexOf(Y)];
+
         final double cxyx = cu(x, y, x);
         final double cxyy = cu(x, y, y);
 
@@ -341,6 +364,12 @@ public final class Fask implements GraphSearch {
         r *= signum(sx) * signum(sy);
         lr *= signum(r);
         if (r < getDelta()) lr *= -1;
+
+        if (isVerbose()) {
+            TetradLogger.getInstance().forceLogMessage(
+                    Edges.directedEdge(X, Y) + " skew X = " + sx + " skew Y = " + sy + " corr = " + r + " LR = " + lr
+            );
+        }
 
         return lr > 0;
     }
@@ -502,6 +531,14 @@ public final class Fask implements GraphSearch {
 
     public void setDelta(double delta) {
         this.delta = delta;
+    }
+
+    public boolean isVerbose() {
+        return verbose;
+    }
+
+    public void setVerbose(boolean verbose) {
+        this.verbose = verbose;
     }
 }
 

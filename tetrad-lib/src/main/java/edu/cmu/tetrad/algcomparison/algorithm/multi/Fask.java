@@ -50,12 +50,13 @@ public class Fask implements Algorithm, HasKnowledge, UsesScoreWrapper {
             edu.cmu.tetrad.search.Fask search = new edu.cmu.tetrad.search.Fask((DataSet) dataSet, score.getScore(dataSet, parameters));
             search.setDepth(parameters.getInt("depth"));
             search.setPenaltyDiscount(parameters.getDouble("penaltyDiscount"));
+            search.setUseSkewAdjacencies(parameters.getBoolean("useMask"));
             search.setExtraEdgeThreshold(parameters.getDouble("maskThreshold"));
             search.setUseFasAdjacencies(parameters.getBoolean("useFasAdjacencies"));
-            search.setUseSkewAdjacencies(parameters.getBoolean("useCorrDiffAdjacencies"));
-            search.setAlpha(parameters.getDouble("twoCycleAlpha"));
+             search.setAlpha(parameters.getDouble("twoCycleAlpha"));
             search.setDelta(parameters.getDouble("faskDelta"));
             search.setKnowledge(knowledge);
+            search.setVerbose(parameters.getBoolean("verbose"));
 
 //            search.setPercentBootstrapForLinearityTest(parameters.getDouble("percentBootstrapForLinearityTest"));
 //            search.setNumBootstrapForLinearityTest(parameters.getInt("numBootstrapForLinearityTest"));
@@ -111,12 +112,12 @@ public class Fask implements Algorithm, HasKnowledge, UsesScoreWrapper {
         List<String> parameters = score.getParameters();
         parameters.add("depth");
         parameters.add("twoCycleAlpha");
-        parameters.add("maskThreshold");
         parameters.add("faskDelta");
 
         parameters.add("useFasAdjacencies");
-        parameters.add("useCorrDiffAdjacencies");
-        
+        parameters.add("useMask");
+        parameters.add("maskThreshold");
+
         // Resampling
         parameters.add("numberResampling");
         parameters.add("percentResampleSize");
