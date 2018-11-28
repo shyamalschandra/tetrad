@@ -52,12 +52,12 @@ public class Fask_B implements Algorithm, HasKnowledge, TakesIndependenceWrapper
             search.setDepth(parameters.getInt("depth"));
             search.setSkewEdgeAlpha(parameters.getDouble("skewEdgeAlpha"));
             search.setTwoCycleAlpha(parameters.getDouble("twoCycleAlpha"));
-            search.setMaskThreshold(parameters.getDouble("maskThreshold"));
             search.setDelta(parameters.getDouble("faskDelta"));
             search.setAssumeErrorsPositivelySkewed(parameters.getBoolean("errorsPositivelySkewed"));
-
+            search.setVerbose(parameters.getBoolean("verbose"));
             search.setUseFasAdjacencies(parameters.getBoolean("useFasAdjacencies"));
-            search.setUseSkewAdjacencies(parameters.getBoolean("useCorrDiffAdjacencies"));
+            search.setUseMask(parameters.getBoolean("useMask"));
+            search.setMaskThreshold(parameters.getDouble("maskThreshold"));
 
             search.setKnowledge(knowledge);
             return getGraph(search);
@@ -110,16 +110,20 @@ public class Fask_B implements Algorithm, HasKnowledge, TakesIndependenceWrapper
         parameters.add("depth");
         parameters.add("skewEdgeAlpha");
         parameters.add("twoCycleAlpha");
+        parameters.add("errorsPositivelySkewed");
+        parameters.add("useMask");
         parameters.add("maskThreshold");
         parameters.add("faskDelta");
-        parameters.add("errorsPositivelySkewed");
 
         parameters.add("useFasAdjacencies");
-        parameters.add("useCorrDiffAdjacencies");
+        parameters.add("useMask");
+        parameters.add("maskThreshold");
 
         // Bootstrapping
-        parameters.add("bootstrapSampleSize");
-        parameters.add("bootstrapEnsemble");
+        parameters.add("numberResampling");
+        parameters.add("percentResampleSize");
+        parameters.add("resamplingWithReplacement");
+        parameters.add("resamplingEnsemble");
         parameters.add("verbose");
 
         return parameters;

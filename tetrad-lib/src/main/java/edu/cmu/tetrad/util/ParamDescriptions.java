@@ -259,8 +259,8 @@ public class ParamDescriptions {
                 "Yes if adjacencies from the FAS search should be used",
                 true));
 
-        map.put("useCorrDiffAdjacencies", new ParamDescription(
-                "Yes if adjacencies from conditional correlation differences should be used",
+        map.put("useMask", new ParamDescription(
+                "Yes if the correlation difference mask should be used",
                 true));
 
         map.put("faskDelta", new ParamDescription(

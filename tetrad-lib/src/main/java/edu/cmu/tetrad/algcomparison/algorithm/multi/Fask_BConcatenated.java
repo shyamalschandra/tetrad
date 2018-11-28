@@ -61,17 +61,14 @@ public class Fask_BConcatenated implements MultiDataSetAlgorithm, HasKnowledge, 
             edu.cmu.tetrad.search.Fask_B search = new edu.cmu.tetrad.search.Fask_B(dataSet, test.getTest(dataSet, parameters));
 
             search.setDepth(parameters.getInt("depth"));
-            search.setTwoCycleAlpha(parameters.getDouble("twoCycleAlpha"));
             search.setSkewEdgeAlpha(parameters.getDouble("skewEdgeAlpha"));
-            search.setMaskThreshold(parameters.getDouble("maskThreshold"));
+            search.setTwoCycleAlpha(parameters.getDouble("twoCycleAlpha"));
             search.setDelta(parameters.getDouble("faskDelta"));
             search.setAssumeErrorsPositivelySkewed(parameters.getBoolean("errorsPositivelySkewed"));
-
+            search.setVerbose(parameters.getBoolean("verbose"));
             search.setUseFasAdjacencies(parameters.getBoolean("useFasAdjacencies"));
-            search.setUseSkewAdjacencies(parameters.getBoolean("useCorrDiffAdjacencies"));
-
-            search.setUseFasAdjacencies(parameters.getBoolean("useFasAdjacencies"));
-            search.setUseSkewAdjacencies(parameters.getBoolean("useCorrDiffAdjacencies"));
+            search.setUseMask(parameters.getBoolean("useMask"));
+            search.setMaskThreshold(parameters.getDouble("maskThreshold"));
 
             search.setKnowledge(knowledge);
             
@@ -160,18 +157,22 @@ public class Fask_BConcatenated implements MultiDataSetAlgorithm, HasKnowledge, 
     public List<String> getParameters() {
         List<String> parameters = test.getParameters();
         parameters.add("depth");
-        parameters.add("twoCycleAlpha");
         parameters.add("skewEdgeAlpha");
+        parameters.add("twoCycleAlpha");
+        parameters.add("errorsPositivelySkewed");
+        parameters.add("useMask");
         parameters.add("maskThreshold");
         parameters.add("faskDelta");
-        parameters.add("errorsPositivelySkewed");
 
         parameters.add("useFasAdjacencies");
-        parameters.add("useCorrDiffAdjacencies");
+        parameters.add("useMask");
+        parameters.add("maskThreshold");;
 
         // Bootstrapping
-        parameters.add("bootstrapSampleSize");
-        parameters.add("bootstrapEnsemble");
+        parameters.add("numberResampling");
+        parameters.add("percentResampleSize");
+        parameters.add("resamplingWithReplacement");
+        parameters.add("resamplingEnsemble");
         parameters.add("verbose");
 
         parameters.add("numRuns");
