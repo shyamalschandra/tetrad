@@ -248,7 +248,7 @@ public class ParamDescriptions {
                 0.3, 0.0, Double.POSITIVE_INFINITY));
 
         map.put("maskThreshold", new ParamDescription(
-                "Mask threshold for including extra edges (default 3)",
+                "Mask threshold for including extra edges (default 0.3)",
                 0.3, 0.0, Double.POSITIVE_INFINITY));
 
         map.put("skewEdgeAlpha", new ParamDescription(
@@ -270,6 +270,10 @@ public class ParamDescriptions {
         map.put("faskDelta2", new ParamDescription(
                 "Threshold for judging negative coefficient edges as X->Y",
                 0.0, Double.NaN, Double.POSITIVE_INFINITY));
+
+        map.put("errorsPositivelySkewed", new ParamDescription(
+                "Yes if errors should be assumed to be positively skewed",
+                true));
 
         map.put("numLags", new ParamDescription(
                 "The number of lags in the time lag model",

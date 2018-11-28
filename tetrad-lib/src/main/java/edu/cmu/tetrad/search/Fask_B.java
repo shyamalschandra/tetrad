@@ -96,6 +96,9 @@ public final class Fask_B implements GraphSearch {
     // range (-1, 0).
     private double delta = -0.2;
 
+    // True iff errors ey are assumed to be positively skewed. If false, a negative skew check will be performed.
+    private boolean assumeErrorsPositivelySkewed = true;
+
     /**
      * @param dataSet These datasets must all have the same variables, in the same order.
      */
@@ -311,6 +314,14 @@ public final class Fask_B implements GraphSearch {
         this.delta = delta;
     }
 
+    public boolean isAssumeErrorsPositivelySkewed() {
+        return assumeErrorsPositivelySkewed;
+    }
+
+    public void setAssumeErrorsPositivelySkewed(boolean assumeErrorsPositivelySkewed) {
+        this.assumeErrorsPositivelySkewed = assumeErrorsPositivelySkewed;
+    }
+
     /////////////////////////////////////// PRIVATE METHODS ////////////////////////////////////
 
     /**
@@ -340,16 +351,12 @@ public final class Fask_B implements GraphSearch {
                 } else if (knowledgeOrients(Y, X)) {
                     graph.addDirectedEdge(Y, X);
                 } else {
-                    final boolean lrxy = leftRightFask(X, Y, delta, false);
-                    final boolean lryx = leftRightFask(Y, X, delta, false);
+                    final double lrxy = leftRightFask(X, Y);
+                    final double lryx = leftRightFask(Y, X);
 
-                    if (lrxy & lryx) {
-                        graph.addNondirectedEdge(X, Y); // Could be anything.
-                    } else if (!lrxy && !lryx) {
-                        graph.addBidirectedEdge(X, Y);
-                    } else if (!lryx) {
+                    if (lrxy > lryx) {
                         graph.addDirectedEdge(X, Y);
-                    } else if (!lrxy) {
+                    } else {
                         graph.addDirectedEdge(Y, X);
                     }
                 }
@@ -506,29 +513,44 @@ public final class Fask_B implements GraphSearch {
         return b1 || b2;
     }
 
-    private boolean leftRightFask(Node X, Node Y, double delta, boolean printStuff) {
+    private double leftRightFask(Node X, Node Y) {
         final double[] x = colData[variables.indexOf(X)];
         final double[] y = colData[variables.indexOf(Y)];
 
-        final double cxyx = cu(x, y, x);
-        final double cxyy = cu(x, y, y);
+        final double cxyx = expected(x, y, x);
+        final double cxyy = expected(x, y, y);
 
-        final double left = cxyx / sqrt(cu(x, x, x) * cu(y, y, x));
-        final double right = cxyy / sqrt(cu(x, x, y) * cu(y, y, y));
+        final double left = cxyx / sqrt(expected(x, x, x) * expected(y, y, x));
+        final double right = cxyy / sqrt(expected(x, x, y) * expected(y, y, y));
 
-        double r = StatUtils.correlation(x, y);
-        final double sx = StatUtils.skewness(x);
-        final double sy = StatUtils.skewness(y);
+        double lr;
 
-        double lr = (left - right) * sx * sy;
+        if (isAssumeErrorsPositivelySkewed()) {
+            lr = left - right;
 
-        lr *= StatUtils.skewness(residuals(y, new double[][]{x}));
+            double r = StatUtils.correlation(x, y);
+            double sx = StatUtils.skewness(x);
+            double sy = StatUtils.skewness(y);
 
-        if (r < delta) {
-            lr *= -1;
+            lr *= r * signum(sx) * signum(sy);
+            if (r * signum(sx) * signum(sy) < getDelta()) lr *= -1;
+        }
+        else {
+            lr = left - right;
+
+            double r = StatUtils.correlation(x, y);
+            double sx = StatUtils.skewness(x);
+            double sy = StatUtils.skewness(y);
+
+            lr *= r * signum(sx) * signum(sy);
+            if (r * signum(sx) * signum(sy) < getDelta()) lr *= -1;
+
+            final double sey = StatUtils.skewness(residuals(y, new double[][]{x}));
+            r *= sey;
         }
 
-        return lr > 0;
+        return lr;
+
     }
 
     private double[] residuals(double[] _y, double[][] _x) {
@@ -547,7 +569,7 @@ public final class Fask_B implements GraphSearch {
         return y.minus(yHat).getColumn(0).toArray();
     }
 
-    private static double cu(double[] x, double[] y, double[] condition) {
+    private static double expected(double[] x, double[] y, double[] condition) {
         double exy = 0.0;
 
         int n = 0;
@@ -560,6 +582,18 @@ public final class Fask_B implements GraphSearch {
         }
 
         return exy / n;
+    }
+
+    private static int N(double[] condition) {
+        int n = 0;
+
+        for (int k = 0; k < condition.length; k++) {
+            if (condition[k] > 0) {
+                n++;
+            }
+        }
+
+        return n;
     }
 
     private boolean twocycle(Node X, Node Y, Graph graph) {

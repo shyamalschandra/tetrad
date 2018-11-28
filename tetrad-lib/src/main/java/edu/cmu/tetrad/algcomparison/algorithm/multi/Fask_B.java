@@ -54,6 +54,7 @@ public class Fask_B implements Algorithm, HasKnowledge, TakesIndependenceWrapper
             search.setTwoCycleAlpha(parameters.getDouble("twoCycleAlpha"));
             search.setMaskThreshold(parameters.getDouble("maskThreshold"));
             search.setDelta(parameters.getDouble("faskDelta"));
+            search.setAssumeErrorsPositivelySkewed(parameters.getBoolean("errorsPositivelySkewed"));
 
             search.setUseFasAdjacencies(parameters.getBoolean("useFasAdjacencies"));
             search.setUseSkewAdjacencies(parameters.getBoolean("useCorrDiffAdjacencies"));
@@ -111,6 +112,7 @@ public class Fask_B implements Algorithm, HasKnowledge, TakesIndependenceWrapper
         parameters.add("twoCycleAlpha");
         parameters.add("maskThreshold");
         parameters.add("faskDelta");
+        parameters.add("errorsPositivelySkewed");
 
         parameters.add("useFasAdjacencies");
         parameters.add("useCorrDiffAdjacencies");
