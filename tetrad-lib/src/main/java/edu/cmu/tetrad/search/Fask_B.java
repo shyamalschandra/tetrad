@@ -195,6 +195,8 @@ public final class Fask_B implements GraphSearch {
             }
         }
 
+        System.out.println(graph);
+
         Graph graph2 = new EdgeListGraph(graph);
 
         TetradLogger.getInstance().forceLogMessage("\nRemoving extra edges by conditioning");
@@ -207,15 +209,23 @@ public final class Fask_B implements GraphSearch {
                 Node Y = variables.get(j);
 
                 if (graph.isAdjacentTo(X, Y) && !edgeForbiddenByKnowledge(X, Y)
-                        && !knowledgeOrients(X, Y) && !knowledgeOrients(Y, X) && twocycle(X, Y, graph)) {
-                    graph.removeEdges(X, Y);
-                    graph.addDirectedEdge(X, Y);
-                    graph.addDirectedEdge(Y, X);
+                        && !knowledgeOrients(X, Y) && !knowledgeOrients(Y, X)
+                        && !Edges.isBidirectedEdge(graph.getEdge(X, Y))
+                        && twocycle(X, Y, graph)) {
+                    final double lrxy = leftRightFask(X, Y);
+                    final double lryx = leftRightFask(Y, X);
+
+                    if (!(lrxy < 0 && lryx < 0)) {
+                        graph.removeEdges(X, Y);
+                        graph.addDirectedEdge(X, Y);
+                        graph.addDirectedEdge(Y, X);
+                    }
                 }
             }
         }
 
         TetradLogger.getInstance().forceLogMessage("\nAdding edges back in and re-running removal of extra edges (given 2-cycles)");
+
         for (int i = 0; i < variables.size(); i++) {
             for (int j = i + 1; j < variables.size(); j++) {
                 Node X = variables.get(i);
@@ -228,6 +238,8 @@ public final class Fask_B implements GraphSearch {
                 double c2 = StatUtils.cov(x, y, y, 0, +1)[1];
 
                 if (!graph.isAdjacentTo(X, Y) && graph2.isAdjacentTo(X, Y)) {
+                    if (Edges.isBidirectedEdge(graph2.getEdge(X, Y))) continue;
+
                     if ((isUseFasAdjacencies() && fasGraph.isAdjacentTo(X, Y))
                             || (isUseSkewAdjacencies() && getMaskThreshold() != 0 ?
                             Math.abs(c1 - c2) > getMaskThreshold() : ((skewAdjacent(X, Y, Collections.emptyList()))))) {
@@ -389,6 +401,10 @@ public final class Fask_B implements GraphSearch {
                     final double lrxy = leftRightFask(X, Y);
                     final double lryx = leftRightFask(Y, X);
 
+//                    if (lrxy < 0 && lryx < 0) {
+//                        graph.addBidirectedEdge(X, Y);
+//                    } else
+
                     if (lrxy > lryx) {
                         graph.addDirectedEdge(X, Y);
                     } else {
@@ -501,9 +517,9 @@ public final class Fask_B implements GraphSearch {
     }
 
     private boolean skewAdjacent(Node X, Node Y, List<Node> Z) {
-        boolean b1, b2;
+        boolean b1 = false, b2 = false;
 
-        {
+        try {
             Fask_B.E hx = new E(X, Y, Z, X).invoke();
             Fask_B.E hy = new E(X, Y, Z, Y).invoke();
 
@@ -521,9 +537,11 @@ public final class Fask_B implements GraphSearch {
 
             double p = new TDistribution(df).cumulativeProbability(t);
             b1 = p < skewEdgeAlpha;
+        } catch (Exception e) {
+            //
         }
 
-        {
+        try {
             Fask_B.E hy = new E(Y, X, Z, Y).invoke();
             Fask_B.E hx = new E(Y, X, Z, X).invoke();
 
@@ -541,14 +559,18 @@ public final class Fask_B implements GraphSearch {
 
             double p = new TDistribution(df).cumulativeProbability(t);
             b2 = p < skewEdgeAlpha;
+        } catch (Exception e) {
+            //
         }
 
         return b1 || b2;
     }
 
     private double leftRightFask(Node X, Node Y) {
-        final double[] x = colData[variables.indexOf(X)];
+        double[] x = colData[variables.indexOf(X)];
         final double[] y = colData[variables.indexOf(Y)];
+
+        x = correctSkewness(x);
 
         final double cxyx = expected(x, y, x);
         final double cxyy = expected(x, y, y);
@@ -565,25 +587,27 @@ public final class Fask_B implements GraphSearch {
             double sx = StatUtils.skewness(x);
             double sy = StatUtils.skewness(y);
 
+            if (r < getDelta()) {
+                lr *= -1;
+            }
+
             if (isVerbose()) {
                 TetradLogger.getInstance().forceLogMessage(
                         Edges.directedEdge(X, Y) + " skew X = " + sx + " skew Y = " + sy + " corr = " + r + " LR = " + lr
                 );
             }
-
-            lr *= r * signum(sx) * signum(sy);
-            if (r * signum(sx) * signum(sy) < getDelta()) lr *= -1;
         } else {
             lr = left - right;
 
             double r = StatUtils.correlation(x, y);
             double sx = StatUtils.skewness(x);
             double sy = StatUtils.skewness(y);
-
-            lr *= r * signum(sx) * signum(sy);
-            if (r * signum(sx) * signum(sy) < getDelta()) lr *= -1;
-
             final double sey = StatUtils.skewness(residuals(y, new double[][]{x}));
+
+            if (r < getDelta()) {
+                lr *= -1;
+            }
+
             lr *= sey;
 
             if (isVerbose()) {
@@ -591,11 +615,19 @@ public final class Fask_B implements GraphSearch {
                         Edges.directedEdge(X, Y) + " skew X = " + sx + " skew Y = " + sy + " skew res(Y | X) = "
                                 + sey + " corr = " + r + " LR = " + lr
                 );
+
+                TetradLogger.getInstance().forceLogMessage("r = " + r * signum(sx) + " delta = " + getDelta());
             }
         }
 
         return lr;
+    }
 
+    private double[] correctSkewness(double[] data) {
+        double skewness = StatUtils.skewness(data);
+        double[] data2 = new double[data.length];
+        for (int i = 0; i < data.length; i++) data2[i] = data[i] * Math.signum(skewness);
+        return data2;
     }
 
     private double[] residuals(double[] _y, double[][] _x) {

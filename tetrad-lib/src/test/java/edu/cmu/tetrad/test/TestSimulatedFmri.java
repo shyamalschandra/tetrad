@@ -23,38 +23,37 @@ package edu.cmu.tetrad.test;
 
 import edu.cmu.tetrad.algcomparison.Comparison;
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithms;
-import edu.cmu.tetrad.algcomparison.algorithm.multi.*;
-import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.SkewSearch;
-import edu.cmu.tetrad.algcomparison.independence.FisherZ;
-import edu.cmu.tetrad.algcomparison.independence.FisherZSkew;
+import edu.cmu.tetrad.algcomparison.algorithm.multi.Fask_BConcatenated;
 import edu.cmu.tetrad.algcomparison.independence.SemBicTest;
-import edu.cmu.tetrad.algcomparison.score.SemBicScore;
 import edu.cmu.tetrad.algcomparison.simulation.Simulations;
 import edu.cmu.tetrad.algcomparison.statistic.*;
-import edu.cmu.tetrad.data.*;
-import edu.cmu.tetrad.graph.EdgeListGraph;
+import edu.cmu.tetrad.data.ContinuousVariable;
+import edu.cmu.tetrad.data.DataSet;
+import edu.cmu.tetrad.data.DataUtils;
+import edu.cmu.tetrad.data.DiscreteVariable;
+import edu.cmu.tetrad.graph.Edge;
+import edu.cmu.tetrad.graph.Edges;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.Node;
-import edu.cmu.tetrad.search.Lofs2;
-import edu.cmu.tetrad.sem.GeneralizedSemIm;
-import edu.cmu.tetrad.sem.GeneralizedSemPm;
+import edu.cmu.tetrad.search.Fask_B;
+import edu.cmu.tetrad.search.IndTestFisherZ;
 import edu.cmu.tetrad.util.DataConvertUtils;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.RandomUtil;
+import edu.cmu.tetrad.util.StatUtils;
 import edu.pitt.dbmi.data.Delimiter;
 import edu.pitt.dbmi.data.reader.DataReader;
 import edu.pitt.dbmi.data.reader.tabular.ContinuousTabularDataFileReader;
 import edu.pitt.dbmi.data.reader.tabular.MixedTabularDataFileReader;
 import org.junit.Test;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.PrintStream;
-import java.text.ParseException;
+import java.io.*;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.*;
 
-import static edu.cmu.tetrad.sem.ScoreType.SemBic;
 import static java.lang.Math.abs;
+import static java.lang.Math.log;
 
 /**
  * Pulling this test out for Madelyn.
@@ -415,11 +414,250 @@ public class TestSimulatedFmri {
                 out2.flush();
 
 
-
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    @Test
+    public void testCausalPairs() {
+        try {
+            List<Integer> multiplicativeError = new ArrayList<>();
+//            multiplicativeError.add(1); // multiplicative error
+            multiplicativeError.add(2); // multiplicative error
+//            multiplicativeError.add(4); // multiplicative error
+            multiplicativeError.add(5); // multiplicative error
+            multiplicativeError.add(6); // multiplicative error
+            multiplicativeError.add(7); // multiplicative error
+            multiplicativeError.add(9); // multiplicative error
+            multiplicativeError.add(10); // multiplicative error
+            multiplicativeError.add(11); // multiplicative error
+            multiplicativeError.add(12); // multiplicative error
+            multiplicativeError.add(17); // multiplicative error
+            multiplicativeError.add(25); // multiplicative error ?
+            multiplicativeError.add(80); // multiplicative error ?
+
+            List<Integer> gaussian = new ArrayList<>();
+            gaussian.add(97);
+
+//            List<Integer> shouldBeTwoCycle = new ArrayList<>();
+//            shouldBeTwoCycle.add(19);
+
+            List<Integer> getNonadjacent = new ArrayList<>();
+            List<Integer> getRight = new ArrayList<>();
+            List<Integer> getWrong = new ArrayList<>();
+            List<Integer> getBidirected = new ArrayList<>();
+            List<Integer> get2Cycle = new ArrayList<>();
+            List<Integer> deterministic = new ArrayList<>();
+            List<Integer> zeroCorr = new ArrayList<>();
+            List<Integer> imbalanced = new ArrayList<>();
+
+            I:
+            for (int i = 1; i <= 108; i++) {
+//                if (multiplicativeError.contains(i)) {
+//                    continue;
+//                }
+
+                if (gaussian.contains(i)) {
+                    continue;
+                }
+
+                System.out.println("Pair # " + i);
+
+                NumberFormat nf = new DecimalFormat("0000");
+
+                DataSet data1 = loadData2("pair" + nf.format(i) + ".txt");
+                data1 = DataUtils.center(data1);
+
+                double[][] _data = data1.getDoubleData().transpose().toArray();
+
+//                for (int r = 0; r < data1.getNumRows(); r++) {
+//                    for (int c = 0; c < data1.getNumColumns(); c++) {
+//                        data1.setDouble(r, c, log(data1.getDouble(r, c)));
+//                    }
+//                }
+
+                final double[] x = _data[0];
+                final double[] y = _data[1];
+//
+//                if (n(x) < 0.4 * x.length) {
+//                    imbalanced.add(i);
+//                    continue;
+//                }
+//                if (n(y) < 0.4 * x.length) {
+//                    imbalanced.add(i);
+//                    continue;
+//                }
+
+                double corr = StatUtils.correlation(x, y);
+
+                if (abs(corr) < 0.05) {
+                    zeroCorr.add(i);
+                    continue;
+                }
+
+
+                Fask_B fask = new Fask_B(data1, new IndTestFisherZ(data1, 0.05));
+                fask.setTwoCycleAlpha(0.000);
+                fask.setAssumeErrorsPositivelySkewed(false);
+                fask.setDelta(-.2);
+
+                Graph graph;
+                try {
+                    graph = fask.search();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    deterministic.add(i);
+                    continue;
+                }
+
+                final Node X = graph.getNode("VAR_1");
+                final Node Y = graph.getNode("VAR_2");
+
+                if (!graph.isAdjacentTo(X, Y)) {
+                    getNonadjacent.add(i);
+                    continue;
+                } else if (graph.getEdges(X, Y).size() == 2) {
+                    get2Cycle.add(i);
+//                    continue;
+                } else if (Edges.isBidirectedEdge(graph.getEdge(X, Y))) {
+                    getBidirected.add(i);
+                    continue;
+                }
+
+                if (multiplicativeError.contains(i)) {
+                    Edge edge = graph.getEdge(X, Y);
+                    graph.removeEdge(edge);
+                    graph.addEdge(edge.reverse());
+                }
+
+                BufferedReader in = new BufferedReader(new FileReader(new File("/Users/user/Box Sync/data/pairs/"
+                        + "pair" + nf.format(i) + "_des.txt")));
+
+                String line;
+
+                while ((line = in.readLine()) != null) {
+
+                    if (line.contains("#-->")) {
+                        System.out.println("Ground truth: VAR1 --> VAR2");
+
+                        if (graph.isParentOf(X, Y)) {
+                            getRight.add(i);
+                            continue I;
+                        }
+                    } else if (line.contains("#<--")) {
+                        System.out.println("Ground truth: VAR1 <-- VAR2");
+
+                        if (graph.isParentOf(Y, X)) {
+                            getRight.add(i);
+                            continue I;
+                        }
+                    } else if (line.contains("#<=>")) {
+                        System.out.println("Ground truth: VAR1 <=> VAR2");
+
+                        if (graph.isParentOf(Y, X) && graph.isParentOf(X, Y)) {
+                            getRight.add(i);
+                            continue I;
+                        }
+                    }
+                }
+
+                getWrong.add(i);
+            }
+
+            System.out.println("\nGets these right:");
+
+            for (int i : getRight) {
+                System.out.println(i);
+            }
+
+            System.out.println("\nNonadjacent:");
+
+            for (int i : getNonadjacent) {
+                System.out.println(i);
+            }
+
+
+//            System.out.println("\nShould be 2-cycles:");
+//
+//            for (int i : shouldBeTwoCycle) {
+//                System.out.println(i);
+//            }
+
+            System.out.println("\n2-cycles:");
+
+            for (int i : get2Cycle) {
+//                if (shouldBeTwoCycle.contains(i)) continue;;
+                System.out.println(i);
+            }
+
+            System.out.println("\nBidirected edges:");
+
+            for (int i : getBidirected) {
+                System.out.println(i);
+            }
+
+            System.out.println("\nGets these wrong:");
+
+            for (int i : getWrong) {
+                System.out.println(i);
+            }
+
+            System.out.println("\nThese were deterministic:");
+
+            for (int i : deterministic) {
+                System.out.println(i);
+            }
+
+            System.out.println("\nThese had zero correlation:");
+
+            for (int i : zeroCorr) {
+                System.out.println(i);
+            }
+
+            System.out.println("\nImbalanced centering:");
+
+            for (int i : imbalanced) {
+                System.out.println(i);
+            }
+
+            System.out.println("\nMultiplicative error:");
+
+            for (int i : multiplicativeError) {
+                System.out.println(i);
+            }
+
+            System.out.println("\nGaussian:");
+
+            for (int i : gaussian) {
+                System.out.println(i);
+            }
+
+
+            System.out.println("\n\nNUM CORRECT = " + getRight.size());
+            System.out.println("NUM INCORRECT = " + getWrong.size());
+
+            System.out.println("# correct or incorrect = " + (getRight.size() + getWrong.size()));
+
+
+        } catch (
+                IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    private static double n(double[] x) {
+        int n = 0;
+
+        for (int k = 0; k < x.length; k++) {
+            if (x[k] > 0) {
+                n++;
+            }
+        }
+
+        return n;
     }
 
     private int addIndicatorData(DataSet data1, DataSet concatenated, int discreteColumns, Map<String, ContinuousVariable> hash, int r) {
@@ -457,6 +695,14 @@ public class TestSimulatedFmri {
         DataReader dataReader = new MixedTabularDataFileReader(20
                 , new File("/Users/user/Box Sync/data/4cellLineData/" + name), Delimiter.COMMA);
         ((MixedTabularDataFileReader) dataReader).setHasHeader(true);
+
+        return (DataSet) DataConvertUtils.toDataModel(dataReader.readInData());
+    }
+
+    private DataSet loadData2(String name) throws IOException {
+        DataReader dataReader = new ContinuousTabularDataFileReader(
+                new File("/Users/user/Box Sync/data/pairs/" + name), Delimiter.WHITESPACE);
+        ((ContinuousTabularDataFileReader) dataReader).setHasHeader(false);
 
         return (DataSet) DataConvertUtils.toDataModel(dataReader.readInData());
     }
