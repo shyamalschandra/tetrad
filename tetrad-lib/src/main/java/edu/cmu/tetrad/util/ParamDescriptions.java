@@ -256,7 +256,11 @@ public class ParamDescriptions {
                 0.05, 0.0, Double.POSITIVE_INFINITY));
 
         map.put("useFasAdjacencies", new ParamDescription(
-                "Yes if adjacencies from the FAS search should be used",
+                "Yes if adjacencies from the FAS search (correlation) should be used",
+                true));
+
+        map.put("useSkewAdjacencies", new ParamDescription(
+                "Yes if adjacencies based on skewness should be used",
                 true));
 
         map.put("useMask", new ParamDescription(

@@ -499,8 +499,8 @@ public class TestSimulatedFmri {
 
 
                 Fask_B fask = new Fask_B(data1, new IndTestFisherZ(data1, 0.05));
-                fask.setTwoCycleAlpha(0.000);
-                fask.setAssumeErrorsPositivelySkewed(false);
+                fask.setTwoCycleAlpha(0.00001);
+//                fask.setAssumeErrorsPositivelySkewed(false);
                 fask.setDelta(-.2);
 
                 Graph graph;

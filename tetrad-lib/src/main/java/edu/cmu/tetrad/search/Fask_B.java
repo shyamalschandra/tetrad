@@ -188,8 +188,8 @@ public final class Fask_B implements GraphSearch {
                 double c2 = StatUtils.cov(x, y, y, 0, +1)[1];
 
                 if ((isUseFasAdjacencies() && fasGraph.isAdjacentTo(X, Y))
-                        || (isUseSkewAdjacencies() && isUseMask() ?
-                        Math.abs(c1 - c2) > getMaskThreshold() : ((skewAdjacent(X, Y, Collections.emptyList()))))) {
+                        || ((isUseSkewAdjacencies() && (isUseMask() ?
+                        Math.abs(c1 - c2) > getMaskThreshold() : skewAdjacent(X, Y, Collections.emptyList()))))) {
                     orientEdge(graph, X, Y);
                 }
             }
@@ -344,13 +344,13 @@ public final class Fask_B implements GraphSearch {
         this.delta = delta;
     }
 
-    public boolean isAssumeErrorsPositivelySkewed() {
-        return assumeErrorsPositivelySkewed;
-    }
-
-    public void setAssumeErrorsPositivelySkewed(boolean assumeErrorsPositivelySkewed) {
-        this.assumeErrorsPositivelySkewed = assumeErrorsPositivelySkewed;
-    }
+//    public boolean isAssumeErrorsPositivelySkewed() {
+//        return assumeErrorsPositivelySkewed;
+//    }
+//
+//    public void setAssumeErrorsPositivelySkewed(boolean assumeErrorsPositivelySkewed) {
+//        this.assumeErrorsPositivelySkewed = assumeErrorsPositivelySkewed;
+//    }
 
     public boolean isVerbose() {
         return verbose;
@@ -580,45 +580,45 @@ public final class Fask_B implements GraphSearch {
 
         double lr;
 
-        if (isAssumeErrorsPositivelySkewed()) {
-            lr = left - right;
+//        if (isAssumeErrorsPositivelySkewed()) {
+//            lr = left - right;
+//
+//            double r = StatUtils.correlation(x, y);
+//            double sx = StatUtils.skewness(x);
+//            double sy = StatUtils.skewness(y);
+//
+//            if (r < getDelta()) {
+//                lr *= -1;
+//            }
+//
+//            if (isVerbose()) {
+//                TetradLogger.getInstance().forceLogMessage(
+//                        Edges.directedEdge(X, Y) + " skew X = " + sx + " skew Y = " + sy + " corr = " + r + " LR = " + lr
+//                );
+//            }
+//        } else {
+        lr = left - right;
 
-            double r = StatUtils.correlation(x, y);
-            double sx = StatUtils.skewness(x);
-            double sy = StatUtils.skewness(y);
+        double r = StatUtils.correlation(x, y);
+        double sx = StatUtils.skewness(x);
+        double sy = StatUtils.skewness(y);
+        final double sey = StatUtils.skewness(residuals(y, new double[][]{x}));
 
-            if (r < getDelta()) {
-                lr *= -1;
-            }
-
-            if (isVerbose()) {
-                TetradLogger.getInstance().forceLogMessage(
-                        Edges.directedEdge(X, Y) + " skew X = " + sx + " skew Y = " + sy + " corr = " + r + " LR = " + lr
-                );
-            }
-        } else {
-            lr = left - right;
-
-            double r = StatUtils.correlation(x, y);
-            double sx = StatUtils.skewness(x);
-            double sy = StatUtils.skewness(y);
-            final double sey = StatUtils.skewness(residuals(y, new double[][]{x}));
-
-            if (r < getDelta()) {
-                lr *= -1;
-            }
-
-            lr *= sey;
-
-            if (isVerbose()) {
-                TetradLogger.getInstance().forceLogMessage(
-                        Edges.directedEdge(X, Y) + " skew X = " + sx + " skew Y = " + sy + " skew res(Y | X) = "
-                                + sey + " corr = " + r + " LR = " + lr
-                );
-
-                TetradLogger.getInstance().forceLogMessage("r = " + r * signum(sx) + " delta = " + getDelta());
-            }
+        if (r < getDelta()) {
+            lr *= -1;
         }
+
+        lr *= sey;
+
+        if (isVerbose()) {
+            TetradLogger.getInstance().forceLogMessage(
+                    Edges.directedEdge(X, Y) + " skew X = " + sx + " skew Y = " + sy + " skew res(Y | X) = "
+                            + sey + " corr = " + r + " LR = " + lr
+            );
+
+            TetradLogger.getInstance().forceLogMessage("r = " + r * signum(sx) + " delta = " + getDelta());
+        }
+//        }
 
         return lr;
     }
