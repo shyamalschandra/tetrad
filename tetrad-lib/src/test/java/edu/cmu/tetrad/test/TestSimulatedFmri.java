@@ -52,8 +52,7 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.*;
 
-import static java.lang.Math.abs;
-import static java.lang.Math.log;
+import static java.lang.Math.*;
 
 /**
  * Pulling this test out for Madelyn.
@@ -66,7 +65,7 @@ public class TestSimulatedFmri {
         Parameters parameters = new Parameters();
         parameters.set("penaltyDiscount", 1);
         parameters.set("twoCycleAlpha", .0000001);
-        parameters.set("faskDelta", -.2);
+        parameters.set("faskDelta", -.1);
         parameters.set("depth", 5);
         parameters.set("extraEdgeThreshold", 10);
         parameters.set("maskThreshold", 10);
@@ -423,21 +422,6 @@ public class TestSimulatedFmri {
     @Test
     public void testCausalPairs() {
         try {
-            List<Integer> multiplicativeError = new ArrayList<>();
-//            multiplicativeError.add(1); // multiplicative error
-            multiplicativeError.add(2); // multiplicative error
-//            multiplicativeError.add(4); // multiplicative error
-            multiplicativeError.add(5); // multiplicative error
-            multiplicativeError.add(6); // multiplicative error
-            multiplicativeError.add(7); // multiplicative error
-            multiplicativeError.add(9); // multiplicative error
-            multiplicativeError.add(10); // multiplicative error
-            multiplicativeError.add(11); // multiplicative error
-            multiplicativeError.add(12); // multiplicative error
-            multiplicativeError.add(17); // multiplicative error
-            multiplicativeError.add(25); // multiplicative error ?
-            multiplicativeError.add(80); // multiplicative error ?
-
             List<Integer> gaussian = new ArrayList<>();
             gaussian.add(97);
 
@@ -449,71 +433,80 @@ public class TestSimulatedFmri {
             List<Integer> getWrong = new ArrayList<>();
             List<Integer> getBidirected = new ArrayList<>();
             List<Integer> get2Cycle = new ArrayList<>();
-            List<Integer> deterministic = new ArrayList<>();
             List<Integer> zeroCorr = new ArrayList<>();
-            List<Integer> imbalanced = new ArrayList<>();
+            List<Integer> multiplicative = new ArrayList<>();
+            List<Integer> discrete = new ArrayList<>();
+            List<Integer> singularityException = new ArrayList<>();
+            List<Integer> vShaped = new ArrayList<>();
+
+            NumberFormat nf = new DecimalFormat("0000");
 
             I:
             for (int i = 1; i <= 108; i++) {
-//                if (multiplicativeError.contains(i)) {
-//                    continue;
-//                }
-
                 if (gaussian.contains(i)) {
                     continue;
                 }
 
                 System.out.println("Pair # " + i);
 
-                NumberFormat nf = new DecimalFormat("0000");
-
                 DataSet data1 = loadData2("pair" + nf.format(i) + ".txt");
                 data1 = DataUtils.center(data1);
 
                 double[][] _data = data1.getDoubleData().transpose().toArray();
 
-//                for (int r = 0; r < data1.getNumRows(); r++) {
-//                    for (int c = 0; c < data1.getNumColumns(); c++) {
-//                        data1.setDouble(r, c, log(data1.getDouble(r, c)));
-//                    }
-//                }
-
                 final double[] x = _data[0];
                 final double[] y = _data[1];
 //
-//                if (n(x) < 0.4 * x.length) {
-//                    imbalanced.add(i);
-//                    continue;
-//                }
-//                if (n(y) < 0.4 * x.length) {
-//                    imbalanced.add(i);
-//                    continue;
-//                }
-
                 double corr = StatUtils.correlation(x, y);
 
-                if (abs(corr) < 0.05) {
+                if (abs(corr) < 0.0001) {
                     zeroCorr.add(i);
                     continue;
                 }
 
 
-                Fask_B fask = new Fask_B(data1, new IndTestFisherZ(data1, 0.05));
-                fask.setTwoCycleAlpha(0.00001);
-//                fask.setAssumeErrorsPositivelySkewed(false);
+                if (contains(i, "#Discrete")) {
+                    discrete.add(i);
+                    continue;
+                }
+
+                if (contains(i, "#Gaussian")) {
+                    discrete.add(i);
+                    continue;
+                }
+
+
+                Fask_B fask = new Fask_B(data1, new IndTestFisherZ(data1, .05));
+                fask.setTwoCycleAlpha(0.0000);
                 fask.setDelta(-.2);
+                fask.setMultiplicative(contains(i, "#Multiplicative") || contains(i, "#V-shaped"));
+                fask.setSkewEdgeAlpha(0.05);
 
                 Graph graph;
+
                 try {
                     graph = fask.search();
                 } catch (Exception e) {
                     e.printStackTrace();
-                    deterministic.add(i);
+                    singularityException.add(i);
                     continue;
                 }
 
                 final Node X = graph.getNode("VAR_1");
                 final Node Y = graph.getNode("VAR_2");
+
+                if (contains(i, "#Multiplicative")) {
+                    multiplicative.add(i);
+//                    continue;
+                }
+
+                if (contains(i, "#V-shaped")) {
+                    vShaped.add(i);
+//                    graph.removeEdge(X, Y);
+//                    graph.addDirectedEdge(X, Y);
+                    continue;
+                }
+
 
                 if (!graph.isAdjacentTo(X, Y)) {
                     getNonadjacent.add(i);
@@ -526,44 +519,45 @@ public class TestSimulatedFmri {
                     continue;
                 }
 
-                if (multiplicativeError.contains(i)) {
-                    Edge edge = graph.getEdge(X, Y);
-                    graph.removeEdge(edge);
-                    graph.addEdge(edge.reverse());
-                }
+                boolean right = false;
 
-                BufferedReader in = new BufferedReader(new FileReader(new File("/Users/user/Box Sync/data/pairs/"
-                        + "pair" + nf.format(i) + "_des.txt")));
+                if (contains(i, "#-->")) {
+                    System.out.println("Ground truth: VAR1 --> VAR2");
 
-                String line;
-
-                while ((line = in.readLine()) != null) {
-
-                    if (line.contains("#-->")) {
-                        System.out.println("Ground truth: VAR1 --> VAR2");
-
-                        if (graph.isParentOf(X, Y)) {
-                            getRight.add(i);
-                            continue I;
-                        }
-                    } else if (line.contains("#<--")) {
-                        System.out.println("Ground truth: VAR1 <-- VAR2");
-
-                        if (graph.isParentOf(Y, X)) {
-                            getRight.add(i);
-                            continue I;
-                        }
-                    } else if (line.contains("#<=>")) {
-                        System.out.println("Ground truth: VAR1 <=> VAR2");
-
-                        if (graph.isParentOf(Y, X) && graph.isParentOf(X, Y)) {
-                            getRight.add(i);
-                            continue I;
-                        }
+                    if (graph.isParentOf(X, Y) && !graph.isParentOf(Y, X)) {
+                        right = true;
                     }
                 }
 
-                getWrong.add(i);
+                if (contains(i, "#<--")) {
+                    System.out.println("Ground truth: VAR1 <-- VAR2");
+
+                    if (graph.isParentOf(Y, X) && !graph.isParentOf(X, Y)) {
+                        right = true;
+                    }
+                }
+
+                if (contains(i, "#<->")) {
+                    System.out.println("Ground truth: VAR1 <-> VAR2");
+
+                    if (Edges.isBidirectedEdge(graph.getEdge(X, Y))) {
+                        right = true;
+                    }
+                }
+
+                if (contains(i, "#<T>")) {
+                    System.out.println("Ground truth: VAR1 <=> VAR2");
+
+                    if (graph.isParentOf(Y, X) && graph.isParentOf(X, Y)) {
+                        right = true;
+                    }
+                }
+
+                if (right) {
+                    getRight.add(i);
+                } else {
+                    getWrong.add(i);
+                }
             }
 
             System.out.println("\nGets these right:");
@@ -604,9 +598,9 @@ public class TestSimulatedFmri {
                 System.out.println(i);
             }
 
-            System.out.println("\nThese were deterministic:");
+            System.out.println("\nThese throw singularity exceptions:");
 
-            for (int i : deterministic) {
+            for (int i : singularityException) {
                 System.out.println(i);
             }
 
@@ -616,21 +610,21 @@ public class TestSimulatedFmri {
                 System.out.println(i);
             }
 
-            System.out.println("\nImbalanced centering:");
+            System.out.println("\nThese are discrete:");
 
-            for (int i : imbalanced) {
+            for (int i : discrete) {
                 System.out.println(i);
             }
 
-            System.out.println("\nMultiplicative error:");
-
-            for (int i : multiplicativeError) {
-                System.out.println(i);
-            }
-
-            System.out.println("\nGaussian:");
+            System.out.println("\nThese are Gaussian:");
 
             for (int i : gaussian) {
+                System.out.println(i);
+            }
+
+            System.out.println("\nThese are V-shaped:");
+
+            for (int i : vShaped) {
                 System.out.println(i);
             }
 
@@ -646,6 +640,27 @@ public class TestSimulatedFmri {
             e.printStackTrace();
         }
 
+    }
+
+    private boolean contains(int i, String s) {
+        try {
+            NumberFormat nf = new DecimalFormat("0000");
+
+            BufferedReader in = new BufferedReader(new FileReader(new File("/Users/user/Box Sync/data/pairs/"
+                    + "pair" + nf.format(i) + "_des.txt")));
+
+            String line;
+
+            while ((line = in.readLine()) != null) {
+                if (line.contains(s)) {
+                    return true;
+                }
+            }
+
+            return false;
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private static double n(double[] x) {

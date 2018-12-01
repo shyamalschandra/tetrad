@@ -105,6 +105,9 @@ public final class Fask_B implements GraphSearch {
     // True if a mask should be use to estimate adjacencies.
     private boolean useMask = false;
 
+    // True if the data is multiplicative; in this case, the judgment is reversed.
+    private boolean multiplicative = false;
+
     /**
      * @param dataSet These datasets must all have the same variables, in the same order.
      */
@@ -368,6 +371,10 @@ public final class Fask_B implements GraphSearch {
         this.useMask = useMask;
     }
 
+    public void setMultiplicative(boolean multiplicative) {
+        this.multiplicative = multiplicative;
+    }
+
 
     /////////////////////////////////////// PRIVATE METHODS ////////////////////////////////////
 
@@ -405,10 +412,18 @@ public final class Fask_B implements GraphSearch {
 //                        graph.addBidirectedEdge(X, Y);
 //                    } else
 
-                    if (lrxy > lryx) {
-                        graph.addDirectedEdge(X, Y);
+                    if (lrxy < 0 && lryx < 0) {
+                        graph.addBidirectedEdge(X, Y);
                     } else {
-                        graph.addDirectedEdge(Y, X);
+                        boolean lr = lrxy > lryx;
+
+                        if (multiplicative) lr = !lr;
+
+                        if (lr) {
+                            graph.addDirectedEdge(X, Y);
+                        } else {
+                            graph.addDirectedEdge(Y, X);
+                        }
                     }
                 }
             }
@@ -578,30 +593,10 @@ public final class Fask_B implements GraphSearch {
         final double left = cxyx / sqrt(expected(x, x, x) * expected(y, y, x));
         final double right = cxyy / sqrt(expected(x, x, y) * expected(y, y, y));
 
-        double lr;
-
-//        if (isAssumeErrorsPositivelySkewed()) {
-//            lr = left - right;
-//
-//            double r = StatUtils.correlation(x, y);
-//            double sx = StatUtils.skewness(x);
-//            double sy = StatUtils.skewness(y);
-//
-//            if (r < getDelta()) {
-//                lr *= -1;
-//            }
-//
-//            if (isVerbose()) {
-//                TetradLogger.getInstance().forceLogMessage(
-//                        Edges.directedEdge(X, Y) + " skew X = " + sx + " skew Y = " + sy + " corr = " + r + " LR = " + lr
-//                );
-//            }
-//        } else {
-        lr = left - right;
+        double lr = left - right;
 
         double r = StatUtils.correlation(x, y);
         double sx = StatUtils.skewness(x);
-        double sy = StatUtils.skewness(y);
         final double sey = StatUtils.skewness(residuals(y, new double[][]{x}));
 
         if (r < getDelta()) {
@@ -612,13 +607,14 @@ public final class Fask_B implements GraphSearch {
 
         if (isVerbose()) {
             TetradLogger.getInstance().forceLogMessage(
-                    Edges.directedEdge(X, Y) + " skew X = " + sx + " skew Y = " + sy + " skew res(Y | X) = "
+                    Edges.directedEdge(X, Y) + " skew X = " + sx + " skew res(Y | X) = "
                             + sey + " corr = " + r + " LR = " + lr
             );
 
-            TetradLogger.getInstance().forceLogMessage("r = " + r * signum(sx) + " delta = " + getDelta());
+            if (r < getDelta()) {
+                TetradLogger.getInstance().forceLogMessage("r = " + r * signum(sx) + " delta = " + getDelta());
+            }
         }
-//        }
 
         return lr;
     }
@@ -674,6 +670,8 @@ public final class Fask_B implements GraphSearch {
     }
 
     private boolean twocycle(Node X, Node Y, Graph graph) {
+        if (multiplicative) return false;
+
         double[] x = colData[variables.indexOf(X)];
         double[] y = colData[variables.indexOf(Y)];
 
