@@ -6,6 +6,7 @@ import edu.cmu.tetrad.util.RandomUtil;
 import edu.cmu.tetrad.util.TetradMatrix;
 import edu.cmu.tetrad.util.TetradVector;
 import edu.pitt.dbmi.data.Delimiter;
+import edu.pitt.dbmi.data.reader.DataReader;
 import edu.pitt.dbmi.data.reader.tabular.ContinuousTabularDataFileReader;
 import org.apache.commons.math3.linear.SingularMatrixException;
 
@@ -72,7 +73,7 @@ public class DemixerNongaussian {
             _S = dataMatrix.minus(repmat(_bias)).times(W[k].transpose());
 
             S[k] = _S;
-            System.out.println(_S);
+//            System.out.println(_S);
         }
 
         double sechSum;
@@ -103,7 +104,7 @@ public class DemixerNongaussian {
                 _K.set(i, i, kurtosis);
             }
 
-            System.out.println(_K);
+            System.out.println("K = " + _K);
         }
 
         double[] tempWeights = Arrays.copyOf(weights, weights.length);
@@ -221,13 +222,6 @@ public class DemixerNongaussian {
 
             TetradMatrix newW = _W.plus(tempWMatrix);
 
-            try {
-                newW.inverse();
-            } catch (SingularMatrixException e) {
-                System.out.println(tempWMatrix);
-                throw new RuntimeException(e);
-            }
-
             if (newW.det() == 0) {
                 newW = _W;
             }
@@ -322,6 +316,7 @@ public class DemixerNongaussian {
     private void maximization(DeterminingStats stats) {
 
         int K = stats.getNumComponents();
+//        TetradMatrix[] A = stats.getMixingMatrices();
         TetradMatrix[] W = stats.getWMatrices();
         TetradMatrix[] S = stats.getSourceVectors();
         TetradVector[] bias = stats.getBiasVectors();
@@ -359,10 +354,11 @@ public class DemixerNongaussian {
             }
 
             S[k] = sourceVector;
-
         }
 
-        System.out.println(sourceVector);
+        stats.setSourceVectors(S);
+
+//        System.out.println(sourceVector);
     }
 
     /*
@@ -389,19 +385,14 @@ public class DemixerNongaussian {
                 sum = 0;
 
                 for (int i = 0; i < numVars; i++) {
-                    double tempSum = -.5 * Math.log(2.0 * Math.PI) - (K[k].get(i, i) * log(cosh(S[k].get(t, i))))
+                    double _l = -.5 * Math.log(2.0 * Math.PI) - (K[k].get(i, i) * log(cosh(S[k].get(t, i))))
                             - (pow(S[k].get(t, i), 2.0) / 2.0);
 
-                    if (Double.isInfinite(tempSum)) {
-                        System.out.println(tempSum);
-                    }
-
                     if (K[k].get(i, i) > 0) {
-                        tempSum = tempSum - Math.log(0.7413);
+                        _l = _l - Math.log(0.7413);
                     }
 
-
-                    sum += tempSum;
+                    sum += _l;
                 }
 
                 double L = sum - det;
@@ -413,26 +404,20 @@ public class DemixerNongaussian {
         // determine posteriors
         TetradMatrix gammas = new TetradMatrix(numCases, stats.getNumComponents()); // N x K
 
-        double divisorSum = 0;
-
         for (int t = 0; t < numCases; t++) {
-            for (int c1 = 0; c1 < stats.getNumComponents(); c1++) {
-                double gamma = exp(likelihoods.get(t, c1)) * weights[c1];
-                double divisor = 0;
+            double[] _weightedLIkelihoods = new double[stats.getNumComponents()];
+            double _sum = 0.0;
 
-                for (int c2 = 0; c2 < stats.getNumComponents(); c2++) {
-                    divisor += exp(likelihoods.get(t, c2)) * weights[c2];
-                }
+            for (int c = 0; c < stats.getNumComponents(); c++) {
+                _weightedLIkelihoods[c] = exp(likelihoods.get(t, c)) * weights[c];
+                _sum += _weightedLIkelihoods[c];
+            }
 
-                divisorSum += divisor;
-
-                gamma /= divisor;
-
-                gammas.set(t, c1, gamma);
+            for (int c = 0; c < stats.getNumComponents(); c++) {
+                double gamma = _weightedLIkelihoods[c] / _sum;
+                gammas.set(t, c, gamma);
             }
         }
-
-        System.out.println(divisorSum);
 
         stats.setGammas(gammas);
 
@@ -442,11 +427,10 @@ public class DemixerNongaussian {
             bias = adaptBiasVectors(stats, t);
         }
 
-        stats.setWMatrices(W);
         stats.setMixingMatrices(A);
+        stats.setWMatrices(W);
         stats.setBiasVectors(bias);
     }
-
 
     /*
      * This class holds all of the information that we're going to update as we go
@@ -461,119 +445,71 @@ public class DemixerNongaussian {
         private double[] weights;
         private int K;
 
-        public DeterminingStats() {
-
-        }
-
-        public void setMixingMatrices(TetradMatrix[] mixingMatrices) {
+        void setMixingMatrices(TetradMatrix[] mixingMatrices) {
             this.mixingMatrices = mixingMatrices;
         }
-
-        public void setWMatrices(TetradMatrix[] wMatrices) {
+        void setWMatrices(TetradMatrix[] wMatrices) {
             this.wMatrices = wMatrices;
         }
-
-        public void setBiasVectors(TetradVector[] biasVectors) {
+        void setBiasVectors(TetradVector[] biasVectors) {
             this.biasVectors = biasVectors;
         }
-
-        public void setSourceVectors(TetradMatrix[] sourceVectors) {
+        void setSourceVectors(TetradMatrix[] sourceVectors) {
             this.sourceVectors = sourceVectors;
         }
-
-        public void setKurtosisMatrices(TetradMatrix[] kurtosisMatrices) {
+        void setKurtosisMatrices(TetradMatrix[] kurtosisMatrices) {
             this.kurtosisMatrices = kurtosisMatrices;
         }
-
-        public void setGammas(TetradMatrix gammas) {
+        void setGammas(TetradMatrix gammas) {
             this.gammas = gammas;
         }
-
-        public void setWeights(double[] weights) {
+        void setWeights(double[] weights) {
             this.weights = weights;
         }
-
-        public void setK(int K) {
+        void setK(int K) {
             this.K = K;
         }
-
-        public TetradMatrix[] getMixingMatrices() {
+        TetradMatrix[] getMixingMatrices() {
             return mixingMatrices;
         }
-
-        public TetradMatrix[] getWMatrices() {
+        TetradMatrix[] getWMatrices() {
             return wMatrices;
         }
-
-        public TetradVector[] getBiasVectors() {
+        TetradVector[] getBiasVectors() {
             return biasVectors;
         }
-
-        public TetradMatrix[] getSourceVectors() {
+        TetradMatrix[] getSourceVectors() {
             return sourceVectors;
         }
-
-        public TetradMatrix[] getKurtosisMatrices() {
+        TetradMatrix[] getKurtosisMatrices() {
             return kurtosisMatrices;
         }
-
-        public TetradMatrix getPosteriorProbs() {
+        TetradMatrix getPosteriorProbs() {
             return gammas;
         }
-
-        public double[] getWeights() {
+        double[] getWeights() {
             return weights;
         }
-
-        public int getNumComponents() {
+        int getNumComponents() {
             return K;
         }
     }
 
     public static void main(String... args) {
 
-        DataSet dataSet = null;
-        try {
-            ContinuousTabularDataFileReader dataReader = new ContinuousTabularDataFileReader(
-                    new File("/Users/user/Downloads/16.txt"), Delimiter.WHITESPACE);
-            dataReader.setHasHeader(true);
-
-            dataSet = (DataSet) DataConvertUtils.toDataModel(dataReader.readInData());
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        DataSet dataSet = loadData("/Users/user/Downloads/16.txt");
 
         DemixerNongaussian pedro = new DemixerNongaussian(dataSet);
         long startTime = System.currentTimeMillis();
         MixtureModelNongaussian model = pedro.demix(dataSet, 2);
         long elapsed = System.currentTimeMillis() - startTime;
 
-        double[] weights = model.getWeights();
-        for (int i = 0; i < weights.length; i++) {
-            System.out.print(weights[i] + "\t");
-        }
-
         DataSet[] datasets = model.getDemixedData();
-
-        double[][] gammas = model.getGammas();
-        for (int r = 0; r < gammas.length; r++) {
-            for (int c = 0; c < gammas[r].length; c++) {
-                System.out.print(gammas[r][c] + "\t");
-            }
-            System.out.print("\n");
-        }
 
         System.out.println(model.getMixingMatrices()[0]);
         System.out.println();
-        // System.out.println(model.getMixingMatrices()[1]);
-        System.out.println();
-        //  System.out.println(model.getMixingMatrices()[2]);
-        System.out.println();
         System.out.println(model.getBiasVectors()[0]);
         System.out.println();
-        // System.out.println(model.getBiasVectors()[1]);
-        System.out.println();
-        //  System.out.println(model.getBiasVectors()[2]);
         System.out.println("\n\nDatasets:");
 
         int count = 1;
@@ -584,7 +520,18 @@ public class DemixerNongaussian {
 
         System.out.println();
 
-        System.out.println("Elapsed: " + Long.toString(elapsed / 1000));
+        System.out.println("Elapsed: " + (elapsed / 1000));
+    }
+
+    private static DataSet loadData(String path) {
+        try {
+            ContinuousTabularDataFileReader dataReader = new ContinuousTabularDataFileReader(
+                    new File(path), Delimiter.WHITESPACE);
+            dataReader.setHasHeader(true);
+            return (DataSet) DataConvertUtils.toDataModel(dataReader.readInData());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
 }
