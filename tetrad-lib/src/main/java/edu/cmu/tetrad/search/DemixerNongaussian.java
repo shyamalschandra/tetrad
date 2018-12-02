@@ -37,10 +37,11 @@ public class DemixerNongaussian {
 
     public MixtureModelNongaussian demix(DataSet data, int numComponents) {
         this.C = numComponents;
-        this.X = data.getDoubleData();
 
-        FastIca ica = new FastIca(X, X.columns());
+        FastIca ica = new FastIca(data.getDoubleData(), X.columns());
         FastIca.IcaResult result = ica.findComponents();
+
+        X = result.getX();
 
         TetradMatrix _A = result.getA();
         TetradMatrix _W = result.getW();
@@ -58,6 +59,16 @@ public class DemixerNongaussian {
 
             A[k] = _A;
             W[k] = _W;
+
+//            A[k] = TetradMatrix.identity(X.columns());
+//
+//            for (int r = 0; r < A[k].rows(); r++) {
+//                for (int c = 0; c < A[k].columns(); c++) {
+//                    A[k].set(r, c, A[k].get(r, c) + RandomUtil.getInstance().nextNormal(0, .1));
+//                }
+//            }
+//
+//            W[k] = A[k].inverse();
 
             TetradVector _bias = new TetradVector(X.columns());
 
