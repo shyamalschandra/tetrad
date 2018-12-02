@@ -303,7 +303,7 @@ public class DemixerNongaussian {
     /*
      * Find maximally likely values for source vectors, bias vectors, and weights of components
      */
-    private void maximization() {
+    private void maximization1() {
 
         // find values of weights
         double sum;
@@ -321,6 +321,80 @@ public class DemixerNongaussian {
         for (int k = 0; k < C; k++) {
             S[k] = X.minus(repmat(bias[k], X.rows())).times(W[k].transpose());
         }
+    }
+
+    private void maximization() {
+
+        double[] weights = new double[C];
+
+        TetradMatrix sourceVector;
+
+        // find values of weights
+        double sum;
+
+        for (int i = 0; i < C; i++) {
+            sum = 0;
+
+            for (int r = 0; r < X.rows(); r++) {
+                sum += posteriorProbs.get(r, i);
+
+            }
+
+            weights[i] = sum / X.rows();
+        }
+
+        this.weights = weights;
+
+//        sourceVector = X.like();
+//
+//        for (int k = 0; k < C; k++) {
+//            // find values of source vectors
+//            for (int r = 0; r < X.rows(); r++) {
+//                TetradVector vector = X.getRow(r).minus(bias[k]);
+//                TetradVector tempVector = A[k].transpose().inverse().times(vector);
+//
+//                sourceVector.assignRow(r, tempVector);
+//            }
+//        }
+
+        for (int k = 0; k < C; k++) {
+            S[k] = X.minus(repmat(bias[k], X.rows())).times(W[k].transpose());
+        }
+
+        // find values of bias vectors
+        //  TetradVector biasVector;
+        //  double biasVectorDenom;
+        // sourceVector = new TetradMatrix(numCases, numVars);
+
+        // I:
+        // for (int I = 0; I < K; I++) {
+        //    biasVector = new TetradVector(numVars);
+        //    for (int c = 0; c < numVars; c++) {
+        //       biasVector.set(c, 0);
+        //    }
+
+        //    biasVectorDenom = 0;
+
+        //   for (int r = 0; r < numCases; r++) {
+        //       biasVector = biasVector.plus(dataMatrix.getRow(r)).scalarMult(gammas.get(r, I));
+        //       biasVectorDenom += gammas.get(r, I);
+        //  }
+
+        //   biasVector = biasVector.scalarMult(1.0 / biasVectorDenom);
+        //   biasVector = stats.getBiasVectors()[I];
+
+        //debugging
+            /* for (int b = 0; b < biasVector.size(); b++) {
+                double val = biasVector.get(b);
+
+                if (Double.isNaN(val)) {
+                    throw new IllegalArgumentException("NaN in Bias Vector " + I);
+//                    continue I;
+                }
+            } */
+
+        //stats.setBiasVectors(biasVectors);
+        //stats.setSourceVectors(sourceVectors);
     }
 
     public static void main(String... args) {
