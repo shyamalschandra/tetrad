@@ -24,7 +24,8 @@ public class MixtureModelNongaussian {
     private double[][] dataArray;
     private double[][] gammaArray;
 
-    public MixtureModelNongaussian(DataSet data, TetradMatrix gammas, TetradMatrix[] mixingMatrices, TetradMatrix[] sourceVectors, TetradVector[] biasVectors, double[] weights) {
+    public MixtureModelNongaussian(DataSet data, TetradMatrix gammas, TetradMatrix[] mixingMatrices,
+                                   TetradMatrix[] sourceVectors, TetradVector[] biasVectors, double[] weights) {
 
         this.data = data;
         this.dataArray = data.getDoubleData().toArray();
