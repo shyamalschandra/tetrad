@@ -1,0 +1,23 @@
+Graph Nodes:
+akt,erk,jnk,mek,p38,pip2,pip3,pka,pkc,plc,raf
+
+Graph Edges:
+1. erk --> akt [akt <-- erk]:1.0000;
+2. erk --> pka [erk --> pka]:1.0000;
+3. p38 --> pkc [p38 --> pkc]:1.0000;
+4. raf --> mek [mek <-- raf]:1.0000;
+5. pip3 --> pip2 [pip2 --- pip3]:0.0100;[pip2 <-- pip3]:0.9900;
+6. jnk --> pkc [jnk --> pkc]:0.9100;[jnk <-- pkc]:0.0900;
+7. akt --> pka [akt --> pka]:0.8800;[akt --- pka]:0.1100;[akt <-- pka]:0.0100;
+8. jnk --> pip3 [jnk --> pip3]:0.8600;[no edge]:0.1400;
+9. p38 --> jnk [jnk <-- p38]:0.8600;[jnk --> p38]:0.1400;
+10. pip2 --> plc [pip2 --> plc]:0.7800;[pip2 <-- plc]:0.2200;
+11. pip3 --> plc [pip3 --> plc]:0.6100;[pip3 <-- plc]:0.0300;[no edge]:0.3600;
+12. plc --> jnk [jnk <-- plc]:0.0600;[no edge]:0.9400;
+13. akt --> pip3 [akt --> pip3]:0.0400;[no edge]:0.9600;
+14. mek --> jnk [jnk <-- mek]:0.0100;[no edge]:0.9900;
+15. pip2 --> akt [akt <-- pip2]:0.0100;[no edge]:0.9900;
+16. pip2 --> pka [pip2 --> pka]:0.0100;[no edge]:0.9900;
+17. pkc --> pip3 [pip3 <-- pkc]:0.0100;[no edge]:0.9900;
+18. plc --> pka [pka <-- plc]:0.0100;[no edge]:0.9900;
+

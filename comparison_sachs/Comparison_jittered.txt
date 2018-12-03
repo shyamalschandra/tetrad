@@ -1,0 +1,317 @@
+Mon Dec 03 00:36:38 EST 2018
+
+Statistics:
+
+AP = Adjacency Precision
+AR = Adjacency Recall
+AHP = Arrowhead precision
+AHPCA = Arrowhead precision, common adjacencies
+AHR = Arrowhead recall
+E = Elapsed Time in Seconds
+
+Simulations:
+
+Simulation 1: Load data sets and graphs from a directory.
+
+
+
+Comparison.printParameters
+
+Algorithms:
+
+1. FGES (Fast Greedy Equivalence Search) using Conditional Gaussian BIC Score, penaltyDiscount = 1
+2. FGES (Fast Greedy Equivalence Search) using Conditional Gaussian BIC Score, penaltyDiscount = 2
+3. FGES (Fast Greedy Equivalence Search) using Conditional Gaussian BIC Score, penaltyDiscount = 4
+4. FGES (Fast Greedy Equivalence Search) using Conditional Gaussian BIC Score, penaltyDiscount = 8
+5. FGES (Fast Greedy Equivalence Search) using Sem BIC Score, penaltyDiscount = 1
+6. FGES (Fast Greedy Equivalence Search) using Sem BIC Score, penaltyDiscount = 2
+7. FGES (Fast Greedy Equivalence Search) using Sem BIC Score, penaltyDiscount = 4
+8. FGES (Fast Greedy Equivalence Search) using Sem BIC Score, penaltyDiscount = 8
+9. PC using Conditional Gaussian Likelihood Ratio Test, alpha = 0.1
+10. PC using Conditional Gaussian Likelihood Ratio Test, alpha = 0.01
+11. PC using Conditional Gaussian Likelihood Ratio Test, alpha = 0.001
+12. PC using Conditional Gaussian Likelihood Ratio Test, alpha = 1.0E-4
+13. PC using SEM BIC Test, penaltyDiscount = 1
+14. PC using SEM BIC Test, penaltyDiscount = 2
+15. PC using SEM BIC Test, penaltyDiscount = 4
+16. PC using SEM BIC Test, penaltyDiscount = 8
+17. PC using Fisher Z test, alpha = 1.0E-4, alpha = 0.1
+18. PC using Fisher Z test, alpha = 1.0E-4, alpha = 0.01
+19. PC using Fisher Z test, alpha = 1.0E-4, alpha = 0.001
+20. PC using Fisher Z test, alpha = 1.0E-4, alpha = 1.0E-4
+21. GFCI (Greedy Fast Causal Inference) using Conditional Gaussian Likelihood Ratio Test and Conditional Gaussian BIC Score, alpha = 0.1, penaltyDiscount = 1
+22. GFCI (Greedy Fast Causal Inference) using Conditional Gaussian Likelihood Ratio Test and Conditional Gaussian BIC Score, alpha = 0.1, penaltyDiscount = 2
+23. GFCI (Greedy Fast Causal Inference) using Conditional Gaussian Likelihood Ratio Test and Conditional Gaussian BIC Score, alpha = 0.1, penaltyDiscount = 4
+24. GFCI (Greedy Fast Causal Inference) using Conditional Gaussian Likelihood Ratio Test and Conditional Gaussian BIC Score, alpha = 0.1, penaltyDiscount = 8
+25. GFCI (Greedy Fast Causal Inference) using Conditional Gaussian Likelihood Ratio Test and Conditional Gaussian BIC Score, alpha = 0.01, penaltyDiscount = 1
+26. GFCI (Greedy Fast Causal Inference) using Conditional Gaussian Likelihood Ratio Test and Conditional Gaussian BIC Score, alpha = 0.01, penaltyDiscount = 2
+27. GFCI (Greedy Fast Causal Inference) using Conditional Gaussian Likelihood Ratio Test and Conditional Gaussian BIC Score, alpha = 0.01, penaltyDiscount = 4
+28. GFCI (Greedy Fast Causal Inference) using Conditional Gaussian Likelihood Ratio Test and Conditional Gaussian BIC Score, alpha = 0.01, penaltyDiscount = 8
+29. GFCI (Greedy Fast Causal Inference) using Conditional Gaussian Likelihood Ratio Test and Conditional Gaussian BIC Score, alpha = 0.001, penaltyDiscount = 1
+30. GFCI (Greedy Fast Causal Inference) using Conditional Gaussian Likelihood Ratio Test and Conditional Gaussian BIC Score, alpha = 0.001, penaltyDiscount = 2
+31. GFCI (Greedy Fast Causal Inference) using Conditional Gaussian Likelihood Ratio Test and Conditional Gaussian BIC Score, alpha = 0.001, penaltyDiscount = 4
+32. GFCI (Greedy Fast Causal Inference) using Conditional Gaussian Likelihood Ratio Test and Conditional Gaussian BIC Score, alpha = 0.001, penaltyDiscount = 8
+33. GFCI (Greedy Fast Causal Inference) using Conditional Gaussian Likelihood Ratio Test and Conditional Gaussian BIC Score, alpha = 1.0E-4, penaltyDiscount = 1
+34. GFCI (Greedy Fast Causal Inference) using Conditional Gaussian Likelihood Ratio Test and Conditional Gaussian BIC Score, alpha = 1.0E-4, penaltyDiscount = 2
+35. GFCI (Greedy Fast Causal Inference) using Conditional Gaussian Likelihood Ratio Test and Conditional Gaussian BIC Score, alpha = 1.0E-4, penaltyDiscount = 4
+36. GFCI (Greedy Fast Causal Inference) using Conditional Gaussian Likelihood Ratio Test and Conditional Gaussian BIC Score, alpha = 1.0E-4, penaltyDiscount = 8
+37. GFCI (Greedy Fast Causal Inference) using SEM BIC Test and Sem BIC Score, penaltyDiscount = 1
+38. GFCI (Greedy Fast Causal Inference) using SEM BIC Test and Sem BIC Score, penaltyDiscount = 2
+39. GFCI (Greedy Fast Causal Inference) using SEM BIC Test and Sem BIC Score, penaltyDiscount = 4
+40. GFCI (Greedy Fast Causal Inference) using SEM BIC Test and Sem BIC Score, penaltyDiscount = 8
+41. GFCI (Greedy Fast Causal Inference) using Fisher Z test, alpha = 1.0E-4 and Sem BIC Score, alpha = 0.1, penaltyDiscount = 1
+42. GFCI (Greedy Fast Causal Inference) using Fisher Z test, alpha = 1.0E-4 and Sem BIC Score, alpha = 0.1, penaltyDiscount = 2
+43. GFCI (Greedy Fast Causal Inference) using Fisher Z test, alpha = 1.0E-4 and Sem BIC Score, alpha = 0.1, penaltyDiscount = 4
+44. GFCI (Greedy Fast Causal Inference) using Fisher Z test, alpha = 1.0E-4 and Sem BIC Score, alpha = 0.1, penaltyDiscount = 8
+45. GFCI (Greedy Fast Causal Inference) using Fisher Z test, alpha = 1.0E-4 and Sem BIC Score, alpha = 0.01, penaltyDiscount = 1
+46. GFCI (Greedy Fast Causal Inference) using Fisher Z test, alpha = 1.0E-4 and Sem BIC Score, alpha = 0.01, penaltyDiscount = 2
+47. GFCI (Greedy Fast Causal Inference) using Fisher Z test, alpha = 1.0E-4 and Sem BIC Score, alpha = 0.01, penaltyDiscount = 4
+48. GFCI (Greedy Fast Causal Inference) using Fisher Z test, alpha = 1.0E-4 and Sem BIC Score, alpha = 0.01, penaltyDiscount = 8
+49. GFCI (Greedy Fast Causal Inference) using Fisher Z test, alpha = 1.0E-4 and Sem BIC Score, alpha = 0.001, penaltyDiscount = 1
+50. GFCI (Greedy Fast Causal Inference) using Fisher Z test, alpha = 1.0E-4 and Sem BIC Score, alpha = 0.001, penaltyDiscount = 2
+51. GFCI (Greedy Fast Causal Inference) using Fisher Z test, alpha = 1.0E-4 and Sem BIC Score, alpha = 0.001, penaltyDiscount = 4
+52. GFCI (Greedy Fast Causal Inference) using Fisher Z test, alpha = 1.0E-4 and Sem BIC Score, alpha = 0.001, penaltyDiscount = 8
+53. GFCI (Greedy Fast Causal Inference) using Fisher Z test, alpha = 1.0E-4 and Sem BIC Score, alpha = 1.0E-4, penaltyDiscount = 1
+54. GFCI (Greedy Fast Causal Inference) using Fisher Z test, alpha = 1.0E-4 and Sem BIC Score, alpha = 1.0E-4, penaltyDiscount = 2
+55. GFCI (Greedy Fast Causal Inference) using Fisher Z test, alpha = 1.0E-4 and Sem BIC Score, alpha = 1.0E-4, penaltyDiscount = 4
+56. GFCI (Greedy Fast Causal Inference) using Fisher Z test, alpha = 1.0E-4 and Sem BIC Score, alpha = 1.0E-4, penaltyDiscount = 8
+57. FCI (Fast Causal Inference) using Conditional Gaussian Likelihood Ratio Test, alpha = 0.1
+58. FCI (Fast Causal Inference) using Conditional Gaussian Likelihood Ratio Test, alpha = 0.01
+59. FCI (Fast Causal Inference) using Conditional Gaussian Likelihood Ratio Test, alpha = 0.001
+60. FCI (Fast Causal Inference) using Conditional Gaussian Likelihood Ratio Test, alpha = 1.0E-4
+61. FCI (Fast Causal Inference) using SEM BIC Test, penaltyDiscount = 1
+62. FCI (Fast Causal Inference) using SEM BIC Test, penaltyDiscount = 2
+63. FCI (Fast Causal Inference) using SEM BIC Test, penaltyDiscount = 4
+64. FCI (Fast Causal Inference) using SEM BIC Test, penaltyDiscount = 8
+65. FCI (Fast Causal Inference) using Fisher Z test, alpha = 1.0E-4, alpha = 0.1
+66. FCI (Fast Causal Inference) using Fisher Z test, alpha = 1.0E-4, alpha = 0.01
+67. FCI (Fast Causal Inference) using Fisher Z test, alpha = 1.0E-4, alpha = 0.001
+68. FCI (Fast Causal Inference) using Fisher Z test, alpha = 1.0E-4, alpha = 1.0E-4
+
+Graphs are being compared to the true DAG.
+
+AVERAGE STATISTICS
+
+All edges
+
+  Alg    AP    AR   AHP  AHPCA   AHR       E
+    1  0.89  0.42  0.56   0.62  0.28   15.19
+    2  0.89  0.42  0.44   0.50  0.22    9.69
+    3  0.89  0.42  0.44   0.50  0.22   11.32
+    4  0.80  0.42  0.50   0.62  0.28    6.12
+    5  0.89  0.42  0.33   0.38  0.17    0.24
+    6  0.78  0.37  0.44   0.57  0.22    0.09
+    7  0.78  0.37  0.44   0.57  0.22    0.07
+    8  0.86  0.32  0.40   0.50  0.11    0.05
+    9  0.64  0.37  0.18   0.29  0.11   28.46
+   10  0.75  0.32  0.12   0.17  0.06   18.02
+   11  0.78  0.37  0.11   0.14  0.06   15.77
+   12  0.75  0.32  0.12   0.17  0.06    9.67
+   13  0.86  0.32  0.14   0.17  0.06    0.05
+   14  0.83  0.26     *      *  0.00    0.04
+   15  1.00  0.32  0.33   0.33  0.11    0.04
+   16  1.00  0.32  0.33   0.33  0.11    0.04
+   17  0.64  0.37  0.18   0.29  0.11    0.69
+   18  0.75  0.32  0.12   0.17  0.06    0.45
+   19  0.78  0.37  0.11   0.14  0.06    0.26
+   20  0.75  0.32  0.12   0.17  0.06    0.18
+   21  0.88  0.37  0.45   0.56  0.28  185.66
+   22  0.88  0.37  0.42   0.50  0.28   71.00
+   23  0.88  0.37  0.38   0.45  0.28   64.40
+   24  0.88  0.37  0.45   0.56  0.28   42.65
+   25  0.88  0.37  0.40   0.44  0.22  185.39
+   26  0.88  0.37  0.36   0.40  0.22   63.15
+   27  0.88  0.37  0.36   0.40  0.22   58.31
+   28  0.88  0.37  0.42   0.50  0.28   37.18
+   29  0.88  0.37  0.40   0.44  0.22  169.98
+   30  0.88  0.37  0.36   0.40  0.22   63.70
+   31  0.88  0.37  0.36   0.40  0.22   56.24
+   32  0.88  0.37  0.40   0.44  0.22   36.74
+   33  0.88  0.37  0.40   0.44  0.22  187.85
+   34  0.88  0.37  0.36   0.40  0.22   76.86
+   35  0.88  0.37  0.36   0.40  0.22   71.73
+   36  0.88  0.37  0.40   0.44  0.22   37.01
+   37  1.00  0.32  0.40   0.40  0.22    0.14
+   38  0.83  0.26  0.50   0.57  0.22    0.10
+   39  1.00  0.26  0.50   0.50  0.17    0.07
+   40  1.00  0.26  0.40   0.40  0.11    0.06
+   41  0.88  0.37  0.42   0.50  0.28    1.35
+   42  0.86  0.32  0.38   0.43  0.17    0.44
+   43  0.86  0.32  0.43   0.50  0.17    0.14
+   44  0.86  0.32  0.40   0.50  0.11    0.04
+   45  0.88  0.37  0.36   0.40  0.22    1.13
+   46  0.86  0.32  0.33   0.38  0.17    0.27
+   47  0.86  0.32  0.38   0.43  0.17    0.14
+   48  0.86  0.32  0.40   0.50  0.11    0.06
+   49  0.88  0.37  0.36   0.40  0.22    1.04
+   50  0.86  0.32  0.33   0.38  0.17    0.24
+   51  0.86  0.32  0.38   0.43  0.17    0.14
+   52  0.86  0.32  0.40   0.50  0.11    0.06
+   53  0.88  0.37  0.36   0.40  0.22    0.87
+   54  0.86  0.32  0.33   0.38  0.17    0.23
+   55  0.86  0.32  0.38   0.43  0.17    0.14
+   56  0.86  0.32  0.43   0.50  0.17    0.05
+   57  0.64  0.37  0.32   0.50  0.39   36.66
+   58  0.75  0.32  0.29   0.40  0.22   21.55
+   59  0.78  0.37  0.38   0.46  0.33   16.03
+   60  0.75  0.32  0.38   0.50  0.28   11.30
+   61  0.86  0.32  0.36   0.44  0.22    0.02
+   62  0.83  0.26  0.29   0.33  0.11    0.03
+   63  1.00  0.32  0.50   0.50  0.22    0.02
+   64  1.00  0.32  0.44   0.44  0.22    0.02
+   65  0.64  0.37  0.32   0.50  0.39    0.60
+   66  0.75  0.32  0.29   0.40  0.22    0.42
+   67  0.78  0.37  0.38   0.46  0.33    0.32
+   68  0.75  0.32  0.38   0.50  0.28    0.22
+
+
+STANDARD DEVIATIONS
+
+All edges
+
+  Alg  AP  AR  AHP  AHPCA  AHR  E
+    1   *   *    *      *    *  *
+    2   *   *    *      *    *  *
+    3   *   *    *      *    *  *
+    4   *   *    *      *    *  *
+    5   *   *    *      *    *  *
+    6   *   *    *      *    *  *
+    7   *   *    *      *    *  *
+    8   *   *    *      *    *  *
+    9   *   *    *      *    *  *
+   10   *   *    *      *    *  *
+   11   *   *    *      *    *  *
+   12   *   *    *      *    *  *
+   13   *   *    *      *    *  *
+   14   *   *    *      *    *  *
+   15   *   *    *      *    *  *
+   16   *   *    *      *    *  *
+   17   *   *    *      *    *  *
+   18   *   *    *      *    *  *
+   19   *   *    *      *    *  *
+   20   *   *    *      *    *  *
+   21   *   *    *      *    *  *
+   22   *   *    *      *    *  *
+   23   *   *    *      *    *  *
+   24   *   *    *      *    *  *
+   25   *   *    *      *    *  *
+   26   *   *    *      *    *  *
+   27   *   *    *      *    *  *
+   28   *   *    *      *    *  *
+   29   *   *    *      *    *  *
+   30   *   *    *      *    *  *
+   31   *   *    *      *    *  *
+   32   *   *    *      *    *  *
+   33   *   *    *      *    *  *
+   34   *   *    *      *    *  *
+   35   *   *    *      *    *  *
+   36   *   *    *      *    *  *
+   37   *   *    *      *    *  *
+   38   *   *    *      *    *  *
+   39   *   *    *      *    *  *
+   40   *   *    *      *    *  *
+   41   *   *    *      *    *  *
+   42   *   *    *      *    *  *
+   43   *   *    *      *    *  *
+   44   *   *    *      *    *  *
+   45   *   *    *      *    *  *
+   46   *   *    *      *    *  *
+   47   *   *    *      *    *  *
+   48   *   *    *      *    *  *
+   49   *   *    *      *    *  *
+   50   *   *    *      *    *  *
+   51   *   *    *      *    *  *
+   52   *   *    *      *    *  *
+   53   *   *    *      *    *  *
+   54   *   *    *      *    *  *
+   55   *   *    *      *    *  *
+   56   *   *    *      *    *  *
+   57   *   *    *      *    *  *
+   58   *   *    *      *    *  *
+   59   *   *    *      *    *  *
+   60   *   *    *      *    *  *
+   61   *   *    *      *    *  *
+   62   *   *    *      *    *  *
+   63   *   *    *      *    *  *
+   64   *   *    *      *    *  *
+   65   *   *    *      *    *  *
+   66   *   *    *      *    *  *
+   67   *   *    *      *    *  *
+   68   *   *    *      *    *  *
+
+
+WORST CASE
+
+All edges
+
+  Alg    AP    AR   AHP  AHPCA   AHR       E
+    1  0.89  0.42  0.56   0.62  0.28   15.19
+    2  0.89  0.42  0.44   0.50  0.22    9.69
+    3  0.89  0.42  0.44   0.50  0.22   11.32
+    4  0.80  0.42  0.50   0.62  0.28    6.12
+    5  0.89  0.42  0.33   0.38  0.17    0.24
+    6  0.78  0.37  0.44   0.57  0.22    0.09
+    7  0.78  0.37  0.44   0.57  0.22    0.07
+    8  0.86  0.32  0.40   0.50  0.11    0.05
+    9  0.64  0.37  0.18   0.29  0.11   28.46
+   10  0.75  0.32  0.12   0.17  0.06   18.02
+   11  0.78  0.37  0.11   0.14  0.06   15.77
+   12  0.75  0.32  0.12   0.17  0.06    9.67
+   13  0.86  0.32  0.14   0.17  0.06    0.05
+   14  0.83  0.26     *      *  0.00    0.04
+   15  1.00  0.32  0.33   0.33  0.11    0.04
+   16  1.00  0.32  0.33   0.33  0.11    0.04
+   17  0.64  0.37  0.18   0.29  0.11    0.69
+   18  0.75  0.32  0.12   0.17  0.06    0.45
+   19  0.78  0.37  0.11   0.14  0.06    0.26
+   20  0.75  0.32  0.12   0.17  0.06    0.18
+   21  0.88  0.37  0.45   0.56  0.28  185.66
+   22  0.88  0.37  0.42   0.50  0.28   71.00
+   23  0.88  0.37  0.38   0.45  0.28   64.40
+   24  0.88  0.37  0.45   0.56  0.28   42.65
+   25  0.88  0.37  0.40   0.44  0.22  185.39
+   26  0.88  0.37  0.36   0.40  0.22   63.15
+   27  0.88  0.37  0.36   0.40  0.22   58.31
+   28  0.88  0.37  0.42   0.50  0.28   37.18
+   29  0.88  0.37  0.40   0.44  0.22  169.98
+   30  0.88  0.37  0.36   0.40  0.22   63.70
+   31  0.88  0.37  0.36   0.40  0.22   56.24
+   32  0.88  0.37  0.40   0.44  0.22   36.74
+   33  0.88  0.37  0.40   0.44  0.22  187.85
+   34  0.88  0.37  0.36   0.40  0.22   76.86
+   35  0.88  0.37  0.36   0.40  0.22   71.73
+   36  0.88  0.37  0.40   0.44  0.22   37.01
+   37  1.00  0.32  0.40   0.40  0.22    0.14
+   38  0.83  0.26  0.50   0.57  0.22    0.10
+   39  1.00  0.26  0.50   0.50  0.17    0.07
+   40  1.00  0.26  0.40   0.40  0.11    0.06
+   41  0.88  0.37  0.42   0.50  0.28    1.35
+   42  0.86  0.32  0.38   0.43  0.17    0.44
+   43  0.86  0.32  0.43   0.50  0.17    0.14
+   44  0.86  0.32  0.40   0.50  0.11    0.04
+   45  0.88  0.37  0.36   0.40  0.22    1.13
+   46  0.86  0.32  0.33   0.38  0.17    0.27
+   47  0.86  0.32  0.38   0.43  0.17    0.14
+   48  0.86  0.32  0.40   0.50  0.11    0.06
+   49  0.88  0.37  0.36   0.40  0.22    1.04
+   50  0.86  0.32  0.33   0.38  0.17    0.24
+   51  0.86  0.32  0.38   0.43  0.17    0.14
+   52  0.86  0.32  0.40   0.50  0.11    0.06
+   53  0.88  0.37  0.36   0.40  0.22    0.87
+   54  0.86  0.32  0.33   0.38  0.17    0.23
+   55  0.86  0.32  0.38   0.43  0.17    0.14
+   56  0.86  0.32  0.43   0.50  0.17    0.05
+   57  0.64  0.37  0.32   0.50  0.39   36.66
+   58  0.75  0.32  0.29   0.40  0.22   21.55
+   59  0.78  0.37  0.38   0.46  0.33   16.03
+   60  0.75  0.32  0.38   0.50  0.28   11.30
+   61  0.86  0.32  0.36   0.44  0.22    0.02
+   62  0.83  0.26  0.29   0.33  0.11    0.03
+   63  1.00  0.32  0.50   0.50  0.22    0.02
+   64  1.00  0.32  0.44   0.44  0.22    0.02
+   65  0.64  0.37  0.32   0.50  0.39    0.60
+   66  0.75  0.32  0.29   0.40  0.22    0.42
+   67  0.78  0.37  0.38   0.46  0.33    0.32
+   68  0.75  0.32  0.38   0.50  0.28    0.22
+
+
