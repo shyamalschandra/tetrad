@@ -31,7 +31,9 @@ import edu.cmu.tetrad.util.*;
 import org.apache.commons.math3.distribution.TDistribution;
 import org.apache.commons.math3.linear.SingularMatrixException;
 
+import java.awt.*;
 import java.util.*;
+import java.util.List;
 
 import static edu.cmu.tetrad.util.StatUtils.*;
 import static java.lang.Math.*;
@@ -252,6 +254,17 @@ public final class Fask_B implements GraphSearch {
             }
         }
 
+        for (Edge edge : graph.getEdges()) {
+            Node X = edge.getNode1();
+            Node Y = edge.getNode2();
+            final double[] x = colData[variables.indexOf(X)];
+            final double[] y = colData[variables.indexOf(Y)];
+            double r = correlation(x, y);
+            if (abs(r) < 0.03) {
+                edge.setLineColor(Color.ORANGE);
+            }
+        }
+
         removeExtraEdges(graph);
 
         TetradLogger.getInstance().forceLogMessage("\n\nFinal graph: \n\n" + graph);
@@ -412,19 +425,19 @@ public final class Fask_B implements GraphSearch {
 //                        graph.addBidirectedEdge(X, Y);
 //                    } else
 
-                    if (lrxy < 0 && lryx < 0) {
-                        graph.addBidirectedEdge(X, Y);
+//                    if (lrxy < 0 && lryx < 0) {
+//                        graph.addBidirectedEdge(X, Y);
+//                    } else {
+                    boolean lr = lrxy > lryx;
+
+                    if (multiplicative) lr = !lr;
+
+                    if (lr) {
+                        graph.addDirectedEdge(X, Y);
                     } else {
-                        boolean lr = lrxy > lryx;
-
-                        if (multiplicative) lr = !lr;
-
-                        if (lr) {
-                            graph.addDirectedEdge(X, Y);
-                        } else {
-                            graph.addDirectedEdge(Y, X);
-                        }
+                        graph.addDirectedEdge(Y, X);
                     }
+//                    }
                 }
             }
         }
