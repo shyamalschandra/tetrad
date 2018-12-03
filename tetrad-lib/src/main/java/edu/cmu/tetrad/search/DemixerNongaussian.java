@@ -2,6 +2,7 @@ package edu.cmu.tetrad.search;
 
 import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.util.DataConvertUtils;
+import edu.cmu.tetrad.util.RandomUtil;
 import edu.cmu.tetrad.util.TetradMatrix;
 import edu.cmu.tetrad.util.TetradVector;
 import edu.pitt.dbmi.data.Delimiter;
@@ -53,8 +54,19 @@ public class DemixerNongaussian {
         posteriorProbs = new TetradMatrix(X.rows(), C);
         bias = new TetradVector[C];
 
+        double _sum = 0.0;
+
         for (int k = 0; k < C; k++) {
-            weights[k] = 1.0 / C;
+            weights[k] = RandomUtil.getInstance().nextUniform(0, 1);
+            _sum += weights[k];
+        }
+
+        for (int k = 0; k < C; k++) {
+            weights[k] /= _sum;
+        }
+
+        for (int k = 0; k < C; k++) {
+//            weights[k] = 1.0 / C;
 
             A[k] = _A;
             W[k] = _W;

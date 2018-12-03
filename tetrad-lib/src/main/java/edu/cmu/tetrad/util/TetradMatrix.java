@@ -154,6 +154,20 @@ public class TetradMatrix implements TetradSerializable {
         return new TetradVector(apacheData.getColumn(j));
     }
 
+    public TetradMatrix column(int j) {
+        TetradMatrix m = new TetradMatrix(rows(), 1);
+
+        if (zeroDimension()) {
+            return new TetradMatrix(rows(), 1);
+        }
+
+        for (int i = 0; i < rows(); i++) {
+            m.set(i, 0, get(i, j));
+        }
+
+        return m;
+    }
+
     public TetradMatrix times(TetradMatrix m) {
         if (this.zeroDimension() || m.zeroDimension())
             return new TetradMatrix(this.rows(), m.columns());
