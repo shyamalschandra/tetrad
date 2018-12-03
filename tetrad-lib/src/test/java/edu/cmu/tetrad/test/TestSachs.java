@@ -89,7 +89,7 @@ public class TestSachs {
         String dir = "/home/bandrews/Desktop/fask/Sachs/";
         String subdir = "data";
 
-        simulations.add(new LoadDataAndGraphs(dir + "discrete"));
+        simulations.add(new LoadDataAndGraphs(dir + "mixed"));
 //        simulations.add(new LoadContinuousDataAndSingleGraph(dir + "jittered", subdir));
 //        simulations.add(new LoadContinuousDataAndSingleGraph(dir + "jittered_subsampled", subdir));
 
