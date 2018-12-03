@@ -26,6 +26,7 @@ import edu.cmu.tetrad.data.ICovarianceMatrix;
 import edu.cmu.tetrad.graph.IndependenceFact;
 import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.util.*;
+import edu.pitt.csb.ScoreForFact;
 
 import java.text.NumberFormat;
 import java.util.*;

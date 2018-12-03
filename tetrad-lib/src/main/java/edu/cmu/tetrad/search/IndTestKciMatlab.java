@@ -35,6 +35,7 @@ import edu.cmu.tetrad.util.NumberFormatUtil;
 import edu.cmu.tetrad.util.TetradLogger;
 import edu.cmu.tetrad.util.TetradMatrix;
 import edu.cmu.tetrad.util.TetradVector;
+import edu.pitt.csb.ScoreForFact;
 
 import java.text.NumberFormat;
 import java.util.*;
@@ -49,7 +50,7 @@ import static java.lang.Math.log;
  *
  * @author Joseph Ramsey
  */
-public final class IndTestKciMatlab implements IndependenceTest {
+public final class IndTestKciMatlab implements IndependenceTest, ScoreForFact {
 
     private final double[][] _data;
     /**
@@ -206,6 +207,15 @@ public final class IndTestKciMatlab implements IndependenceTest {
     public boolean isDependent(Node x, Node y, Node... z) {
         List<Node> zList = Arrays.asList(z);
         return isDependent(x, y, zList);
+    }
+
+    @Override
+    public double getScoreForFact(IndependenceFact fact) {
+        if (isIndependent(fact.getX(), fact.getY(), fact.getZ())){
+            return -1;
+        } else {
+            return 1;
+        }
     }
 
     /**

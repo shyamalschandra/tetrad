@@ -239,6 +239,25 @@ public class ConditionalGaussianLikelihood {
         this.numCategoriesToDiscretize = numCategoriesToDiscretize;
     }
 
+    private List<List<Integer>> partition(List<DiscreteVariable> A) {
+        Map<String, Integer> map = new HashMap();
+        List<List<Integer>> cells = new ArrayList<>();
+        for (int i = 0; i < dataSet.getNumRows(); i++) {
+            String key = "";
+            for (Node a : A) {
+                int j = dataSet.getColumn(a);
+                key += Integer.toString(dataSet.getInt(i,j));
+            }
+            if (!map.containsKey(key)) {
+                map.put(key, map.size());
+                cells.add(new ArrayList<>());
+            }
+            cells.get(map.get(key)).add(i);
+        }
+
+        return cells;
+    }
+
     // The likelihood of the joint over all of these mixedVariables, assuming conditional Gaussian,
     // continuous and discrete.
     private Ret likelihoodJoint(List<ContinuousVariable> X, List<DiscreteVariable> A, Node target) {
@@ -267,7 +286,7 @@ public class ConditionalGaussianLikelihood {
         double c1 = 0, c2 = 0;
 
         List<List<Integer>> cells = adTree.getCellLeaves(A);
-        //List<List<Integer>> cells = partition(A);
+//        List<List<Integer>> cells = partition(A);
 
         for (List<Integer> cell : cells) {
             int a = cell.size();

@@ -57,13 +57,10 @@ public class TestSimulatedFmri {
     private void task(boolean testing) {
         Parameters parameters = new Parameters();
         parameters.set("penaltyDiscount", 1);
-        parameters.set("faskDelta", -.2);
-        parameters.set("depth", -1);
-        parameters.set("extraEdgeThreshold", 3);
-        parameters.set("maskThreshold", 3);
-        parameters.set("skewEdgeAlpha", 0.001);
-        parameters.set("twoCycleAlpha", .00001);
-        parameters.set("smallCorrelation", 0.01);
+        parameters.set("skewEdgeAlpha", 0.01);
+        parameters.set("twoCycleAlpha", 0.01);
+        parameters.set("depth", 3);
+        parameters.set("maskThreshold", 0);
 
 
         parameters.set("numRuns", 5);
@@ -97,7 +94,7 @@ public class TestSimulatedFmri {
         Simulations simulations = new Simulations();
 
         if (!testing) {
-            String dir = "/Users/user/Downloads/Cycles_Data_fMRI/";
+            String dir = "/home/bandrews/Desktop/fask/Cycles_Data_fMRI/";
             String subdir = "data_fslfilter";
 
             simulations.add(new LoadContinuousDataAndSingleGraph(
@@ -142,7 +139,7 @@ public class TestSimulatedFmri {
                     dir + "Markov_Complex_1", subdir));
         } else {
 
-            String dir = "/Users/user/Downloads/CyclesTestingData/";
+            String dir = "/home/bandrews/Desktop/fask/Cycles_Data_fMRI/";
             String subdir = "data_fslfilter";
 
             simulations.add(new LoadContinuousDataAndSingleGraph(
@@ -225,16 +222,16 @@ public class TestSimulatedFmri {
     public void task2() {
         Parameters parameters = new Parameters();
         parameters.set("penaltyDiscount", 1);
-        parameters.set("twoCycleAlpha", .0000001);
-        parameters.set("faskDelta", -.2);
-        parameters.set("depth", 5);
-        parameters.set("extraEdgeThreshold", 10);
-        parameters.set("maskThreshold", 10);
         parameters.set("skewEdgeAlpha", 0.01);
-        parameters.set("smallCorrelation", 0.001);
+        parameters.set("twoCycleAlpha", 0.01);
+        parameters.set("depth", 3);
+        parameters.set("maskThreshold", 0);
 
         parameters.set("numRuns", 5);
         parameters.set("randomSelectionSize", 5);
+
+        parameters.set("useFasAdjacencies", true);
+        parameters.set("useCorrDiffAdjacencies", true);
 
         parameters.set("Structure", "Placeholder");
 
@@ -266,7 +263,7 @@ public class TestSimulatedFmri {
             if (i == 21) continue;
 //            simulations.add(new LoadContinuousDataSmithSim("/Users/user/Downloads/smithsim/", i));
 //            simulations.add(new LoadContinuousDataPwdd7("/Users/user/Downloads/pwdd7/", i, "50_BOLDdemefilt1"));
-            simulations.add(new LoadContinuousDataPwdd7("/Users/user/Downloads/pwdd7/", i, "50_BOLDnoise"));
+            simulations.add(new LoadContinuousDataPwdd7("/home/bandrews/Desktop/fask/pwdd7/", i, "50_BOLDnoise"));
         }
 
 //        algorithms.add(new LofsConcatenated(Lofs2.Rule.FASKLR));
@@ -308,6 +305,7 @@ public class TestSimulatedFmri {
 
     public static void main(String... args) {
         new TestSimulatedFmri().task(false);
+        new TestSimulatedFmri().task2();
     }
 }
 

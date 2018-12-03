@@ -11,6 +11,7 @@ import edu.cmu.tetrad.util.TetradLogger;
 import edu.cmu.tetrad.util.TetradMatrix;
 import edu.cmu.tetrad.util.TetradVector;
 import edu.pitt.csb.mgm.EigenDecomposition;
+import edu.pitt.csb.ScoreForFact;
 import org.apache.commons.math3.distribution.GammaDistribution;
 import org.apache.commons.math3.distribution.NormalDistribution;
 import org.apache.commons.math3.linear.RealMatrix;
@@ -320,7 +321,11 @@ public class KCI implements IndependenceTest, ScoreForFact {
 
     @Override
     public double getScoreForFact(IndependenceFact fact) {
-        return getAlpha() - pValues.get(fact);
+        if (isIndependent(fact.getX(), fact.getY(), fact.getZ())){
+            return -1;
+        } else {
+            return 1;
+        }
     }
 
     public boolean isApproximate() {

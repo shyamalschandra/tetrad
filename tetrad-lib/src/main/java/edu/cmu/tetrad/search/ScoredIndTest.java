@@ -75,18 +75,16 @@ public class ScoredIndTest implements Score {
         return variables;
     }
 
-
     @Override
     public double localScoreDiff(int x, int y, int[] z) {
         final Node _x = variables.get(x);
         final Node _y = variables.get(y);
         final List<Node> _z = getVariableList(z);
 
-//        test.isIndependent(_x, _y, _z);
-
         if (test instanceof ScoreForFact) {
             return ((ScoreForFact) test).getScoreForFact(new IndependenceFact(_x, _y, _z));
         } else {
+            test.isIndependent(_x, _y, _z);
             return test.getScore();
         }
     }
