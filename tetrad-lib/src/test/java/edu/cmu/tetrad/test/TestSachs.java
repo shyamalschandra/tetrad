@@ -23,7 +23,9 @@ package edu.cmu.tetrad.test;
 
 import edu.cmu.tetrad.algcomparison.Comparison;
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithms;
+import edu.cmu.tetrad.algcomparison.algorithm.multi.FaskSachs;
 import edu.cmu.tetrad.algcomparison.algorithm.multi.Fask_BConcatenated;
+import edu.cmu.tetrad.algcomparison.algorithm.multi.Fask_BSachs;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pag.Fci;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pag.Fci_Sachs;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pag.Gfci;
@@ -50,9 +52,9 @@ public class TestSachs {
         Parameters parameters = new Parameters();
         parameters.set("structurePrior", 1);
         parameters.set("discretize", false);
-        parameters.set("penaltyDiscount", 1, 2, 4, 8);
-        parameters.set("alpha", 0.1, 0.01, 0.001, 0.0001);
-        parameters.set("depth", -1);
+        parameters.set("penaltyDiscount", 1);
+        parameters.set("alpha", 0.1);
+        parameters.set("depth", 3);
         parameters.set("maxDistinctValuesDiscrete", 2);
 
         // PC-Stable
@@ -70,10 +72,19 @@ public class TestSachs {
         parameters.set("kciScoreAlpha", 0.001);
 
         // Resampling
-        parameters.set("numberResampling", 100);
-        parameters.set("resampleSize", 7466);
+        parameters.set("numberResampling", 0);
+        parameters.set("percentResampleSize", 100);
         parameters.set("resamplingWithReplacement", true);
         parameters.set("resamplingEnsemble", 0);
+
+        parameters.set("skewEdgeAlpha", 0.01, 0.001, 0.0001, 0.00001);
+        parameters.set("twoCycleAlpha", 0.0);
+        parameters.set("faskDelta", -0.2);
+
+        parameters.set("useFasAdjacencies", true);
+        parameters.set("useSkewAdjacencies", true);
+        parameters.set("useMask", false);
+        parameters.set("maskThreshold", 0.3);
 
         Statistics statistics = new Statistics();
 
@@ -86,35 +97,37 @@ public class TestSachs {
 
         Simulations simulations = new Simulations();
 
-        String dir = "/home/bandrews/Desktop/fask/Sachs/";
+        String dir = "/Users/user/Box Sync/data/Sachs/";
         String subdir = "data";
 
-        simulations.add(new LoadDataAndGraphs(dir + "mixed"));
-//        simulations.add(new LoadContinuousDataAndSingleGraph(dir + "jittered", subdir));
+//        simulations.add(new LoadDataAndGraphs(dir + "mixed"));
+        simulations.add(new LoadContinuousDataAndSingleGraph(dir + "jittered", subdir));
 //        simulations.add(new LoadContinuousDataAndSingleGraph(dir + "jittered_subsampled", subdir));
 
         Algorithms algorithms = new Algorithms();
 
-        algorithms.add(new Fges_Sachs(new ConditionalGaussianBicScore()));
-//        algorithms.add(new Fges_Sachs(new SemBicScore()));
-//        algorithms.add(new Fges_Sachs(new CciScore()));
-//        algorithms.add(new Fges_Sachs(new KciMatlabScore()));
-        algorithms.add(new PcAll_Sachs(new ConditionalGaussianLRT()));
-//        algorithms.add(new PcAll_Sachs(new SemBicTest()));
-//        algorithms.add(new PcAll_Sachs(new FisherZ()));
-//        algorithms.add(new PcAll_Sachs(new CciTest()));
-//        algorithms.add(new PcAll_Sachs(new KciMatlab()));
+//        algorithms.add(new Fges_Sachs(new ConditionalGaussianBicScore()));
+////        algorithms.add(new Fges_Sachs(new SemBicScore()));
+////        algorithms.add(new Fges_Sachs(new CciScore()));
+////        algorithms.add(new Fges_Sachs(new KciMatlabScore()));
+//        algorithms.add(new PcAll_Sachs(new ConditionalGaussianLRT()));
+////        algorithms.add(new PcAll_Sachs(new SemBicTest()));
+////        algorithms.add(new PcAll_Sachs(new FisherZ()));
+////        algorithms.add(new PcAll_Sachs(new CciTest()));
+////        algorithms.add(new PcAll_Sachs(new KciMatlab()));
+//
+//        algorithms.add(new Gfci_Sachs(new ConditionalGaussianLRT(), new ConditionalGaussianBicScore()));
+////        algorithms.add(new Gfci_Sachs(new SemBicTest(), new SemBicScore()));
+////        algorithms.add(new Gfci_Sachs(new FisherZ(), new SemBicScore()));
+////        algorithms.add(new Gfci_Sachs(new CciTest(), new CciScore()));
+////        algorithms.add(new Gfci_Sachs(new KciMatlab(), new KciMatlabScore()));
+//        algorithms.add(new Fci_Sachs(new ConditionalGaussianLRT()));
+////        algorithms.add(new Fci_Sachs(new SemBicTest()));
+////        algorithms.add(new Fci_Sachs(new FisherZ()));
+////        algorithms.add(new Fci_Sachs(new CciTest()));
+////        algorithms.add(new Fci_Sachs(new KciMatlab()));
 
-        algorithms.add(new Gfci_Sachs(new ConditionalGaussianLRT(), new ConditionalGaussianBicScore()));
-//        algorithms.add(new Gfci_Sachs(new SemBicTest(), new SemBicScore()));
-//        algorithms.add(new Gfci_Sachs(new FisherZ(), new SemBicScore()));
-//        algorithms.add(new Gfci_Sachs(new CciTest(), new CciScore()));
-//        algorithms.add(new Gfci_Sachs(new KciMatlab(), new KciMatlabScore()));
-        algorithms.add(new Fci_Sachs(new ConditionalGaussianLRT()));
-//        algorithms.add(new Fci_Sachs(new SemBicTest()));
-//        algorithms.add(new Fci_Sachs(new FisherZ()));
-//        algorithms.add(new Fci_Sachs(new CciTest()));
-//        algorithms.add(new Fci_Sachs(new KciMatlab()));
+        algorithms.add(new Fask_BSachs(new SemBicTest()));
 
 
 

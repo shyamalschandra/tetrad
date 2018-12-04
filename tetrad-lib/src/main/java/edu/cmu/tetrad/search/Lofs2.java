@@ -162,13 +162,13 @@ public class Lofs2 {
             return tanhGraph(graph);
         } else if (this.rule == Rule.Skew) {
             graph = GraphUtils.undirectedGraph(skeleton);
-            return skewGraph(graph, false);
+            return skewGraph(graph, true);
         } else if (this.rule == Rule.SkewE) {
             graph = GraphUtils.undirectedGraph(skeleton);
             return skewGraph(graph, true);
         } else if (this.rule == Rule.RSkew) {
             graph = GraphUtils.undirectedGraph(skeleton);
-            return robustSkewGraph(graph, false);
+            return robustSkewGraph(graph, true);
         } else if (this.rule == Rule.RSkewE) {
             graph = GraphUtils.undirectedGraph(skeleton);
             return robustSkewGraph(graph, true);

@@ -1,75 +1,84 @@
-package edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern;
+package edu.cmu.tetrad.algcomparison.algorithm.multi;
 
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithm;
 import edu.cmu.tetrad.algcomparison.independence.IndependenceWrapper;
 import edu.cmu.tetrad.algcomparison.utils.HasKnowledge;
+import edu.cmu.tetrad.algcomparison.utils.SachsUtils;
 import edu.cmu.tetrad.algcomparison.utils.TakesIndependenceWrapper;
-import edu.cmu.tetrad.data.DataModel;
-import edu.cmu.tetrad.data.DataSet;
-import edu.cmu.tetrad.data.IKnowledge;
-import edu.cmu.tetrad.data.Knowledge2;
+import edu.cmu.tetrad.annotation.AlgType;
+import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.EdgeListGraph;
-
-import edu.cmu.tetrad.search.SearchGraphUtils;
-import edu.cmu.tetrad.search.PcAll;
+import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.util.Parameters;
 import edu.pitt.dbmi.algo.resampling.GeneralResamplingTest;
 import edu.pitt.dbmi.algo.resampling.ResamplingEdgeEnsemble;
-import edu.cmu.tetrad.data.DataType;
-import edu.cmu.tetrad.graph.Graph;
 
 import java.util.List;
 
 /**
- * PC.
+ * Wraps the IMaGES algorithm for continuous variables.
+ * </p>
+ * Requires that the parameter 'randomSelectionSize' be set to indicate how many
+ * datasets should be taken at a time (randomly). This cannot given multiple values.
  *
  * @author jdramsey
  */
-public class CpcStable implements Algorithm, HasKnowledge, TakesIndependenceWrapper {
-
+@edu.cmu.tetrad.annotation.Algorithm(
+        name = "FASK_B",
+        command = "fask_b",
+        algoType = AlgType.forbid_latent_common_causes
+)
+public class Fask_BSachs implements Algorithm, HasKnowledge, TakesIndependenceWrapper {
     static final long serialVersionUID = 23L;
     private IndependenceWrapper test;
-    private Algorithm algorithm = null;
     private IKnowledge knowledge = new Knowledge2();
 
-    public CpcStable() {
+    public Fask_BSachs() {
+
     }
 
-    public CpcStable(IndependenceWrapper test) {
+    public Fask_BSachs(IndependenceWrapper test) {
         this.test = test;
     }
 
-    public CpcStable(IndependenceWrapper test, Algorithm algorithm) {
-        this.test = test;
-        this.algorithm = algorithm;
+    private Graph getGraph(edu.cmu.tetrad.search.Fask_B search) {
+        return search.search();
     }
 
     @Override
     public Graph search(DataModel dataSet, Parameters parameters) {
-        if (parameters.getInt("numberResampling") < 1) {
-            Graph init = null;
-            if (algorithm != null) {
-//                init = algorithm.search(dataSet, parameters);
-            }
-            PcAll search = new PcAll(test.getTest(dataSet, parameters), init);
+        if (parameters.getInt("bootstrapSampleSize") < 1) {
+            edu.cmu.tetrad.search.Fask_B search = new edu.cmu.tetrad.search.Fask_B((DataSet) dataSet, test.getTest(dataSet, parameters));
+
             search.setDepth(parameters.getInt("depth"));
-            search.setKnowledge(knowledge);
-            search.setFasType(edu.cmu.tetrad.search.PcAll.FasType.STABLE);
-            search.setConcurrent(edu.cmu.tetrad.search.PcAll.Concurrent.NO);
-            search.setColliderDiscovery(edu.cmu.tetrad.search.PcAll.ColliderDiscovery.CONSERVATIVE);
-            search.setConflictRule(edu.cmu.tetrad.search.PcAll.ConflictRule.PRIORITY);
+            search.setSkewEdgeAlpha(parameters.getDouble("skewEdgeAlpha"));
+            search.setTwoCycleAlpha(parameters.getDouble("twoCycleAlpha"));
+            search.setDelta(parameters.getDouble("faskDelta"));
             search.setVerbose(parameters.getBoolean("verbose"));
-            return search.search();
+            search.setUseSkewAdjacencies(parameters.getBoolean("useSkewAdjacencies"));
+            search.setUseFasAdjacencies(parameters.getBoolean("useFasAdjacencies"));
+            search.setUseMask(parameters.getBoolean("useMask"));
+            search.setMaskThreshold(parameters.getDouble("maskThreshold"));
+
+            SachsUtils su = new SachsUtils();
+            knowledge = su.getKnowledge();
+
+
+            search.setKnowledge(knowledge);
+            return su.pruneGraph(getGraph(search));
         } else {
-            CpcStable cpcStable = new CpcStable(test, algorithm);
+            Fask_BSachs fask = new Fask_BSachs(test);
+
+            SachsUtils su = new SachsUtils();
+
+            fask.setKnowledge(knowledge);
 
             DataSet data = (DataSet) dataSet;
-            GeneralResamplingTest search = new GeneralResamplingTest(data, cpcStable, parameters.getInt("numberResampling"));
+            GeneralResamplingTest search = new GeneralResamplingTest(data, fask, parameters.getInt("numberResampling"));
             search.setKnowledge(knowledge);
 
-            search.setPercentResampleSize(parameters.getDouble("percentResampleSize"));
             search.setResamplingWithReplacement(parameters.getBoolean("resamplingWithReplacement"));
-            
+
             ResamplingEdgeEnsemble edgeEnsemble = ResamplingEdgeEnsemble.Highest;
             switch (parameters.getInt("resamplingEnsemble", 1)) {
                 case 0:
@@ -84,35 +93,45 @@ public class CpcStable implements Algorithm, HasKnowledge, TakesIndependenceWrap
             search.setEdgeEnsemble(edgeEnsemble);
             search.setParameters(parameters);
             search.setVerbose(parameters.getBoolean("verbose"));
-            return search.search();
+            return su.pruneGraph(search.search());
         }
     }
 
     @Override
     public Graph getComparisonGraph(Graph graph) {
-        return SearchGraphUtils.patternForDag(new EdgeListGraph(graph));
+        return new EdgeListGraph(graph);
     }
 
     @Override
     public String getDescription() {
-        return "CPC-Stable (Conservative \"Peter and Clark\" Stable), Priority Rule, using " + test.getDescription();
+        return "FASK-B using " + test.getDescription();
     }
 
     @Override
     public DataType getDataType() {
-        return test.getDataType();
+        return DataType.Continuous;
     }
 
     @Override
     public List<String> getParameters() {
         List<String> parameters = test.getParameters();
         parameters.add("depth");
-        // Resampling
+        parameters.add("skewEdgeAlpha");
+        parameters.add("twoCycleAlpha");
+        parameters.add("faskDelta");
+
+        parameters.add("useFasAdjacencies");
+        parameters.add("useSkewAdjacencies");
+        parameters.add("useMask");
+        parameters.add("maskThreshold");
+
+        // Bootstrapping
         parameters.add("numberResampling");
         parameters.add("percentResampleSize");
         parameters.add("resamplingWithReplacement");
         parameters.add("resamplingEnsemble");
         parameters.add("verbose");
+
         return parameters;
     }
 

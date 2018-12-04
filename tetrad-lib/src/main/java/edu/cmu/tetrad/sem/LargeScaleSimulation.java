@@ -814,11 +814,15 @@ public final class LargeScaleSimulation {
         double[][] shocks = new double[sampleSize][numVars];
 
         for (int j = 0; j < numVars; j++) {
+            double dir = RandomUtil.getInstance().nextDouble() > 0.5 ? 1 : -1;
+
             for (int i = 0; i < sampleSize; i++) {
                 double sample = distribution.sample();
 
                 if (errorsNormal) {
                     sample *= sqrt(varDist.sample());
+                } else {
+                    sample *= 10;
                 }
 
                 shocks[i][j] = sample;

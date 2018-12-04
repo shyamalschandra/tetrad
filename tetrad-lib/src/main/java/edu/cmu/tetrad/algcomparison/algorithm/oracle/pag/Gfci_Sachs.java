@@ -92,7 +92,7 @@ public class Gfci_Sachs implements Algorithm, HasKnowledge, UsesScoreWrapper, Ta
             knowledge = SU.getKnowledge();
             search.setKnowledge(knowledge);
 
-            search.setResampleSize(parameters.getInt("resampleSize"));
+            search.setPercentResampleSize(parameters.getInt("percentResampleSize"));
             search.setResamplingWithReplacement(parameters.getBoolean("resamplingWithReplacement"));
             
             ResamplingEdgeEnsemble edgeEnsemble = ResamplingEdgeEnsemble.Highest;
