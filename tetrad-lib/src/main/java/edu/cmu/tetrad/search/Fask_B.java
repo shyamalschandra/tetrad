@@ -602,9 +602,10 @@ public final class Fask_B implements GraphSearch {
     private double leftRightFask(Node X, Node Y) {
         double[] x = colData[variables.indexOf(X)];
         double[] y = colData[variables.indexOf(Y)];
+        final double sey = StatUtils.skewness(residuals(y, new double[][]{x}));
 
-        x = correctSkewness(x);
-        y = correctSkewness(y);
+        x = correctSkewness(x, signum(StatUtils.skewness(x)));
+//        y = correctSkewness(y, signum(StatUtils.skewness(y)));
 
         final double cxyx = expected(x, y, x);
         final double cxyy = expected(x, y, y);
@@ -616,13 +617,12 @@ public final class Fask_B implements GraphSearch {
 
         double r = StatUtils.correlation(x, y);
         double sx = StatUtils.skewness(x);
-        final double sey = StatUtils.skewness(residuals(y, new double[][]{x}));
 
         if (r < getDelta()) {
             lr *= -1;
         }
 
-//        lr *= sey;
+        lr *= sey;
 
         if (isVerbose()) {
             TetradLogger.getInstance().forceLogMessage(
@@ -638,10 +638,9 @@ public final class Fask_B implements GraphSearch {
         return lr;
     }
 
-    private double[] correctSkewness(double[] data) {
-        double skewness = StatUtils.skewness(data);
+    private double[] correctSkewness(double[] data, double factor) {
         double[] data2 = new double[data.length];
-        for (int i = 0; i < data.length; i++) data2[i] = data[i] * Math.signum(skewness);
+        for (int i = 0; i < data.length; i++) data2[i] = data[i] * factor;
         return data2;
     }
 
