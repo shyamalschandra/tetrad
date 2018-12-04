@@ -148,31 +148,33 @@ public final class Fask_B implements GraphSearch {
 
         setCutoff();
 
-        Graph fasGraph;
+        Graph fasGraph = new EdgeListGraph(dataSet.getVariables());
 
-        if (getInitialGraph() != null) {
-            TetradLogger.getInstance().forceLogMessage("\nUsing initial graph.");
+        if (isUseFasAdjacencies()) {
+            if (getInitialGraph() != null) {
+                TetradLogger.getInstance().forceLogMessage("\nUsing initial graph.");
 
-            Graph g1 = new EdgeListGraph(getInitialGraph().getNodes());
+                Graph g1 = new EdgeListGraph(getInitialGraph().getNodes());
 
-            for (Edge edge : getInitialGraph().getEdges()) {
-                Node X = edge.getNode1();
-                Node Y = edge.getNode2();
+                for (Edge edge : getInitialGraph().getEdges()) {
+                    Node X = edge.getNode1();
+                    Node Y = edge.getNode2();
 
-                if (!g1.isAdjacentTo(X, Y)) g1.addUndirectedEdge(X, Y);
+                    if (!g1.isAdjacentTo(X, Y)) g1.addUndirectedEdge(X, Y);
+                }
+
+                g1 = GraphUtils.replaceNodes(g1, dataSet.getVariables());
+
+                fasGraph = g1;
+            } else {
+                TetradLogger.getInstance().forceLogMessage("\nFAS");
+
+                FasStable fas = new FasStable(test);
+                fas.setDepth(getDepth());
+                fas.setVerbose(false);
+                fas.setKnowledge(knowledge);
+                fasGraph = fas.search();
             }
-
-            g1 = GraphUtils.replaceNodes(g1, dataSet.getVariables());
-
-            fasGraph = g1;
-        } else {
-            TetradLogger.getInstance().forceLogMessage("\nFAS");
-
-            FasStable fas = new FasStable(test);
-            fas.setDepth(getDepth());
-            fas.setVerbose(false);
-            fas.setKnowledge(knowledge);
-            fasGraph = fas.search();
         }
 
         TetradLogger.getInstance().forceLogMessage("\nOrienting required edges");
@@ -185,6 +187,8 @@ public final class Fask_B implements GraphSearch {
             for (int j = i + 1; j < variables.size(); j++) {
                 Node X = variables.get(i);
                 Node Y = variables.get(j);
+
+                if (edgeForbiddenByKnowledge(X, Y)) continue;
 
                 final double[] x = colData[i];
                 final double[] y = colData[j];
@@ -423,10 +427,6 @@ public final class Fask_B implements GraphSearch {
 
 //                    if (lrxy < 0 && lryx < 0) {
 //                        graph.addBidirectedEdge(X, Y);
-//                    } else
-
-//                    if (lrxy < 0 && lryx < 0) {
-//                        graph.addBidirectedEdge(X, Y);
 //                    } else {
                     boolean lr = lrxy > lryx;
 
@@ -528,8 +528,13 @@ public final class Fask_B implements GraphSearch {
                 continue;
             }
 
-            if (!directedPathsFromTo(graph, tail, p1, 3).isEmpty()
-                    || !directedPathsFromTo(graph, head, p1, 3).isEmpty()) {
+            if (!directedPathsFromTo(graph, tail, p1, 3).isEmpty() && !knowledge.isForbidden(p1.getName(), head.getName())) {
+                if (!c.contains(p1)) {
+                    c.add(p1);
+                }
+            }
+
+            if (!directedPathsFromTo(graph, head, p1, 3).isEmpty() && !knowledge.isForbidden(p1.getName(), tail.getName())) {
                 if (!c.contains(p1)) {
                     c.add(p1);
                 }

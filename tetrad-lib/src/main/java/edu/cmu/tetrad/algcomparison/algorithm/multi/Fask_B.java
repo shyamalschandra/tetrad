@@ -110,7 +110,6 @@ public class Fask_B implements Algorithm, HasKnowledge, TakesIndependenceWrapper
         parameters.add("depth");
         parameters.add("skewEdgeAlpha");
         parameters.add("twoCycleAlpha");
-        parameters.add("maskThreshold");
         parameters.add("faskDelta");
 
         parameters.add("useFasAdjacencies");
