@@ -18,8 +18,8 @@ import java.util.List;
  */
 @Experimental
 @TestOfIndependence(
-        name = "Multinomial Logistic Regression Likelihood Ratio Test",
-        command = "multinomial-logistic-regression-likelihood-ratio",
+        name = "Mixed Variable Polynomial Likelihood Ratio Test",
+        command = "mixed-var-polynominal-likelihood-ratio",
         dataType = DataType.Mixed
 )
 public class MVPLRT implements IndependenceWrapper {
@@ -28,13 +28,16 @@ public class MVPLRT implements IndependenceWrapper {
 
     @Override
     public IndependenceTest getTest(DataModel dataSet, Parameters parameters) {
-        final IndTestMVPLRT test = new IndTestMVPLRT(DataUtils.getMixedDataSet(dataSet), parameters.getDouble("alpha"), parameters.getInt("fDegree"), parameters.getInt("discretize") > 0);
+        final IndTestMVPLRT test = new IndTestMVPLRT(DataUtils.getMixedDataSet(dataSet),
+                parameters.getDouble("alpha"),
+                parameters.getInt("fDegree"),
+                parameters.getBoolean("discretize"));
         return test;
     }
 
     @Override
     public String getDescription() {
-        return "Multinomial Logistic Regression Likelihood Ratio Test";
+        return "Mixed Variable Polynomial Likelihood Ratio Test";
     }
 
     @Override

@@ -30,8 +30,9 @@ public class MVPBicScore implements ScoreWrapper {
     public Score getScore(DataModel dataSet, Parameters parameters) {
         return new MVPScore(DataUtils.getMixedDataSet(dataSet),
                 parameters.getDouble("structurePrior", 0),
+                parameters.getDouble("penaltyDiscount", 1),
                 parameters.getInt("fDegree", -1),
-                parameters.getInt("discretize", 0) > 0);
+                parameters.getBoolean("discretize", false));
     }
 
     @Override
@@ -48,6 +49,7 @@ public class MVPBicScore implements ScoreWrapper {
     public List<String> getParameters() {
         List<String> parameters = new ArrayList<>();
         parameters.add("structurePrior");
+        parameters.add("penaltyDiscount");
         parameters.add("fDegree");
         parameters.add("discretize");
         return parameters;

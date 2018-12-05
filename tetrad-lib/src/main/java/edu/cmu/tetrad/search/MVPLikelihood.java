@@ -166,11 +166,11 @@ public class MVPLikelihood {
             for (int i = 0; i < n; i++) ones.set(i,1);
             r = ones.scalarMult(ones.dotProduct(Y)/(double)Math.max(n,2)).minus(Y);
             sigma2 = r.dotProduct(r) / n;
-            lik = -(n / 2) * (Math.log(2 * Math.PI) + Math.log(sigma2) + 1);
+            lik = -(n / 2.0) * (Math.log(2 * Math.PI) + Math.log(sigma2) + 1);
         } else if (sigma2 == 0) {
             lik = 0;
         } else {
-            lik = -(n / 2) * (Math.log(2 * Math.PI) + Math.log(sigma2) + 1);
+            lik = -(n / 2.0) * (Math.log(2 * Math.PI) + Math.log(sigma2) + 1);
         }
 
 
@@ -366,23 +366,15 @@ public class MVPLikelihood {
 
     public double getStructurePrior(int k) {
 
-        if (structurePrior < 0) { return getEBICprior(); }
+        if (structurePrior <= 0) { return 0; }
 
         double n = dataSet.getNumColumns() - 1;
         double p = structurePrior/n;
 
-        if (structurePrior == 0) { return 0; }
         return k*Math.log(p) + (n - k)*Math.log(1 - p);
 
     }
 
-    public double getEBICprior() {
-
-            double n = dataSet.getNumColumns();
-            double gamma = -structurePrior;
-            return gamma * Math.log(n);
-
-    }
 
     private DataSet useErsatzVariables() {
         List<Node> nodes = new ArrayList<>();

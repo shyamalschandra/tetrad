@@ -38,13 +38,16 @@ public class MVPScore implements Score {
     // The variables of the continuousData set.
     private List<Node> variables;
 
+    // Parameter penalty discount
+    private double penaltyDiscount;
+
     // Likelihood function
     private MVPLikelihood likelihood;
 
     // Log number of instances
     private double logn;
 
-    public MVPScore(DataSet dataSet, double structurePrior, int fDegree, boolean discretize) {
+    public MVPScore(DataSet dataSet, double structurePrior, double penaltyDiscount, int fDegree, boolean discretize) {
 
             if (dataSet == null) {
             throw new NullPointerException();
@@ -52,6 +55,7 @@ public class MVPScore implements Score {
 
         this.dataSet = dataSet;
         this.variables = dataSet.getVariables();
+        this.penaltyDiscount = penaltyDiscount;
         this.likelihood = new MVPLikelihood(dataSet, structurePrior, fDegree, discretize);
         this.logn = Math.log(dataSet.getNumRows());
     }
@@ -62,11 +66,7 @@ public class MVPScore implements Score {
         double dof = likelihood.getDoF(i, parents);
         double sp = likelihood.getStructurePrior(parents.length);
 
-        if (sp > 0) {
-            sp = -2 * dof * sp;
-        }
-
-        return 2.0 * lik - dof * logn + sp;
+        return lik - penaltyDiscount * (dof / 2.0 * logn + sp);
     }
 
     public double localScoreDiff(int x, int y, int[] z) {

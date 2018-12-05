@@ -24,10 +24,12 @@ package edu.cmu.tetrad.test;
 import edu.cmu.tetrad.algcomparison.Comparison;
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithms;
 import edu.cmu.tetrad.algcomparison.algorithm.multi.Fask_BConcatenated;
+import edu.cmu.tetrad.algcomparison.algorithm.multi.Fask_Sachs;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pag.Fci;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pag.Fci_Sachs;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pag.Gfci;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pag.Gfci_Sachs;
+import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.Fges;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.Fges_Sachs;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.PcAll_Sachs;
 import edu.cmu.tetrad.algcomparison.independence.*;
@@ -50,10 +52,12 @@ public class TestSachs {
         Parameters parameters = new Parameters();
         parameters.set("structurePrior", 1);
         parameters.set("discretize", false);
-        parameters.set("penaltyDiscount", 1, 2, 4, 8);
-        parameters.set("alpha", 0.1, 0.01, 0.001, 0.0001);
+        parameters.set("penaltyDiscount", 0.5);
+        parameters.set("alpha", 0.01);
+        parameters.set("maxPathLength", 0);
         parameters.set("depth", -1);
         parameters.set("maxDistinctValuesDiscrete", 2);
+        parameters.set("fDegree", -1);
 
         // PC-Stable
         parameters.set("stableFAS", true);
@@ -70,8 +74,8 @@ public class TestSachs {
         parameters.set("kciScoreAlpha", 0.001);
 
         // Resampling
-        parameters.set("numberResampling", 100);
-        parameters.set("resampleSize", 7466);
+        parameters.set("numberResampling", 0);
+        parameters.set("resampleSize", 1000);
         parameters.set("resamplingWithReplacement", true);
         parameters.set("resamplingEnsemble", 0);
 
@@ -89,28 +93,33 @@ public class TestSachs {
         String dir = "/home/bandrews/Desktop/fask/Sachs/";
         String subdir = "data";
 
-        simulations.add(new LoadDataAndGraphs(dir + "mixed"));
-//        simulations.add(new LoadContinuousDataAndSingleGraph(dir + "jittered", subdir));
+//        simulations.add(new LoadDataAndGraphs(dir + "mixed"));
+        simulations.add(new LoadContinuousDataAndSingleGraph(dir + "jittered", subdir));
 //        simulations.add(new LoadContinuousDataAndSingleGraph(dir + "jittered_subsampled", subdir));
 
         Algorithms algorithms = new Algorithms();
 
-        algorithms.add(new Fges_Sachs(new ConditionalGaussianBicScore()));
+//        algorithms.add(new Fges_Sachs(new ConditionalGaussianBicScore()));
+//        algorithms.add(new Fges_Sachs(new MVPBicScore()));
 //        algorithms.add(new Fges_Sachs(new SemBicScore()));
 //        algorithms.add(new Fges_Sachs(new CciScore()));
 //        algorithms.add(new Fges_Sachs(new KciMatlabScore()));
-        algorithms.add(new PcAll_Sachs(new ConditionalGaussianLRT()));
+//        algorithms.add(new PcAll_Sachs(new ConditionalGaussianLRT()));
+//        algorithms.add(new PcAll_Sachs(new MVPLRT()));
 //        algorithms.add(new PcAll_Sachs(new SemBicTest()));
 //        algorithms.add(new PcAll_Sachs(new FisherZ()));
 //        algorithms.add(new PcAll_Sachs(new CciTest()));
 //        algorithms.add(new PcAll_Sachs(new KciMatlab()));
 
-        algorithms.add(new Gfci_Sachs(new ConditionalGaussianLRT(), new ConditionalGaussianBicScore()));
+        algorithms.add(new Fask_Sachs(new SemBicScore()));
+
+//        algorithms.add(new Gfci_Sachs(new ConditionalGaussianLRT(), new ConditionalGaussianBicScore()));
+//        algorithms.add(new Gfci_Sachs(new MVPLRT(), new MVPBicScore()));
 //        algorithms.add(new Gfci_Sachs(new SemBicTest(), new SemBicScore()));
 //        algorithms.add(new Gfci_Sachs(new FisherZ(), new SemBicScore()));
 //        algorithms.add(new Gfci_Sachs(new CciTest(), new CciScore()));
 //        algorithms.add(new Gfci_Sachs(new KciMatlab(), new KciMatlabScore()));
-        algorithms.add(new Fci_Sachs(new ConditionalGaussianLRT()));
+//        algorithms.add(new Fci_Sachs(new ConditionalGaussianLRT()));
 //        algorithms.add(new Fci_Sachs(new SemBicTest()));
 //        algorithms.add(new Fci_Sachs(new FisherZ()));
 //        algorithms.add(new Fci_Sachs(new CciTest()));
@@ -128,6 +137,7 @@ public class TestSachs {
         comparison.setSaveGraphs(false);
         comparison.setTabDelimitedTables(false);
         comparison.setSaveGraphs(true);
+        comparison.setComparisonGraph(Comparison.ComparisonGraph.true_DAG);
 
         String directory = "comparison_sachs";
 
