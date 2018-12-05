@@ -23,8 +23,10 @@ package edu.cmu.tetrad.test;
 
 import edu.cmu.tetrad.algcomparison.Comparison;
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithms;
+import edu.cmu.tetrad.algcomparison.algorithm.multi.FaskConcatenated;
 import edu.cmu.tetrad.algcomparison.algorithm.multi.Fask_BConcatenated;
 import edu.cmu.tetrad.algcomparison.independence.SemBicTest;
+import edu.cmu.tetrad.algcomparison.score.SemBicScore;
 import edu.cmu.tetrad.algcomparison.simulation.Simulations;
 import edu.cmu.tetrad.algcomparison.statistic.*;
 import edu.cmu.tetrad.data.ContinuousVariable;
@@ -199,7 +201,7 @@ public class TestSimulatedFmri {
 
         Algorithms algorithms = new Algorithms();
 
-//        algorithms.add(new FaskConcatenated(new SemBicScore()));
+        algorithms.add(new FaskConcatenated(new SemBicScore()));
         algorithms.add(new Fask_BConcatenated(new SemBicTest()));
 //        algorithms.add(new SkewSearchConcatenated(new FisherZSkew()));
 //        algorithms.add(new FaskConcatenated(new SemBicScore()));
@@ -480,7 +482,6 @@ public class TestSimulatedFmri {
                 Fask_B fask = new Fask_B(data1, new IndTestFisherZ(data1, .05));
                 fask.setTwoCycleAlpha(0.0000);
                 fask.setDelta(-.2);
-                fask.setMultiplicative(contains(i, "#Multiplicative") || contains(i, "#V-shaped"));
                 fask.setSkewEdgeAlpha(0.05);
 
                 Graph graph;
@@ -496,16 +497,18 @@ public class TestSimulatedFmri {
                 final Node X = graph.getNode("VAR_1");
                 final Node Y = graph.getNode("VAR_2");
 
-                if (contains(i, "#Multiplicative")) {
+                if (contains(i, "#multiplicative")) {
                     multiplicative.add(i);
+                    graph.removeEdge(X, Y);
+                    graph.addDirectedEdge(X, Y);
 //                    continue;
                 }
 
                 if (contains(i, "#V-shaped")) {
                     vShaped.add(i);
-//                    graph.removeEdge(X, Y);
-//                    graph.addDirectedEdge(X, Y);
-                    continue;
+                    graph.removeEdge(X, Y);
+                    graph.addDirectedEdge(X, Y);
+//                    continue;
                 }
 
 
@@ -620,6 +623,12 @@ public class TestSimulatedFmri {
             System.out.println("\nThese are Gaussian:");
 
             for (int i : gaussian) {
+                System.out.println(i);
+            }
+
+            System.out.println("\nThese are multiplicative");
+
+            for (int i : multiplicative) {
                 System.out.println(i);
             }
 

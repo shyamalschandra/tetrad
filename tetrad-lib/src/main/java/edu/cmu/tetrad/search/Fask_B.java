@@ -425,19 +425,25 @@ public final class Fask_B implements GraphSearch {
                     final double lrxy = leftRightFask(X, Y);
                     final double lryx = leftRightFask(Y, X);
 
-//                    if (lrxy < 0 && lryx < 0) {
-//                        graph.addBidirectedEdge(X, Y);
-//                    } else {
-                    boolean lr = lrxy > lryx;
-
-                    if (multiplicative) lr = !lr;
-
-                    if (lr) {
-                        graph.addDirectedEdge(X, Y);
+                    if (lrxy < 0 && lryx < 0) {
+                        graph.addUndirectedEdge(X, Y);
                     } else {
-                        graph.addDirectedEdge(Y, X);
+                        boolean lr = lrxy > lryx;
+
+//                        if (multiplicative) {
+//                            lr = !lr;
+//                        }
+
+//                        if (X.getName().equals("rings") || Y.getName().equals("rings")) {
+//                            lr = !lr;
+//                        }
+
+                        if (lr) {
+                            graph.addDirectedEdge(X, Y);
+                        } else {
+                            graph.addDirectedEdge(Y, X);
+                        }
                     }
-//                    }
                 }
             }
         }
@@ -602,10 +608,11 @@ public final class Fask_B implements GraphSearch {
     private double leftRightFask(Node X, Node Y) {
         double[] x = colData[variables.indexOf(X)];
         double[] y = colData[variables.indexOf(Y)];
-        final double sey = StatUtils.skewness(residuals(y, new double[][]{x}));
-
-        x = correctSkewness(x, signum(StatUtils.skewness(x)));
-//        y = correctSkewness(y, signum(StatUtils.skewness(y)));
+        double sx = StatUtils.skewness(x);
+//        final double sey = StatUtils.skewness(residuals(y, new double[][]{x}));
+//
+//        x = times(x, signum(sx));
+//        y = times(y, signum(sey));
 
         final double cxyx = expected(x, y, x);
         final double cxyy = expected(x, y, y);
@@ -615,32 +622,37 @@ public final class Fask_B implements GraphSearch {
 
         double lr = left - right;
 
-        double r = StatUtils.correlation(x, y);
-        double sx = StatUtils.skewness(x);
+//        double r = StatUtils.correlation(x, y);
+//        final double sey = StatUtils.skewness(residuals(y, new double[][]{x}));
 
-        if (r < getDelta()) {
-            lr *= -1;
-        }
+//        if (r < getDelta()) {
+//            lr *= -1;
+//        }
 
-        lr *= sey;
-
-        if (isVerbose()) {
-            TetradLogger.getInstance().forceLogMessage(
-                    Edges.directedEdge(X, Y) + " skew X = " + sx + " skew res(Y | X) = "
-                            + sey + " corr = " + r + " LR = " + lr
-            );
-
-            if (r < getDelta()) {
-                TetradLogger.getInstance().forceLogMessage("r = " + r * signum(sx) + " delta = " + getDelta());
-            }
-        }
+//        lr *= sey;
+//
+//        if (isVerbose()) {
+//            TetradLogger.getInstance().forceLogMessage(
+//                    Edges.directedEdge(X, Y) + " skew X = " + sx + " skew res(Y | X) = "
+//                            + sey + " corr = " + r + " LR = " + lr
+//            );
+//
+//            if (r < getDelta()) {
+//                TetradLogger.getInstance().forceLogMessage("r = " + r * signum(sx) + " delta = " + getDelta());
+//            }
+//        }
 
         return lr;
     }
 
-    private double[] correctSkewness(double[] data, double factor) {
+    private double[] correctSkewness(double[] data) {
+        double skewness = StatUtils.skewness(data);
+        return times(data, skewness);
+    }
+
+    private double[] times(double[] data, double r) {
         double[] data2 = new double[data.length];
-        for (int i = 0; i < data.length; i++) data2[i] = data[i] * factor;
+        for (int i = 0; i < data.length; i++) data2[i] = data[i] * Math.signum(r);
         return data2;
     }
 

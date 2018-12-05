@@ -77,13 +77,14 @@ public class TestSachs {
         parameters.set("resamplingWithReplacement", true);
         parameters.set("resamplingEnsemble", 0);
 
-        parameters.set("skewEdgeAlpha", 0.01, 0.001, 0.0001, 0.00001);
-        parameters.set("twoCycleAlpha", 0.0);
-        parameters.set("faskDelta", -0.2);
+        // FASK-B
+        parameters.set("skewEdgeAlpha", 0.1, 0.05, 0.01, 0.001, 0.0001, 0.00001);
+        parameters.set("twoCycleAlpha", 0.01, 0);
+        parameters.set("faskDelta", -0.8);
 
         parameters.set("useFasAdjacencies", true);
         parameters.set("useSkewAdjacencies", true);
-        parameters.set("useMask", false);
+        parameters.set("useMask", true, false);
         parameters.set("maskThreshold", 0.3);
 
         Statistics statistics = new Statistics();
@@ -91,8 +92,8 @@ public class TestSachs {
         statistics.add(new AdjacencyPrecision());
         statistics.add(new AdjacencyRecall());
         statistics.add(new ArrowheadPrecision());
-        statistics.add(new ArrowheadPrecisionCommonAdjacencies());
         statistics.add(new ArrowheadRecall());
+        statistics.add(new ArrowheadPrecisionCommonAdjacencies());
         statistics.add(new ElapsedTime());
 
         Simulations simulations = new Simulations();
@@ -107,9 +108,9 @@ public class TestSachs {
         Algorithms algorithms = new Algorithms();
 
 //        algorithms.add(new Fges_Sachs(new ConditionalGaussianBicScore()));
-////        algorithms.add(new Fges_Sachs(new SemBicScore()));
-////        algorithms.add(new Fges_Sachs(new CciScore()));
-////        algorithms.add(new Fges_Sachs(new KciMatlabScore()));
+//        algorithms.add(new Fges_Sachs(new SemBicScore()));
+//        algorithms.add(new Fges_Sachs(new CciScore()));
+//        algorithms.add(new Fges_Sachs(new KciMatlabScore()));
 //        algorithms.add(new PcAll_Sachs(new ConditionalGaussianLRT()));
 ////        algorithms.add(new PcAll_Sachs(new SemBicTest()));
 ////        algorithms.add(new PcAll_Sachs(new FisherZ()));
@@ -117,13 +118,13 @@ public class TestSachs {
 ////        algorithms.add(new PcAll_Sachs(new KciMatlab()));
 //
 //        algorithms.add(new Gfci_Sachs(new ConditionalGaussianLRT(), new ConditionalGaussianBicScore()));
-////        algorithms.add(new Gfci_Sachs(new SemBicTest(), new SemBicScore()));
-////        algorithms.add(new Gfci_Sachs(new FisherZ(), new SemBicScore()));
-////        algorithms.add(new Gfci_Sachs(new CciTest(), new CciScore()));
+//        algorithms.add(new Gfci_Sachs(new SemBicTest(), new SemBicScore()));
+//        algorithms.add(new Gfci_Sachs(new FisherZ(), new SemBicScore()));
+//        algorithms.add(new Gfci_Sachs(new CciTest(), new CciScore()));
 ////        algorithms.add(new Gfci_Sachs(new KciMatlab(), new KciMatlabScore()));
 //        algorithms.add(new Fci_Sachs(new ConditionalGaussianLRT()));
-////        algorithms.add(new Fci_Sachs(new SemBicTest()));
-////        algorithms.add(new Fci_Sachs(new FisherZ()));
+//        algorithms.add(new Fci_Sachs/(new SemBicTest()));
+//        algorithms.add(new Fci_Sachs(new FisherZ()));
 ////        algorithms.add(new Fci_Sachs(new CciTest()));
 ////        algorithms.add(new Fci_Sachs(new KciMatlab()));
 
