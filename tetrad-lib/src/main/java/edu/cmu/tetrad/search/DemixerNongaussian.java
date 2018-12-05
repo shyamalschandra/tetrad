@@ -23,7 +23,7 @@ public class DemixerNongaussian {
     private TetradMatrix X;
     private int C;
     private double[] weights;
-    private TetradMatrix[] A;
+//    private TetradMatrix[] A;
     private TetradMatrix[] W;
     private TetradVector[] bias;
     private TetradMatrix[] S;
@@ -38,16 +38,9 @@ public class DemixerNongaussian {
     public MixtureModelNongaussian demix(DataSet data, int numComponents) {
         this.C = numComponents;
 
-        FastIca ica = new FastIca(data.getDoubleData(), X.columns());
-        FastIca.IcaResult result = ica.findComponents();
-
-        X = result.getX();
-
-        TetradMatrix _A = result.getA();
-        TetradMatrix _W = result.getW();
 
         weights = new double[C];
-        A = new TetradMatrix[C];
+//        A = new TetradMatrix[C];
         W = new TetradMatrix[C];
         K = new TetradMatrix[C];
         S = new TetradMatrix[C];
@@ -68,7 +61,18 @@ public class DemixerNongaussian {
         for (int k = 0; k < C; k++) {
 //            weights[k] = 1.0 / C;
 
-            A[k] = _A;
+            FastIca ica = new FastIca(data.getDoubleData(), X.columns());
+            FastIca.IcaResult result = ica.findComponents();
+
+            X = result.getX();
+
+            TetradMatrix _A = result.getA();
+            TetradMatrix _W = result.getW();
+
+            System.out.println("A = " + _A);
+
+
+//            A[k] = _A;
             W[k] = _W;
 
             TetradVector _bias = new TetradVector(X.columns());
@@ -111,6 +115,9 @@ public class DemixerNongaussian {
         int iterCounter = 0;
 
         System.out.println("Weights: " + Arrays.toString(weights));
+        maximization();
+
+
 
         while (weightsUnequal) {
             expectation();
@@ -137,7 +144,7 @@ public class DemixerNongaussian {
             iterCounter++;
         }
 
-        return new MixtureModelNongaussian(data, posteriorProbs, A, S, bias, weights);
+        return new MixtureModelNongaussian(data, posteriorProbs, invertWMatrices(W), S, bias, weights);
     }
 
     private TetradMatrix repmat(TetradVector _bias, int rows) {
@@ -157,30 +164,30 @@ public class DemixerNongaussian {
      */
     private TetradMatrix[] adaptMixingMatrices(int t) {
 
-        for (int k = 0; k < C; k++) {
-            double _gamma = posteriorProbs.get(t, k); // scalar
+        for (int c = 0; c < C; c++) {
+            double _prob = posteriorProbs.get(t, c); // scalar
             TetradMatrix _tanhS = X.like(); // NxM
 
             for (int i = 0; i < X.columns(); i++) {
-                _tanhS.set(t, i, Math.tanh(S[k].get(t, i)));
+                _tanhS.set(t, i, Math.tanh(S[c].get(t, i)));
             }
 
-            TetradMatrix skskt = toColumnMatrix(S[k].getRow(t)).times(toRowMatrix(S[k].getRow(t))); // Mx1 * 1xM = MxM
-            TetradMatrix tanhSk = toColumnMatrix(_tanhS.getRow(t)).times(toRowMatrix(S[k].getRow(t))); // Mx1 * 1xM = MxM
-            TetradMatrix kurtosisSquare = K[k].times(tanhSk);
+            TetradMatrix skskt = S[c].row(t).transpose().times((S[c].row(t))); // Mx1 * 1xM = MxM
+            TetradMatrix tanhSk = _tanhS.row(t).transpose().times(S[c].row(t)); // Mx1 * 1xM = MxM
+            TetradMatrix kurtosisSquare = K[c].times(tanhSk);
             TetradMatrix smketc = TetradMatrix.identity(X.columns()).minus(kurtosisSquare);
             TetradMatrix minusSquare = smketc.minus(skskt);
 
-            // tempMixingMatrix = minusSquare.times(wMatrix).scalarMult(-_gamma * learningRate); // MxM * (MxM - (MxM * MxM - MxM)) = MxM
-            TetradMatrix tempWMatrix = minusSquare.times(W[k]).scalarMult(_gamma * getLearningRate()); // MxM * (MxM - (MxM * MxM - MxM)) = MxM
+//            TetradMatrix tempWMatrix = minusSquare.times(W[c]).scalarMult(-_prob * learningRate); // MxM * (MxM - (MxM * MxM - MxM)) = MxM
+            TetradMatrix tempWMatrix = minusSquare.times(W[c]).scalarMult(_prob * getLearningRate()); // MxM * (MxM - (MxM * MxM - MxM)) = MxM
 
-            TetradMatrix newW = W[k].plus(tempWMatrix);
+            TetradMatrix newW = W[c].plus(tempWMatrix);
 
             if (newW.det() == 0) {
-                newW = W[k];
+                newW = W[c];
             }
 
-            W[k] = newW;
+            W[c] = newW;
         }
 
         return W;
@@ -267,47 +274,61 @@ public class DemixerNongaussian {
         double sum;
         double det;
 
-        for (int k = 0; k < C; k++) {
-            det = Math.log(Math.abs(A[k].det()));
+        double L = 0;
+
+        for (int c = 0; c < C; c++) {
+            det = Math.log(Math.abs(W[c].det()));
 
             for (int t = 0; t < X.rows(); t++) {
                 sum = 0;
 
                 for (int i = 0; i < X.columns(); i++) {
-                    double _l = -.5 * Math.log(2.0 * Math.PI) - (K[k].get(i, i) * log(cosh(S[k].get(t, i))))
-                            - (pow(S[k].get(t, i), 2.0) / 2.0);
+                    double _l = -.5 * Math.log(2.0 * Math.PI) - (K[c].get(i, i) * log(cosh(S[c].get(t, i))))
+                            - (pow(S[c].get(t, i), 2.0) / 2.0);
 
-                    if (K[k].get(i, i) > 0) {
+                    if (K[c].get(i, i) > 0) {
                         _l = _l - Math.log(0.7413);
                     }
 
                     sum += _l;
                 }
 
-                double L = sum - det;
+                double l = sum - det;
 
-                likelihoods.set(t, k, L);
+                likelihoods.set(t, c, l);
+
+                L += l;
             }
         }
 
+        System.out.println("L = " + L);
+
         for (int t = 0; t < X.rows(); t++) {
-            double[] _weightedLIkelihoods = new double[C];
+            double[] _weightedProbs = new double[C];
             double _sum = 0.0;
 
             for (int c = 0; c < C; c++) {
-                _weightedLIkelihoods[c] = exp(likelihoods.get(t, c)) * weights[c];
-                _sum += _weightedLIkelihoods[c];
+                _weightedProbs[c] = exp(likelihoods.get(t, c)) * weights[c];
+                _sum += _weightedProbs[c];
             }
 
             for (int c = 0; c < C; c++) {
-                double prob = _weightedLIkelihoods[c] / _sum;
+                double prob = _weightedProbs[c] / _sum;
                 posteriorProbs.set(t, c, prob);
             }
+
+            System.out.println("t = " + t + " " + Arrays.toString(_weightedProbs)
+                    + " " + likelihoods.row(t) + " weights = " + Arrays.toString(weights)
+                    + " " + posteriorProbs.row(t));
+
+            System.out.println("PROBS = " + posteriorProbs.row(t));
         }
+
+        System.out.println(posteriorProbs);
 
         for (int t = 0; t < X.rows(); t++) {
             W = adaptMixingMatrices(t);
-            A = invertWMatrices(W);
+//            A = invertWMatrices(W);
             bias = adaptBiasVectors(t);
         }
     }
@@ -320,14 +341,14 @@ public class DemixerNongaussian {
         // find values of weights
         double sum;
 
-        for (int i = 0; i < C; i++) {
+        for (int c = 0; c < C; c++) {
             sum = 0;
 
             for (int r = 0; r < X.rows(); r++) {
-                sum += posteriorProbs.get(r, i);
+                sum += posteriorProbs.get(r, c);
             }
 
-            weights[i] = sum / X.rows();
+            weights[c] = sum / X.rows();
         }
 
         for (int k = 0; k < C; k++) {
@@ -342,15 +363,14 @@ public class DemixerNongaussian {
         // find values of weights
         double sum;
 
-        for (int i = 0; i < C; i++) {
+        for (int c = 0; c < C; c++) {
             sum = 0;
 
             for (int r = 0; r < X.rows(); r++) {
-                sum += posteriorProbs.get(r, i);
-
+                sum += posteriorProbs.get(r, c);
             }
 
-            weights[i] = sum / X.rows();
+            weights[c] = 1. / C;// sum / X.rows();
         }
 
         this.weights = weights;
@@ -366,6 +386,10 @@ public class DemixerNongaussian {
 //                sourceVector.assignRow(r, tempVector);
 //            }
 //        }
+
+        System.out.println("W[0] = " + W[0]);
+
+        System.out.println("W[1] = " + W[1]);
 
         for (int k = 0; k < C; k++) {
             S[k] = X.minus(repmat(bias[k], X.rows())).times(W[k].transpose());

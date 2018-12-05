@@ -220,6 +220,20 @@ public class TetradMatrix implements TetradSerializable {
         return new TetradVector(apacheData.getRow(i));
     }
 
+    public TetradMatrix row(int i) {
+        TetradMatrix m = new TetradMatrix(1, columns());
+
+        if (zeroDimension()) {
+            return new TetradMatrix(1, columns());
+        }
+
+        for (int j = 0; j < columns(); j++) {
+            m.set(0, j, get(i, j));
+        }
+
+        return m;
+    }
+
     public TetradMatrix getPart(int i, int j, int k, int l) {
         return new TetradMatrix(apacheData.getSubMatrix(i, j, k, l));
     }
