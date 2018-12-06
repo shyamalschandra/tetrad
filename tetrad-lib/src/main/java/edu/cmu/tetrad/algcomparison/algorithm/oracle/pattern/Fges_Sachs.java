@@ -12,6 +12,7 @@ import edu.cmu.tetrad.algcomparison.utils.SachsUtils;
 import edu.cmu.tetrad.algcomparison.utils.TakesInitialGraph;
 import edu.cmu.tetrad.algcomparison.utils.UsesScoreWrapper;
 import edu.cmu.tetrad.annotation.AlgType;
+import edu.cmu.tetrad.annotation.Experimental;
 import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.Edge;
 import edu.cmu.tetrad.graph.EdgeListGraph;
@@ -37,6 +38,7 @@ import java.util.List;
         command = "fges",
         algoType = AlgType.forbid_latent_common_causes
 )
+@Experimental
 public class Fges_Sachs implements Algorithm, TakesInitialGraph, HasKnowledge, UsesScoreWrapper {
 
     static final long serialVersionUID = 23L;

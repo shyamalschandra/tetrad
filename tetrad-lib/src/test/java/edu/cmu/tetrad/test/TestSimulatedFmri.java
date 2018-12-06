@@ -68,7 +68,7 @@ public class TestSimulatedFmri {
         parameters.set("depth", 5);
         parameters.set("skewEdgeAlpha", 0.0001);
         parameters.set("twoCycleAlpha", .0000000);
-        parameters.set("faskDelta", -.4);
+        parameters.set("faskDelta", -.6);
         parameters.set("useFasAdjacencies", true);
         parameters.set("useSkewAdjacencies", true);
         parameters.set("useMask", false);
@@ -76,7 +76,7 @@ public class TestSimulatedFmri {
 
         parameters.set("penaltyDiscount", 2);
 
-        testing = true;
+        testing = false;
 
         parameters.set("numRuns", 5);
         parameters.set("randomSelectionSize", 3);
@@ -201,7 +201,7 @@ public class TestSimulatedFmri {
 
         Algorithms algorithms = new Algorithms();
 
-        algorithms.add(new FaskConcatenated(new SemBicScore()));
+//        algorithms.add(new FaskConcatenated(new SemBicScore()));
         algorithms.add(new Fask_BConcatenated(new SemBicTest()));
 //        algorithms.add(new SkewSearchConcatenated(new FisherZSkew()));
 //        algorithms.add(new FaskConcatenated(new SemBicScore()));
@@ -435,6 +435,7 @@ public class TestSimulatedFmri {
             List<Integer> getRight = new ArrayList<>();
             List<Integer> getWrong = new ArrayList<>();
             List<Integer> getBidirected = new ArrayList<>();
+            List<Integer> getUndirected = new ArrayList<>();
             List<Integer> get2Cycle = new ArrayList<>();
             List<Integer> zeroCorr = new ArrayList<>();
             List<Integer> multiplicative = new ArrayList<>();
@@ -468,21 +469,24 @@ public class TestSimulatedFmri {
                 }
 
 
-                if (contains(i, "#Discrete")) {
+                if (contains(i, "#discrete")) {
                     discrete.add(i);
-                    continue;
+//                    continue;
                 }
 
                 if (contains(i, "#Gaussian")) {
-                    discrete.add(i);
+                    gaussian.add(i);
                     continue;
                 }
 
 
-                Fask_B fask = new Fask_B(data1, new IndTestFisherZ(data1, .05));
+                Fask_B fask = new Fask_B(data1, new IndTestFisherZ(data1, .0));
                 fask.setTwoCycleAlpha(0.0000);
-                fask.setDelta(-.2);
-                fask.setSkewEdgeAlpha(0.05);
+                fask.setDelta(-.1);
+                fask.setUseFasAdjacencies(false);
+                fask.setUseSkewAdjacencies(true);
+                fask.setUseMask(false);
+                fask.setSkewEdgeAlpha(0.1);
 
                 Graph graph;
 
@@ -504,12 +508,12 @@ public class TestSimulatedFmri {
 //                    continue;
                 }
 
-                if (contains(i, "#V-shaped")) {
-                    vShaped.add(i);
-                    graph.removeEdge(X, Y);
-                    graph.addDirectedEdge(X, Y);
-//                    continue;
-                }
+//                if (contains(i, "#V-shaped")) {
+//                    vShaped.add(i);
+//                    graph.removeEdge(X, Y);
+//                    graph.addDirectedEdge(X, Y);
+////                    continue;
+//                }
 
 
                 if (!graph.isAdjacentTo(X, Y)) {
@@ -524,6 +528,11 @@ public class TestSimulatedFmri {
                 }
 
                 boolean right = false;
+
+                if (Edges.isUndirectedEdge(graph.getEdge(X, Y))) {
+                    getUndirected.add(i);
+                    right = true;
+                }
 
                 if (contains(i, "#-->")) {
                     System.out.println("Ground truth: VAR1 --> VAR2");
@@ -593,6 +602,12 @@ public class TestSimulatedFmri {
             System.out.println("\nBidirected edges:");
 
             for (int i : getBidirected) {
+                System.out.println(i);
+            }
+
+            System.out.println("\nUndirected edges:");
+
+            for (int i : getUndirected) {
                 System.out.println(i);
             }
 

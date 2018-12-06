@@ -53,6 +53,7 @@ public class TestSachs {
         parameters.set("structurePrior", 1);
         parameters.set("discretize", false);
         parameters.set("penaltyDiscount", 1);
+        parameters.set("faskDelta", -1);
         parameters.set("alpha", 0.1);
         parameters.set("depth", 3);
         parameters.set("maxDistinctValuesDiscrete", 2);
