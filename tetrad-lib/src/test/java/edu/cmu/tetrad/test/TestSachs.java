@@ -93,14 +93,24 @@ public class TestSachs {
         String dir = "/home/bandrews/Desktop/fask/Sachs/";
         String subdir = "data";
 
-//        simulations.add(new LoadDataAndGraphs(dir + "mixed"));
-        simulations.add(new LoadContinuousDataAndSingleGraph(dir + "jittered", subdir));
+//        simulations.add(new LoadContinuousDataAndSingleGraph(dir + "jittered", subdir));
 //        simulations.add(new LoadContinuousDataAndSingleGraph(dir + "jittered_subsampled", subdir));
+//        simulations.add(new LoadDataAndGraphs(dir + "mixed"));
+//        simulations.add(new LoadDataAndGraphs(dir + "full"));
+        simulations.add(new LoadDataAndGraphs(dir + "1"));
+        simulations.add(new LoadDataAndGraphs(dir + "2"));
+        simulations.add(new LoadDataAndGraphs(dir + "3"));
+        simulations.add(new LoadDataAndGraphs(dir + "4"));
+        simulations.add(new LoadDataAndGraphs(dir + "5"));
+        simulations.add(new LoadDataAndGraphs(dir + "6"));
+        simulations.add(new LoadDataAndGraphs(dir + "7"));
+        simulations.add(new LoadDataAndGraphs(dir + "8"));
+        simulations.add(new LoadDataAndGraphs(dir + "9"));
 
         Algorithms algorithms = new Algorithms();
 
 //        algorithms.add(new Fges_Sachs(new ConditionalGaussianBicScore()));
-//        algorithms.add(new Fges_Sachs(new MVPBicScore()));
+        algorithms.add(new Fges_Sachs(new MVPBicScore()));
 //        algorithms.add(new Fges_Sachs(new SemBicScore()));
 //        algorithms.add(new Fges_Sachs(new CciScore()));
 //        algorithms.add(new Fges_Sachs(new KciMatlabScore()));
@@ -110,8 +120,6 @@ public class TestSachs {
 //        algorithms.add(new PcAll_Sachs(new FisherZ()));
 //        algorithms.add(new PcAll_Sachs(new CciTest()));
 //        algorithms.add(new PcAll_Sachs(new KciMatlab()));
-
-        algorithms.add(new Fask_Sachs(new SemBicScore()));
 
 //        algorithms.add(new Gfci_Sachs(new ConditionalGaussianLRT(), new ConditionalGaussianBicScore()));
 //        algorithms.add(new Gfci_Sachs(new MVPLRT(), new MVPBicScore()));
@@ -125,12 +133,13 @@ public class TestSachs {
 //        algorithms.add(new Fci_Sachs(new CciTest()));
 //        algorithms.add(new Fci_Sachs(new KciMatlab()));
 
+//        algorithms.add(new Fask_Sachs(new SemBicScore()));
 
 
         Comparison comparison = new Comparison();
 
         comparison.setShowAlgorithmIndices(true);
-        comparison.setShowSimulationIndices(false);
+        comparison.setShowSimulationIndices(true);
         comparison.setSortByUtility(false);
         comparison.setShowUtilities(false);
         comparison.setParallelized(false);
