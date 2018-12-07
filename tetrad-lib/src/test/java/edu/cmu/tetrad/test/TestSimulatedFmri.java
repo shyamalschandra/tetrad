@@ -22,23 +22,21 @@
 package edu.cmu.tetrad.test;
 
 import edu.cmu.tetrad.algcomparison.Comparison;
+import edu.cmu.tetrad.algcomparison.algorithm.Algorithm;
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithms;
 import edu.cmu.tetrad.algcomparison.algorithm.multi.FaskConcatenated;
 import edu.cmu.tetrad.algcomparison.algorithm.multi.Fask_BConcatenated;
+import edu.cmu.tetrad.algcomparison.graph.RandomForward;
+import edu.cmu.tetrad.algcomparison.graph.RandomGraph;
 import edu.cmu.tetrad.algcomparison.independence.SemBicTest;
-import edu.cmu.tetrad.algcomparison.score.SemBicScore;
+import edu.cmu.tetrad.algcomparison.simulation.LinearFisherModel;
+import edu.cmu.tetrad.algcomparison.simulation.Simulation;
 import edu.cmu.tetrad.algcomparison.simulation.Simulations;
 import edu.cmu.tetrad.algcomparison.statistic.*;
-import edu.cmu.tetrad.data.ContinuousVariable;
-import edu.cmu.tetrad.data.DataSet;
-import edu.cmu.tetrad.data.DataUtils;
-import edu.cmu.tetrad.data.DiscreteVariable;
-import edu.cmu.tetrad.graph.Edge;
-import edu.cmu.tetrad.graph.Edges;
-import edu.cmu.tetrad.graph.Graph;
-import edu.cmu.tetrad.graph.Node;
-import edu.cmu.tetrad.search.Fask_B;
-import edu.cmu.tetrad.search.IndTestFisherZ;
+import edu.cmu.tetrad.data.*;
+import edu.cmu.tetrad.graph.*;
+import edu.cmu.tetrad.search.*;
+import edu.cmu.tetrad.sem.LargeScaleSimulation;
 import edu.cmu.tetrad.util.DataConvertUtils;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.RandomUtil;
@@ -76,7 +74,7 @@ public class TestSimulatedFmri {
 
         parameters.set("penaltyDiscount", 2);
 
-        testing = false;
+        testing = true;
 
         parameters.set("numRuns", 5);
         parameters.set("randomSelectionSize", 3);
@@ -749,6 +747,78 @@ public class TestSimulatedFmri {
 
     public static void main(String... args) {
         new TestSimulatedFmri().task(false);
+    }
+
+    @Test
+    public void testToyExample() {
+        RandomGraph graph = new RandomForward();
+
+        Simulations simulations = new Simulations();
+        simulations.add(new LinearFisherModel(graph));
+
+        Algorithms algorithms = new Algorithms();
+        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.multi.Fask_B(new SemBicTest()));
+
+        Statistics statistics = new Statistics();
+        statistics.add(new AdjacencyPrecision());
+        statistics.add(new AdjacencyRecall());
+        statistics.add(new ArrowheadPrecision());
+        statistics.add(new ArrowheadRecall());
+
+        Parameters parameters = new Parameters();
+
+        parameters.set("numMeasures", 20);
+        parameters.set("numLatents", 0);
+        parameters.set("avgDegree", 2);
+        parameters.set("maxDegree", 100);
+        parameters.set("maxIndegree", 100);
+        parameters.set("maxOutdegree", 100);
+        parameters.set("connected", false);
+
+//        parameters.add("coefLow");
+//        parameters.add("coefHigh");
+//        parameters.add("varLow");
+//        parameters.add("varHigh");
+//        parameters.add("verbose");
+        parameters.set("includePositiveCoefs", true);
+        parameters.set("includeNegativeCoefs", true);
+        parameters.set("includePositiveSkewsForBeta", true);
+        parameters.set("includeNegativeSkewsForBeta", false);
+        parameters.set("errorsNormal", false);
+        parameters.set("betaLeftValue", 1);
+        parameters.set("betaRightValue", 5);
+        parameters.set("numRuns", 10);
+//        parameters.add("percentDiscrete");
+//        parameters.add("numCategories");
+//        parameters.add("differentGraphs");
+        parameters.set("sampleSize", 1000);
+        parameters.set("intervalBetweenShocks", 20);
+        parameters.set("intervalBetweenRecordings", 20);
+        parameters.set("selfLoopCoef", 0);
+        parameters.set("fisherEpsilon", 0.001);
+//        parameters.add("randomizeColumns");
+//        parameters.add("measurementVariance");
+//        parameters.add("saveLatentVars");
+
+        parameters.set("depth", -1);
+        parameters.set("skewEdgeAlpha", 0.01);
+        parameters.set("twoCycleAlpha", 0);
+        parameters.set("faskDelta", -0.0);
+
+        parameters.set("useFasAdjacencies", true);
+        parameters.set("useSkewAdjacencies", true);
+        parameters.set("useMask", true);
+        parameters.set("maskThreshold", 0.3);
+
+        // Bootstrapping
+//        parameters.add("numberResampling");
+//        parameters.add("percentResampleSize");
+//        parameters.add("resamplingWithReplacement");
+//        parameters.add("resamplingEnsemble");
+//        parameters.add("verbose");
+
+
+        new Comparison().compareFromSimulations("/Users/user/tetrad/toyexample", simulations, algorithms, statistics, parameters);
     }
 }
 

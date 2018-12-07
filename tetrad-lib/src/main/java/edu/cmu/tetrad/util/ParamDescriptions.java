@@ -231,6 +231,15 @@ public class ParamDescriptions {
                 "Yes if negative coefficients should be included in the model",
                 true));
 
+        map.put("includePositiveSkewsForBeta", new ParamDescription(
+                "Yes if positive skew values should be included in the model, if Beta errors are chosen",
+                true));
+
+        map.put("includeNegativeSkewsForBeta", new ParamDescription(
+                "Yes if negative skew values should be included in the model, if Beta errors are chosen",
+                true));
+
+
         map.put("errorsNormal", new ParamDescription(
                 "Yes if errors should be Normal; No if they should be Beta",
                 true));
