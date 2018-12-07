@@ -133,36 +133,36 @@ public final class TestDiscretizer {
         assertEquals(3, maxInColumn(discretized, 4));
     }
 
-    @Test
-    public void testManualDiscretize3() {
-        List<Node> nodes1 = new ArrayList<>();
+        @Test
+        public void testManualDiscretize3() {
+            List<Node> nodes1 = new ArrayList<>();
 
-        for (int i = 0; i < 5; i++) {
-            nodes1.add(new ContinuousVariable("X" + (i + 1)));
+            for (int i = 0; i < 5; i++) {
+                nodes1.add(new ContinuousVariable("X" + (i + 1)));
+            }
+
+            Graph graph = new Dag(GraphUtils.randomGraph(nodes1, 0, 5,
+                    3, 3, 3, false));
+            SemPm pm = new SemPm(graph);
+            SemIm im = new SemIm(pm);
+            DataSet data = im.simulateData(100, false);
+
+            List<Node> nodes = data.getVariables();
+
+            Discretizer discretizer = new Discretizer(data);
+            discretizer.setVariablesCopied(true);
+
+            discretizer.setVariablesCopied(true);
+            discretizer.equalCounts(nodes.get(0), 3);
+
+            DataSet discretized = discretizer.discretize();
+
+            assertTrue(discretized.getVariable(0) instanceof DiscreteVariable);
+            assertTrue(discretized.getVariable(1) instanceof ContinuousVariable);
+            assertTrue(discretized.getVariable(2) instanceof ContinuousVariable);
+            assertTrue(discretized.getVariable(3) instanceof ContinuousVariable);
+            assertTrue(discretized.getVariable(4) instanceof ContinuousVariable);
         }
-
-        Graph graph = new Dag(GraphUtils.randomGraph(nodes1, 0, 5,
-                3, 3, 3, false));
-        SemPm pm = new SemPm(graph);
-        SemIm im = new SemIm(pm);
-        DataSet data = im.simulateData(100, false);
-
-        List<Node> nodes = data.getVariables();
-
-        Discretizer discretizer = new Discretizer(data);
-        discretizer.setVariablesCopied(true);
-
-        discretizer.setVariablesCopied(true);
-        discretizer.equalCounts(nodes.get(0), 3);
-
-        DataSet discretized = discretizer.discretize();
-
-        assertTrue(discretized.getVariable(0) instanceof DiscreteVariable);
-        assertTrue(discretized.getVariable(1) instanceof ContinuousVariable);
-        assertTrue(discretized.getVariable(2) instanceof ContinuousVariable);
-        assertTrue(discretized.getVariable(3) instanceof ContinuousVariable);
-        assertTrue(discretized.getVariable(4) instanceof ContinuousVariable);
-    }
 
     /*
      * @param dataSet A discrete data set.

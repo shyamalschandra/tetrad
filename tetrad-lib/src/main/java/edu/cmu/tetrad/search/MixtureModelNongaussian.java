@@ -18,14 +18,14 @@ public class MixtureModelNongaussian {
     private TetradMatrix[] mixingMatrices;
     private TetradMatrix[] sourceVectors;
     private TetradVector[] biasVectors;
-    private double[] weights;
+    private TetradMatrix weights;
     private int[] cases;
     private int[] caseCounts;
     private double[][] dataArray;
     private double[][] gammaArray;
 
     public MixtureModelNongaussian(DataSet data, TetradMatrix gammas, TetradMatrix[] mixingMatrices,
-                                   TetradMatrix[] sourceVectors, TetradVector[] biasVectors, double[] weights) {
+                                   TetradMatrix[] sourceVectors, TetradVector[] biasVectors, TetradMatrix weights) {
 
         this.data = data;
         this.dataArray = data.getDoubleData().toArray();
@@ -42,14 +42,14 @@ public class MixtureModelNongaussian {
             cases[i] = getDistribution(i);
         }
 
-        this.caseCounts = new int[weights.length];
+        this.caseCounts = new int[weights.columns()];
 
-        for (int i = 0; i < weights.length; i++) {
+        for (int i = 0; i < weights.columns(); i++) {
             caseCounts[i] = 0;
         }
 
         for (int i = 0; i < cases.length; i++) {
-            for (int j = 0; j < weights.length; j++) {
+            for (int j = 0; j < weights.columns(); j++) {
                 if (cases[i] == j) {
                     caseCounts[j]++;
                     break;
@@ -66,7 +66,7 @@ public class MixtureModelNongaussian {
         // hard classification
         int dist = 0;
         double highest = 0;
-        for (int i = 0; i < weights.length; i++) {
+        for (int i = 0; i < weights.columns(); i++) {
             if (gammas.get(caseNum, i) > highest) {
                 highest = gammas.get(caseNum, i);
                 dist = i;
@@ -104,7 +104,7 @@ public class MixtureModelNongaussian {
     }
 
     public DataSet[] getDemixedData() {
-        int k = weights.length;
+        int k = weights.columns();
         DoubleDataBox[] dataBoxes = new DoubleDataBox[k];
         int[] caseIndices = new int[k];
 
@@ -118,6 +118,7 @@ public class MixtureModelNongaussian {
         int count;
         for (int i = 0; i < cases.length; i++) {
             index = cases[i];
+            System.out.println(index);
             box = dataBoxes[index];
             count = caseIndices[index];
             for (int j = 0; j < data.getNumColumns(); j++) {
@@ -143,7 +144,7 @@ public class MixtureModelNongaussian {
         return gammaArray;
     }
 
-    public double[] getWeights() {
+    public TetradMatrix getWeights() {
         return weights;
     }
 
