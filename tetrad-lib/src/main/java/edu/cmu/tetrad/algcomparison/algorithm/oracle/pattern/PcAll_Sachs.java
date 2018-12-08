@@ -97,8 +97,10 @@ public class PcAll_Sachs implements Algorithm, TakesInitialGraph, HasKnowledge, 
             search.setDepth(parameters.getInt("depth"));
 
             SachsUtils SU = new SachsUtils();
-            knowledge = SU.getKnowledge();
 
+            knowledge = SU.getKnowledge(
+                    parameters.getBoolean("forbidAmongInterventions",true),
+                    parameters.getBoolean("requiredEdgeKnowledge", false));
             search.setKnowledge(knowledge);
 
             if (parameters.getInt("fasType") == 4) {
@@ -142,7 +144,9 @@ public class PcAll_Sachs implements Algorithm, TakesInitialGraph, HasKnowledge, 
             search.setParallelMode(false);
 
             SachsUtils SU = new SachsUtils();
-            knowledge = SU.getKnowledge();
+            knowledge = SU.getKnowledge(
+                    parameters.getBoolean("forbidAmongInterventions",true),
+                    parameters.getBoolean("requiredEdgeKnowledge", false));
             search.setKnowledge(knowledge);
 
             search.setResampleSize(parameters.getInt("resampleSize"));
@@ -204,6 +208,9 @@ public class PcAll_Sachs implements Algorithm, TakesInitialGraph, HasKnowledge, 
         parameters.add("resamplingWithReplacement");
         parameters.add("resamplingEnsemble");
         parameters.add("verbose");
+        // Sachs
+        parameters.add("forbidAmongInterventions");
+        parameters.add("requiredEdgeKnowledge");
         return parameters;
     }
 

@@ -51,9 +51,10 @@ public class Fask_Sachs implements Algorithm, HasKnowledge, UsesScoreWrapper {
             edu.cmu.tetrad.search.Fask search = new edu.cmu.tetrad.search.Fask((DataSet) dataSet, score.getScore(dataSet, parameters));
 
             SachsUtils SU = new SachsUtils();
-            knowledge = SU.getKnowledge();
+            knowledge = SU.getKnowledge(
+                    parameters.getBoolean("forbidAmongInterventions",true),
+                    parameters.getBoolean("requiredEdgeKnowledge", false));
             search.setKnowledge(knowledge);
-
             search.setDepth(parameters.getInt("depth"));
             search.setPenaltyDiscount(parameters.getDouble("penaltyDiscount"));
             search.setExtraEdgeThreshold(parameters.getDouble("extraEdgeThreshold"));
@@ -75,7 +76,9 @@ public class Fask_Sachs implements Algorithm, HasKnowledge, UsesScoreWrapper {
             GeneralResamplingTest search = new GeneralResamplingTest(data, fask, parameters.getInt("numberResampling"));
 
             SachsUtils SU = new SachsUtils();
-            knowledge = SU.getKnowledge();
+            knowledge = SU.getKnowledge(
+                    parameters.getBoolean("forbidAmongInterventions",true),
+                    parameters.getBoolean("requiredEdgeKnowledge", false));
             search.setKnowledge(knowledge);
             
             search.setResampleSize(parameters.getInt("resampleSize"));
@@ -131,6 +134,9 @@ public class Fask_Sachs implements Algorithm, HasKnowledge, UsesScoreWrapper {
         parameters.add("resamplingWithReplacement");
         parameters.add("resamplingEnsemble");
         parameters.add("verbose");
+        // Sachs
+        parameters.add("forbidAmongInterventions");
+        parameters.add("requiredEdgeKnowledge");
 
         return parameters;
     }

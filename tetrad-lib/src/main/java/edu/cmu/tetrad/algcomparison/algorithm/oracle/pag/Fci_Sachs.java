@@ -68,8 +68,9 @@ public class Fci_Sachs implements Algorithm, TakesInitialGraph, HasKnowledge, Ta
             search.setDepth(parameters.getInt("depth"));
 
             SachsUtils SU = new SachsUtils();
-            knowledge = SU.getKnowledge();
-
+            knowledge = SU.getKnowledge(
+                    parameters.getBoolean("forbidAmongInterventions",true),
+                    parameters.getBoolean("requiredEdgeKnowledge", false));
             search.setKnowledge(knowledge);
             search.setMaxPathLength(parameters.getInt("maxPathLength"));
             search.setCompleteRuleSetUsed(parameters.getBoolean("completeRuleSetUsed"));
@@ -92,9 +93,10 @@ public class Fci_Sachs implements Algorithm, TakesInitialGraph, HasKnowledge, Ta
             DataSet data = (DataSet) dataSet;
             GeneralResamplingTest search = new GeneralResamplingTest(data, algorithm, parameters.getInt("numberResampling"));
             SachsUtils SU = new SachsUtils();
-            knowledge = SU.getKnowledge();
+            knowledge = SU.getKnowledge(
+                    parameters.getBoolean("forbidAmongInterventions",true),
+                    parameters.getBoolean("requiredEdgeKnowledge", false));
             search.setKnowledge(knowledge);
-
             search.setResampleSize(parameters.getInt("resampleSize"));
             search.setResamplingWithReplacement(parameters.getBoolean("resamplingWithReplacement"));
 
@@ -143,6 +145,9 @@ public class Fci_Sachs implements Algorithm, TakesInitialGraph, HasKnowledge, Ta
         parameters.add("bootstrapSampleSize");
         parameters.add("bootstrapEnsemble");
         parameters.add("verbose");
+        // Sachs
+        parameters.add("forbidAmongInterventions");
+        parameters.add("requiredEdgeKnowledge");
         return parameters;
     }
 

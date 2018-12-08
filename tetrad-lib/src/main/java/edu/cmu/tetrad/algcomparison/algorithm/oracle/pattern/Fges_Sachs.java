@@ -74,19 +74,17 @@ public class Fges_Sachs implements Algorithm, TakesInitialGraph, HasKnowledge, U
             }
 
             edu.cmu.tetrad.search.Fges search;
-//            if (score.getClass() != KciMatlabScore.class && score.getClass() != CciScore.class) {
-                search = new edu.cmu.tetrad.search.Fges(score.getScore(dataSet, parameters));
-//            } else {
-//                DataModel resampledDataSet = DataUtils.getResamplingDataset(((DataSet) dataSet), parameters.getInt("resampleSize"));
-//                search = new edu.cmu.tetrad.search.Fges(score.getScore(resampledDataSet, parameters));
-//            }
+            search = new edu.cmu.tetrad.search.Fges(score.getScore(dataSet, parameters));
+
 
             search.setFaithfulnessAssumed(parameters.getBoolean("faithfulnessAssumed"));
 
             SachsUtils SU = new SachsUtils();
-            knowledge = SU.getKnowledge();
-
+            knowledge = SU.getKnowledge(
+                    parameters.getBoolean("forbidAmongInterventions",true),
+                    parameters.getBoolean("requiredEdgeKnowledge", false));
             search.setKnowledge(knowledge);
+
             search.setVerbose(parameters.getBoolean("verbose"));
             search.setMaxDegree(parameters.getInt("maxDegree"));
             search.setSymmetricFirstStep(parameters.getBoolean("symmetricFirstStep"));
@@ -110,7 +108,9 @@ public class Fges_Sachs implements Algorithm, TakesInitialGraph, HasKnowledge, U
             GeneralResamplingTest search = new GeneralResamplingTest(data, fges, parameters.getInt("numberResampling"));
 
             SachsUtils SU = new SachsUtils();
-            knowledge = SU.getKnowledge();
+            knowledge = SU.getKnowledge(
+                    parameters.getBoolean("forbidAmongInterventions",true),
+                    parameters.getBoolean("requiredEdgeKnowledge", false));
             search.setKnowledge(knowledge);
             
             search.setResampleSize(parameters.getInt("resampleSize"));
@@ -166,6 +166,9 @@ public class Fges_Sachs implements Algorithm, TakesInitialGraph, HasKnowledge, U
         parameters.add("resampleSize");
         parameters.add("resamplingWithReplacement");
         parameters.add("resamplingEnsemble");
+        // Sachs
+        parameters.add("forbidAmongInterventions");
+        parameters.add("requiredEdgeKnowledge");
         return parameters;
     }
 

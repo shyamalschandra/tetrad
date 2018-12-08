@@ -53,6 +53,30 @@ public class SachsUtils {
         return knowledge;
     }
 
+    public Knowledge2 getKnowledge(boolean forbid, boolean required){
+        Knowledge2 knowledge = new Knowledge2();
+        for (String intervention : interventions) {
+            knowledge.addToTier(0, intervention);
+        }
+        for (String domain : domains) {
+            knowledge.addToTier(1, domain);
+        }
+        knowledge.setTierForbiddenWithin(0, forbid);
+        if(required) {
+            knowledge.setRequired("b2camp", "pka");
+            knowledge.setRequired("b2camp", "pka");
+            knowledge.setRequired("cd3_cd28", "pip3");
+            knowledge.setRequired("pma", "pkc");
+            knowledge.setRequired("aktinhib", "akt");
+            knowledge.setRequired("icam2", "raf");
+            knowledge.setRequired("g0076", "pkc");
+            knowledge.setRequired("psitect", "pip2");
+            knowledge.setRequired("u0126", "mek");
+        }
+
+        return knowledge;
+    }
+
     public Graph pruneGraph(Graph graph) {
         for (
                 Edge edge : graph.getEdges()) {

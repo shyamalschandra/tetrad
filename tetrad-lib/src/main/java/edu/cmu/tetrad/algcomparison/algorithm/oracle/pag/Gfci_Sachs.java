@@ -63,8 +63,9 @@ public class Gfci_Sachs implements Algorithm, HasKnowledge, UsesScoreWrapper, Ta
             search.setMaxDegree(parameters.getInt("maxDegree"));
 
             SachsUtils SU = new SachsUtils();
-            knowledge = SU.getKnowledge();
-
+            knowledge = SU.getKnowledge(
+                    parameters.getBoolean("forbidAmongInterventions",true),
+                    parameters.getBoolean("requiredEdgeKnowledge", false));
             search.setKnowledge(knowledge);
             search.setVerbose(parameters.getBoolean("verbose"));
             search.setFaithfulnessAssumed(parameters.getBoolean("faithfulnessAssumed"));
@@ -89,9 +90,10 @@ public class Gfci_Sachs implements Algorithm, HasKnowledge, UsesScoreWrapper, Ta
             GeneralResamplingTest search = new GeneralResamplingTest(data, algorithm, parameters.getInt("numberResampling"));
 
             SachsUtils SU = new SachsUtils();
-            knowledge = SU.getKnowledge();
+            knowledge = SU.getKnowledge(
+                    parameters.getBoolean("forbidAmongInterventions",true),
+                    parameters.getBoolean("requiredEdgeKnowledge", false));
             search.setKnowledge(knowledge);
-
             search.setResampleSize(parameters.getInt("resampleSize"));
             search.setResamplingWithReplacement(parameters.getBoolean("resamplingWithReplacement"));
             
@@ -151,6 +153,9 @@ public class Gfci_Sachs implements Algorithm, HasKnowledge, UsesScoreWrapper, Ta
         parameters.add("resamplingWithReplacement");
         parameters.add("resamplingEnsemble");
         parameters.add("verbose");
+        // Sachs
+        parameters.add("forbidAmongInterventions");
+        parameters.add("requiredEdgeKnowledge");
         return parameters;
     }
 
