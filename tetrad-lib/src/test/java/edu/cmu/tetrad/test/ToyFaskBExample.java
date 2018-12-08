@@ -58,6 +58,7 @@ import java.util.List;
 import java.util.Map;
 
 import static java.lang.Math.abs;
+import static java.lang.Math.tan;
 
 /**
  * Pulling this test out for Madelyn.
@@ -86,7 +87,7 @@ public class ToyFaskBExample {
 
         parameters.set("numMeasures", 20);
         parameters.set("numLatents", 0);
-        parameters.set("avgDegree", 2);
+        parameters.set("avgDegree", 4);
         parameters.set("maxDegree", 100);
         parameters.set("maxIndegree", 100);
         parameters.set("maxOutdegree", 100);
@@ -96,7 +97,7 @@ public class ToyFaskBExample {
 //        parameters.add("coefHigh");
 //        parameters.add("varLow");
 //        parameters.add("varHigh");
-//        parameters.add("verbose");
+        parameters.set("verbose", true);
         parameters.set("includePositiveCoefs", true);
         parameters.set("includeNegativeCoefs", true);
         parameters.set("includePositiveSkewsForBeta", true);
@@ -118,9 +119,9 @@ public class ToyFaskBExample {
 //        parameters.add("saveLatentVars");
 
         parameters.set("depth", -1);
-        parameters.set("skewEdgeAlpha", 0.01);
+        parameters.set("skewEdgeAlpha", 0.001);
         parameters.set("twoCycleAlpha", 0);
-        parameters.set("faskDelta", -0.0);
+        parameters.set("faskDelta", -0.2);
 
         parameters.set("useFasAdjacencies", true);
         parameters.set("useSkewAdjacencies", true);

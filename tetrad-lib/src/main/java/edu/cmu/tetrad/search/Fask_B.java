@@ -606,39 +606,39 @@ public final class Fask_B implements GraphSearch {
         return b1 || b2;
     }
 
+//    private double leftRight1(Node X, Node Y) {
+//        double[] x = colData[variables.indexOf(X)];
+//        double[] y = colData[variables.indexOf(Y)];
+//
+//        final double left = E(x, y, x) / sqrt(E(x, x, x) * E(y, y, x));
+//        final double right = E(x, y, y) / sqrt(E(x, x, y) * E(y, y, y));
+//
+//        double sx = StatUtils.skewness(x);
+//        double sy = StatUtils.skewness(y);
+//        double sey = StatUtils.skewness(residuals(y, new double[][]{x}));
+//
+//        double lr = (left - right);
+//
+//        if (sey * correlation(x, y) < -getDelta()) {
+//            lr *= -1;
+//        }
+//
+//        if (isVerbose()) {
+//            TetradLogger.getInstance().forceLogMessage(Edges.directedEdge(X, Y)
+//                    + " X = " + X.getName()
+//                    + " Y = " + Y.getName()
+//                    + " LR = " + lr
+//                    + " sx = " + sx
+//                    + " sy = " + sy
+//                    + " sey = " + sey
+//                    + " corr = " + correlation(x, y)
+//            );
+//        }
+//
+//        return lr;
+//    }
+
     private double leftRight1(Node X, Node Y) {
-        double[] x = colData[variables.indexOf(X)];
-        double[] y = colData[variables.indexOf(Y)];
-
-        final double left = E(x, y, x) / sqrt(E(x, x, x) * E(y, y, x));
-        final double right = E(x, y, y) / sqrt(E(x, x, y) * E(y, y, y));
-
-        double sx = StatUtils.skewness(x);
-        double sy = StatUtils.skewness(y);
-        double sey = StatUtils.skewness(residuals(y, new double[][]{x}));
-
-        double lr = (left - right);
-
-        if (sey * correlation(x, y) < -.8) {
-            lr *= -1;
-        }
-
-        if (isVerbose()) {
-            TetradLogger.getInstance().forceLogMessage(Edges.directedEdge(X, Y)
-                    + " X = " + X.getName()
-                    + " Y = " + Y.getName()
-                    + " LR = " + lr
-                    + " sx = " + sx
-                    + " sy = " + sy
-                    + " sey = " + sey
-                    + " corr = " + correlation(x, y)
-            );
-        }
-
-        return lr;
-    }
-
-    private double leftRight2(Node X, Node Y) {
         double[] x = colData[variables.indexOf(X)];
         double[] y = colData[variables.indexOf(Y)];
 
@@ -666,15 +666,18 @@ public final class Fask_B implements GraphSearch {
 
         double lr = (left - right);
 
-        if (correlation(x, y) < 0) {
+        if (correlation(x, y) < getDelta()) {
             lr *= -1;
         }
 
         if (isVerbose()) {
-            TetradLogger.getInstance().forceLogMessage(Edges.directedEdge(X, Y)
+//            System.out.println(
+            TetradLogger.getInstance().forceLogMessage(
+                    Edges.directedEdge(X, Y)
                     + " X = " + X.getName()
                     + " Y = " + Y.getName()
                     + " LR = " + lr
+                    + " sx = " + StatUtils.skewness(x)
                     + " sy = " + StatUtils.skewness(y)
                     + " corr = " + correlation(x, y)
             );
