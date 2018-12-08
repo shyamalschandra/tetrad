@@ -171,22 +171,11 @@ public final class Fask_B implements GraphSearch {
                     Node X = edge.getNode1();
                     Node Y = edge.getNode2();
 
-                    final double lrxy = leftRight(X, Y);
-                    final double lryx = leftRight(Y, X);
-
-                    if (lrxy < 0 && lryx < 0) {
-                        graph.addUndirectedEdge(X, Y);
+                    if (getLrxy(X, Y) > leftRight(Y, X)) {
+                        graph.addDirectedEdge(X, Y);
                     } else {
-                        boolean lr = lrxy > lryx;
-
-                        if (lr) {
-                            graph.addDirectedEdge(X, Y);
-                        } else {
-                            graph.addDirectedEdge(Y, X);
-                        }
+                        graph.addDirectedEdge(Y, X);
                     }
-
-                    orientEdge(graph, edge.getNode1(), edge.getNode2());
                 }
 
                 for (Edge edge : g1.getEdges()) {
@@ -323,6 +312,10 @@ public final class Fask_B implements GraphSearch {
         this.elapsed = stop - start;
 
         return graph;
+    }
+
+    private double getLrxy(Node x, Node y) {
+        return leftRight(x, y);
     }
 
 
@@ -466,27 +459,10 @@ public final class Fask_B implements GraphSearch {
                 } else if (knowledgeOrients(Y, X)) {
                     graph.addDirectedEdge(Y, X);
                 } else {
-                    final double lrxy = leftRight(X, Y);
-                    final double lryx = leftRight(Y, X);
-
-                    if (lrxy < 0 && lryx < 0) {
-                        graph.addUndirectedEdge(X, Y);
+                    if (leftRight(X, Y) > leftRight(Y, X)) {
+                        graph.addDirectedEdge(X, Y);
                     } else {
-                        boolean lr = lrxy > lryx;
-
-//                        if (multiplicative) {
-//                            lr = !lr;
-//                        }
-
-//                        if (X.getName().equals("rings") || Y.getName().equals("rings")) {
-//                            lr = !lr;
-//                        }
-
-                        if (lr) {
-                            graph.addDirectedEdge(X, Y);
-                        } else {
-                            graph.addDirectedEdge(Y, X);
-                        }
+                        graph.addDirectedEdge(Y, X);
                     }
                 }
             }
@@ -649,7 +625,7 @@ public final class Fask_B implements GraphSearch {
         return b1 || b2;
     }
 
-    private double leftRight1(Node X, Node Y) {
+    private double leftRight(Node X, Node Y) {
         double[] x = colData[variables.indexOf(X)];
         double[] y = colData[variables.indexOf(Y)];
 
@@ -658,8 +634,8 @@ public final class Fask_B implements GraphSearch {
         final double kx = StatUtils.kurtosis(x);
         final double ky = StatUtils.kurtosis(y);
 
-        y = times(y, signum(StatUtils.skewness(y)));
-        x = times(x, signum(StatUtils.skewness(x)));
+//        x = times(x, signum(sx));
+        y = times(y, signum(sy));
 
         double lr = E(x, y, y, -1) / E(x, x, y, -1) - E(x, y, y, +1) / E(x, x, y, +1);
 
@@ -684,7 +660,7 @@ public final class Fask_B implements GraphSearch {
         return lr;
     }
 
-    private double leftRight(Node X, Node Y) {
+    private double leftRight2(Node X, Node Y) {
         double[] x = colData[variables.indexOf(X)];
         double[] y = colData[variables.indexOf(Y)];
 

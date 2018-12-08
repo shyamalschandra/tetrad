@@ -66,10 +66,10 @@ public class TestSimulatedFmri {
         parameters.set("depth", 5);
         parameters.set("skewEdgeAlpha", 0.0001);
         parameters.set("twoCycleAlpha", .0000000);
-        parameters.set("faskDelta", -.6);
+        parameters.set("faskDelta", -.3);
         parameters.set("useFasAdjacencies", true);
         parameters.set("useSkewAdjacencies", true);
-        parameters.set("useMask", false);
+        parameters.set("useMask", true);
         parameters.set("maskThreshold", 2);
 
         parameters.set("penaltyDiscount", 2);
@@ -232,9 +232,9 @@ public class TestSimulatedFmri {
     }
 
     @Test
-    public void task2() {
+    public void smithSim() {
         Parameters parameters = new Parameters();
-        parameters.set("penaltyDiscount", 1);
+        parameters.set("penaltyDiscount", 2);
         parameters.set("twoCycleAlpha", .0000001);
         parameters.set("faskDelta", -.2);
         parameters.set("depth", 5);

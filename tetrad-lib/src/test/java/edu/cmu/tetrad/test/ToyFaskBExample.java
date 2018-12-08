@@ -99,7 +99,7 @@ public class ToyFaskBExample {
 //        parameters.add("varHigh");
         parameters.set("verbose", true);
         parameters.set("includePositiveCoefs", true);
-        parameters.set("includeNegativeCoefs", false);
+        parameters.set("includeNegativeCoefs", true);
         parameters.set("includePositiveSkewsForBeta", true);
         parameters.set("includeNegativeSkewsForBeta", false);
         parameters.set("errorsNormal", false);
