@@ -8,7 +8,10 @@ import edu.cmu.tetrad.graph.EdgeListGraph;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.GraphUtils;
 import edu.cmu.tetrad.graph.Node;
+import edu.cmu.tetrad.search.IndTestScore;
+import edu.cmu.tetrad.search.SemBicScore;
 import edu.cmu.tetrad.util.Parameters;
+import edu.cmu.tetrad.util.TetradMatrix;
 import edu.pitt.dbmi.algo.resampling.GeneralResamplingTest;
 import edu.pitt.dbmi.algo.resampling.ResamplingEdgeEnsemble;
 
@@ -57,12 +60,12 @@ public class FaskOrientation implements Algorithm, TakesInitialGraph {
         if (parameters.getInt("bootstrapSampleSize") < 1) {
             initialGraph = algorithm.search(dataSet, parameters);
 
-//            if (initialGraph != null) {
-//                initialGraph = algorithm.search(dataSet, parameters);
-//            } else {
-//                throw new IllegalArgumentException("This R3 algorithm needs both data and a graph source as inputs; it \n"
-//                        + "will orient the edges in the input graph using the data");
-//            }
+            if (initialGraph != null) {
+                initialGraph = algorithm.search(dataSet, parameters);
+            } else {
+                throw new IllegalArgumentException("This Fask Orientation algorithm needs both data and a graph source as inputs; it \n"
+                        + "will orient the edges in the input graph using the data");
+            }
 
             List<String> nodes = initialGraph.getNodeNames();
 
@@ -78,11 +81,20 @@ public class FaskOrientation implements Algorithm, TakesInitialGraph {
 
             edu.cmu.tetrad.search.SemBicScore score = new edu.cmu.tetrad.search.SemBicScore(new CovarianceMatrixOnTheFly((DataSet) dataSet, false));
             score.setPenaltyDiscount(parameters.getDouble("penaltyDiscount"));
-            edu.cmu.tetrad.search.Fask search = new edu.cmu.tetrad.search.Fask((DataSet) dataSet, score);
+
+            edu.cmu.tetrad.search.Fask_B search
+                    = new edu.cmu.tetrad.search.Fask_B((DataSet) dataSet, new IndTestScore(score));
             search.setInitialGraph(initialGraph);
-            search.setExtraEdgeThreshold(parameters.getDouble("extraEdgeThreshold"));
-            search.setAlpha(parameters.getDouble("twoCycleAlpha"));
+            search.setDepth(parameters.getInt("depth"));
+//            search.setSkewEdgeAlpha(parameters.getDouble("skewEdgeAlpha"));
+            search.setTwoCycleAlpha(parameters.getDouble("twoCycleAlpha"));
             search.setDelta(parameters.getDouble("faskDelta"));
+//            search.setVerbose(parameters.getBoolean("verbose"));
+            search.setUseSkewAdjacencies(false);
+            search.setUseFasAdjacencies(true);
+            search.setUseMask(false);
+//            search.setMaskThreshold(parameters.getDouble("maskThreshold"));
+
             return search.search();
         } else {
             FaskOrientation r3 = new FaskOrientation(algorithm);
@@ -138,13 +150,15 @@ public class FaskOrientation implements Algorithm, TakesInitialGraph {
             parameters.addAll(algorithm.getParameters());
         }
 
-        // Bootstrapping
+        parameters.add("depth");
+//        parameters.add("skewEdgeAlpha");
         parameters.add("twoCycleAlpha");
-        parameters.add("extraEdgeThreshold");
         parameters.add("faskDelta");
-        parameters.add("bootstrapSampleSize");
-        parameters.add("bootstrapEnsemble");
-        parameters.add("verbose");
+
+//        parameters.add("useFasAdjacencies");
+//        parameters.add("useSkewAdjacencies");
+//        parameters.add("useMask");
+//        parameters.add("maskThreshold");
 
         return parameters;
     }

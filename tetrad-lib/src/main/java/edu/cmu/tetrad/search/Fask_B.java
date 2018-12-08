@@ -153,6 +153,7 @@ public final class Fask_B implements GraphSearch {
         if (isUseFasAdjacencies()) {
             if (getInitialGraph() != null) {
                 TetradLogger.getInstance().forceLogMessage("\nUsing initial graph.");
+                System.out.println("Initial graph: " + initialGraph);
 
                 Graph g1 = new EdgeListGraph(getInitialGraph().getNodes());
 
@@ -164,8 +165,51 @@ public final class Fask_B implements GraphSearch {
                 }
 
                 g1 = GraphUtils.replaceNodes(g1, dataSet.getVariables());
+                Graph graph = new EdgeListGraph(g1.getNodes());
 
-                fasGraph = g1;
+                for (Edge edge : g1.getEdges()) {
+                    Node X = edge.getNode1();
+                    Node Y = edge.getNode2();
+
+                    final double lrxy = leftRight(X, Y);
+                    final double lryx = leftRight(Y, X);
+
+                    if (lrxy < 0 && lryx < 0) {
+                        graph.addUndirectedEdge(X, Y);
+                    } else {
+                        boolean lr = lrxy > lryx;
+
+                        if (lr) {
+                            graph.addDirectedEdge(X, Y);
+                        } else {
+                            graph.addDirectedEdge(Y, X);
+                        }
+                    }
+
+                    orientEdge(graph, edge.getNode1(), edge.getNode2());
+                }
+
+                for (Edge edge : g1.getEdges()) {
+                    Node X = edge.getNode1();
+                    Node Y = edge.getNode2();
+
+                    if (graph.isAdjacentTo(X, Y) && !edgeForbiddenByKnowledge(X, Y)
+                            && !knowledgeOrients(X, Y) && !knowledgeOrients(Y, X)
+                            && !Edges.isBidirectedEdge(graph.getEdge(X, Y))
+                            && twocycle(X, Y, graph)) {
+                        final double lrxy = leftRight(X, Y);
+                        final double lryx = leftRight(Y, X);
+
+                        if (!(lrxy < 0 && lryx < 0)) {
+                            graph.removeEdges(X, Y);
+                            graph.addDirectedEdge(X, Y);
+                            graph.addDirectedEdge(Y, X);
+                        }
+                    }
+
+                }
+
+                return graph;
             } else {
                 TetradLogger.getInstance().forceLogMessage("\nFAS");
 
@@ -427,8 +471,7 @@ public final class Fask_B implements GraphSearch {
 
                     if (lrxy < 0 && lryx < 0) {
                         graph.addUndirectedEdge(X, Y);
-                    } else
-                    {
+                    } else {
                         boolean lr = lrxy > lryx;
 
 //                        if (multiplicative) {
@@ -606,41 +649,14 @@ public final class Fask_B implements GraphSearch {
         return b1 || b2;
     }
 
-//    private double leftRight1(Node X, Node Y) {
-//        double[] x = colData[variables.indexOf(X)];
-//        double[] y = colData[variables.indexOf(Y)];
-//
-//        final double left = E(x, y, x) / sqrt(E(x, x, x) * E(y, y, x));
-//        final double right = E(x, y, y) / sqrt(E(x, x, y) * E(y, y, y));
-//
-//        double sx = StatUtils.skewness(x);
-//        double sy = StatUtils.skewness(y);
-//        double sey = StatUtils.skewness(residuals(y, new double[][]{x}));
-//
-//        double lr = (left - right);
-//
-//        if (sey * correlation(x, y) < -getDelta()) {
-//            lr *= -1;
-//        }
-//
-//        if (isVerbose()) {
-//            TetradLogger.getInstance().forceLogMessage(Edges.directedEdge(X, Y)
-//                    + " X = " + X.getName()
-//                    + " Y = " + Y.getName()
-//                    + " LR = " + lr
-//                    + " sx = " + sx
-//                    + " sy = " + sy
-//                    + " sey = " + sey
-//                    + " corr = " + correlation(x, y)
-//            );
-//        }
-//
-//        return lr;
-//    }
-
     private double leftRight1(Node X, Node Y) {
         double[] x = colData[variables.indexOf(X)];
         double[] y = colData[variables.indexOf(Y)];
+
+        final double sx = StatUtils.skewness(x);
+        final double sy = StatUtils.skewness(y);
+        final double kx = StatUtils.kurtosis(x);
+        final double ky = StatUtils.kurtosis(y);
 
         y = times(y, signum(StatUtils.skewness(y)));
         x = times(x, signum(StatUtils.skewness(x)));
@@ -651,6 +667,20 @@ public final class Fask_B implements GraphSearch {
             lr *= -1;
         }
 
+        if (isVerbose()) {
+            TetradLogger.getInstance().forceLogMessage(
+                    Edges.directedEdge(X, Y)
+                            + " X = " + X.getName()
+                            + " Y = " + Y.getName()
+                            + " LR = " + lr
+                            + " sx = " + sx
+                            + " sy = " + sy
+                            + " kx = " + kx
+                            + " ky = " + ky
+                            + " corr = " + correlation(x, y)
+            );
+        }
+
         return lr;
     }
 
@@ -658,8 +688,13 @@ public final class Fask_B implements GraphSearch {
         double[] x = colData[variables.indexOf(X)];
         double[] y = colData[variables.indexOf(Y)];
 
-        y = times(y, signum(StatUtils.skewness(y)));
-        x = times(x, signum(StatUtils.skewness(x)));
+        final double sx = StatUtils.skewness(x);
+        final double sy = StatUtils.skewness(y);
+        final double kx = StatUtils.kurtosis(x);
+        final double ky = StatUtils.kurtosis(y);
+
+        x = times(x, signum(sx));
+        y = times(y, signum(sy));
 
         final double left = E(x, y, x) / sqrt(E(x, x, x) * E(y, y, x));
         final double right = E(x, y, y) / sqrt(E(x, x, y) * E(y, y, y));
@@ -671,24 +706,20 @@ public final class Fask_B implements GraphSearch {
         }
 
         if (isVerbose()) {
-//            System.out.println(
             TetradLogger.getInstance().forceLogMessage(
                     Edges.directedEdge(X, Y)
-                    + " X = " + X.getName()
-                    + " Y = " + Y.getName()
-                    + " LR = " + lr
-                    + " sx = " + StatUtils.skewness(x)
-                    + " sy = " + StatUtils.skewness(y)
-                    + " corr = " + correlation(x, y)
+                            + " X = " + X.getName()
+                            + " Y = " + Y.getName()
+                            + " LR = " + lr
+                            + " sx = " + sx
+                            + " sy = " + sy
+                            + " kx = " + kx
+                            + " ky = " + ky
+                            + " corr = " + correlation(x, y)
             );
         }
 
         return lr;
-    }
-
-    private double[] correctSkewness(double[] data) {
-        double skewness = StatUtils.skewness(data);
-        return times(data, skewness);
     }
 
     private double[] times(double[] data, double r) {

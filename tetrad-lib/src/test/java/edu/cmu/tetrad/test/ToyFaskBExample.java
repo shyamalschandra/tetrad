@@ -87,7 +87,7 @@ public class ToyFaskBExample {
 
         parameters.set("numMeasures", 20);
         parameters.set("numLatents", 0);
-        parameters.set("avgDegree", 4);
+        parameters.set("avgDegree", 2);
         parameters.set("maxDegree", 100);
         parameters.set("maxIndegree", 100);
         parameters.set("maxOutdegree", 100);
@@ -99,11 +99,11 @@ public class ToyFaskBExample {
 //        parameters.add("varHigh");
         parameters.set("verbose", true);
         parameters.set("includePositiveCoefs", true);
-        parameters.set("includeNegativeCoefs", true);
+        parameters.set("includeNegativeCoefs", false);
         parameters.set("includePositiveSkewsForBeta", true);
         parameters.set("includeNegativeSkewsForBeta", false);
         parameters.set("errorsNormal", false);
-        parameters.set("betaLeftValue", 1);
+        parameters.set("betaLeftValue", 2);
         parameters.set("betaRightValue", 5);
         parameters.set("numRuns", 10);
 //        parameters.add("percentDiscrete");
@@ -119,7 +119,7 @@ public class ToyFaskBExample {
 //        parameters.add("saveLatentVars");
 
         parameters.set("depth", -1);
-        parameters.set("skewEdgeAlpha", 0.001);
+        parameters.set("skewEdgeAlpha", 0.01);
         parameters.set("twoCycleAlpha", 0);
         parameters.set("faskDelta", -0.2);
 

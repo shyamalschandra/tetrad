@@ -832,7 +832,9 @@ public final class LargeScaleSimulation {
                 if (errorsNormal) {
                     sample *= sqrt(varDist.sample());
                 } else {
-                    sample *= dir * 10 * (sample);
+                    double mean = getBetaLeftValue() / (getBetaLeftValue() + getBetaRightValue());
+
+                    sample *= dir * 10 * (sample - mean);
                 }
 
                 shocks[i][j] = sample;
