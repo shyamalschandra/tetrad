@@ -126,12 +126,12 @@ public class CausalPairsTest {
 
                 Fask_B fask = new Fask_B(data1, new IndTestFisherZ(data1, .0));
                 fask.setTwoCycleAlpha(0.0000);
-                fask.setDelta(0);
+                fask.setDelta(-.3);
                 fask.setUseFasAdjacencies(true);
                 fask.setUseSkewAdjacencies(true);
                 fask.setUseMask(true);
-                fask.setMaskThreshold(0.1);
-                fask.setSkewEdgeAlpha(0.01);
+                fask.setMaskThreshold(0.25);
+                fask.setSkewEdgeAlpha(0.4);
 
                 Graph graph;
 
