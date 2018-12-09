@@ -22,37 +22,32 @@
 package edu.cmu.tetrad.test;
 
 import edu.cmu.tetrad.algcomparison.Comparison;
-import edu.cmu.tetrad.algcomparison.algorithm.Algorithm;
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithms;
-import edu.cmu.tetrad.algcomparison.algorithm.multi.FaskConcatenated;
 import edu.cmu.tetrad.algcomparison.algorithm.multi.Fask_BConcatenated;
-import edu.cmu.tetrad.algcomparison.graph.RandomForward;
-import edu.cmu.tetrad.algcomparison.graph.RandomGraph;
 import edu.cmu.tetrad.algcomparison.independence.SemBicTest;
-import edu.cmu.tetrad.algcomparison.simulation.LinearFisherModel;
-import edu.cmu.tetrad.algcomparison.simulation.Simulation;
 import edu.cmu.tetrad.algcomparison.simulation.Simulations;
 import edu.cmu.tetrad.algcomparison.statistic.*;
-import edu.cmu.tetrad.data.*;
-import edu.cmu.tetrad.graph.*;
-import edu.cmu.tetrad.search.*;
-import edu.cmu.tetrad.sem.LargeScaleSimulation;
+import edu.cmu.tetrad.data.ContinuousVariable;
+import edu.cmu.tetrad.data.DataSet;
+import edu.cmu.tetrad.data.DataUtils;
+import edu.cmu.tetrad.data.DiscreteVariable;
+import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.util.DataConvertUtils;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.RandomUtil;
-import edu.cmu.tetrad.util.StatUtils;
 import edu.pitt.dbmi.data.Delimiter;
-import edu.pitt.dbmi.data.reader.DataReader;
-import edu.pitt.dbmi.data.reader.tabular.ContinuousTabularDataFileReader;
 import edu.pitt.dbmi.data.reader.tabular.MixedTabularDataFileReader;
 import org.junit.Test;
 
-import java.io.*;
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
-import java.util.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintStream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-import static java.lang.Math.*;
+import static java.lang.Math.abs;
 
 /**
  * Pulling this test out for Madelyn.
@@ -61,20 +56,21 @@ import static java.lang.Math.*;
  */
 public class TestSimulatedFmri {
 
-    private void task(boolean testing) {
+    @Test
+    public void simulatedFmri() {
+        boolean testing = true;
+
         Parameters parameters = new Parameters();
         parameters.set("depth", 5);
-        parameters.set("skewEdgeAlpha", 0.0001);
+        parameters.set("skewEdgeAlpha", 0.001);
         parameters.set("twoCycleAlpha", .0000000);
-        parameters.set("faskDelta", -.3);
+        parameters.set("faskDelta", 0);
         parameters.set("useFasAdjacencies", true);
         parameters.set("useSkewAdjacencies", true);
         parameters.set("useMask", true);
         parameters.set("maskThreshold", 2);
 
         parameters.set("penaltyDiscount", 2);
-
-        testing = true;
 
         parameters.set("numRuns", 5);
         parameters.set("randomSelectionSize", 3);
@@ -223,9 +219,9 @@ public class TestSimulatedFmri {
         String directory;
 
         if (!testing) {
-            directory = "comparison_training";
+            directory = "/Users/user/tetrad/comparison_training";
         } else {
-            directory = "comparison_testing";
+            directory = "/Users/user/tetrad/comparison_testing";
         }
 
         comparison.compareFromSimulations(directory, simulations, algorithms, statistics, parameters);
@@ -311,7 +307,7 @@ public class TestSimulatedFmri {
         comparison.setTabDelimitedTables(false);
         comparison.setSaveGraphs(true);
 
-        String directory = "smithsim";
+        String directory = "/Users/user/tetrad/smithsim";
 
         comparison.compareFromSimulations(directory, simulations, algorithms, statistics, parameters);
     }
@@ -330,6 +326,7 @@ public class TestSimulatedFmri {
                     continuousColumns.add(data1.getColumn(node));
                 }
             }
+
             int[] _continuouscolumns = new int[continuousColumns.size()];
             for (int i = 0; i < continuousColumns.size(); i++) _continuouscolumns[i] = continuousColumns.get(i);
 
@@ -349,12 +346,10 @@ public class TestSimulatedFmri {
 
             System.out.println(allCategories);
 
-            List<Node> indicators = new ArrayList<>();
             Map<String, ContinuousVariable> hash = new HashMap<>();
 
             for (String category : allCategories) {
                 final ContinuousVariable e = new ContinuousVariable(category);
-                indicators.add(e);
                 if (concatenated.getVariable(e.getName()) == null) {
                     concatenated.addVariable(e);
                     hash.put(category, e);
@@ -387,7 +382,6 @@ public class TestSimulatedFmri {
             out.flush();
 
             String[] delays = {"5min", "15min", "30min", "60min", "2hr", "4hr"};
-            List<DataSet> allDelays = new ArrayList<>();
 
             for (String delay : delays) {
                 Node _delay = hash.get(delay);
@@ -405,8 +399,6 @@ public class TestSimulatedFmri {
 
                 DataSet subset = concatenated.subsetRows(_rows);
 
-                allDelays.add(subset);
-
                 System.out.println(subset.getNumRows());
 
                 PrintStream out2 = new PrintStream("/Users/user/Box Sync/data/4cellLineData/4celllines.with.indicators." + delay + ".jittered.txt");
@@ -418,284 +410,6 @@ public class TestSimulatedFmri {
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }
-
-    @Test
-    public void testCausalPairs() {
-        try {
-            List<Integer> gaussian = new ArrayList<>();
-            gaussian.add(97);
-
-//            List<Integer> shouldBeTwoCycle = new ArrayList<>();
-//            shouldBeTwoCycle.add(19);
-
-            List<Integer> getNonadjacent = new ArrayList<>();
-            List<Integer> getRight = new ArrayList<>();
-            List<Integer> getWrong = new ArrayList<>();
-            List<Integer> getBidirected = new ArrayList<>();
-            List<Integer> getUndirected = new ArrayList<>();
-            List<Integer> get2Cycle = new ArrayList<>();
-            List<Integer> zeroCorr = new ArrayList<>();
-            List<Integer> multiplicative = new ArrayList<>();
-            List<Integer> discrete = new ArrayList<>();
-            List<Integer> singularityException = new ArrayList<>();
-            List<Integer> vShaped = new ArrayList<>();
-
-            NumberFormat nf = new DecimalFormat("0000");
-
-            I:
-            for (int i = 1; i <= 108; i++) {
-                if (gaussian.contains(i)) {
-                    continue;
-                }
-
-                System.out.println("Pair # " + i);
-
-                DataSet data1 = loadData2("pair" + nf.format(i) + ".txt");
-                data1 = DataUtils.center(data1);
-
-                double[][] _data = data1.getDoubleData().transpose().toArray();
-
-                final double[] x = _data[0];
-                final double[] y = _data[1];
-//
-                double corr = StatUtils.correlation(x, y);
-
-                if (abs(corr) < 0.0001) {
-                    zeroCorr.add(i);
-                    continue;
-                }
-
-
-                if (contains(i, "#discrete")) {
-                    discrete.add(i);
-//                    continue;
-                }
-
-                if (contains(i, "#Gaussian")) {
-                    gaussian.add(i);
-                    continue;
-                }
-
-
-                Fask_B fask = new Fask_B(data1, new IndTestFisherZ(data1, .0));
-                fask.setTwoCycleAlpha(0.0000);
-                fask.setDelta(-.1);
-                fask.setUseFasAdjacencies(false);
-                fask.setUseSkewAdjacencies(true);
-                fask.setUseMask(false);
-                fask.setSkewEdgeAlpha(0.1);
-
-                Graph graph;
-
-                try {
-                    graph = fask.search();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    singularityException.add(i);
-                    continue;
-                }
-
-                final Node X = graph.getNode("VAR_1");
-                final Node Y = graph.getNode("VAR_2");
-
-                if (contains(i, "#multiplicative")) {
-                    multiplicative.add(i);
-                    graph.removeEdge(X, Y);
-                    graph.addDirectedEdge(X, Y);
-//                    continue;
-                }
-
-//                if (contains(i, "#V-shaped")) {
-//                    vShaped.add(i);
-//                    graph.removeEdge(X, Y);
-//                    graph.addDirectedEdge(X, Y);
-////                    continue;
-//                }
-
-
-                if (!graph.isAdjacentTo(X, Y)) {
-                    getNonadjacent.add(i);
-                    continue;
-                } else if (graph.getEdges(X, Y).size() == 2) {
-                    get2Cycle.add(i);
-//                    continue;
-                } else if (Edges.isBidirectedEdge(graph.getEdge(X, Y))) {
-                    getBidirected.add(i);
-                    continue;
-                }
-
-                boolean right = false;
-
-                if (Edges.isUndirectedEdge(graph.getEdge(X, Y))) {
-                    getUndirected.add(i);
-                    right = true;
-                }
-
-                if (contains(i, "#-->")) {
-                    System.out.println("Ground truth: VAR1 --> VAR2");
-
-                    if (graph.isParentOf(X, Y) && !graph.isParentOf(Y, X)) {
-                        right = true;
-                    }
-                }
-
-                if (contains(i, "#<--")) {
-                    System.out.println("Ground truth: VAR1 <-- VAR2");
-
-                    if (graph.isParentOf(Y, X) && !graph.isParentOf(X, Y)) {
-                        right = true;
-                    }
-                }
-
-                if (contains(i, "#<->")) {
-                    System.out.println("Ground truth: VAR1 <-> VAR2");
-
-                    if (Edges.isBidirectedEdge(graph.getEdge(X, Y))) {
-                        right = true;
-                    }
-                }
-
-                if (contains(i, "#<T>")) {
-                    System.out.println("Ground truth: VAR1 <=> VAR2");
-
-                    if (graph.isParentOf(Y, X) && graph.isParentOf(X, Y)) {
-                        right = true;
-                    }
-                }
-
-                if (right) {
-                    getRight.add(i);
-                } else {
-                    getWrong.add(i);
-                }
-            }
-
-            System.out.println("\nGets these right:");
-
-            for (int i : getRight) {
-                System.out.println(i);
-            }
-
-            System.out.println("\nNonadjacent:");
-
-            for (int i : getNonadjacent) {
-                System.out.println(i);
-            }
-
-
-//            System.out.println("\nShould be 2-cycles:");
-//
-//            for (int i : shouldBeTwoCycle) {
-//                System.out.println(i);
-//            }
-
-            System.out.println("\n2-cycles:");
-
-            for (int i : get2Cycle) {
-//                if (shouldBeTwoCycle.contains(i)) continue;;
-                System.out.println(i);
-            }
-
-            System.out.println("\nBidirected edges:");
-
-            for (int i : getBidirected) {
-                System.out.println(i);
-            }
-
-            System.out.println("\nUndirected edges:");
-
-            for (int i : getUndirected) {
-                System.out.println(i);
-            }
-
-            System.out.println("\nGets these wrong:");
-
-            for (int i : getWrong) {
-                System.out.println(i);
-            }
-
-            System.out.println("\nThese throw singularity exceptions:");
-
-            for (int i : singularityException) {
-                System.out.println(i);
-            }
-
-            System.out.println("\nThese had zero correlation:");
-
-            for (int i : zeroCorr) {
-                System.out.println(i);
-            }
-
-            System.out.println("\nThese are discrete:");
-
-            for (int i : discrete) {
-                System.out.println(i);
-            }
-
-            System.out.println("\nThese are Gaussian:");
-
-            for (int i : gaussian) {
-                System.out.println(i);
-            }
-
-            System.out.println("\nThese are multiplicative");
-
-            for (int i : multiplicative) {
-                System.out.println(i);
-            }
-
-            System.out.println("\nThese are V-shaped:");
-
-            for (int i : vShaped) {
-                System.out.println(i);
-            }
-
-
-            System.out.println("\n\nNUM CORRECT = " + getRight.size());
-            System.out.println("NUM INCORRECT = " + getWrong.size());
-
-            System.out.println("# correct or incorrect = " + (getRight.size() + getWrong.size()));
-
-
-        } catch (
-                IOException e) {
-            e.printStackTrace();
-        }
-
-    }
-
-    private boolean contains(int i, String s) {
-        try {
-            NumberFormat nf = new DecimalFormat("0000");
-
-            BufferedReader in = new BufferedReader(new FileReader(new File("/Users/user/Box Sync/data/pairs/"
-                    + "pair" + nf.format(i) + "_des.txt")));
-
-            String line;
-
-            while ((line = in.readLine()) != null) {
-                if (line.contains(s)) {
-                    return true;
-                }
-            }
-
-            return false;
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private static double n(double[] x) {
-        int n = 0;
-
-        for (int k = 0; k < x.length; k++) {
-            if (x[k] > 0) {
-                n++;
-            }
-        }
-
-        return n;
     }
 
     private int addIndicatorData(DataSet data1, DataSet concatenated, int discreteColumns, Map<String, ContinuousVariable> hash, int r) {
@@ -730,95 +444,11 @@ public class TestSimulatedFmri {
     }
 
     private DataSet loadData(String name) throws IOException {
-        DataReader dataReader = new MixedTabularDataFileReader(20
+        MixedTabularDataFileReader dataReader = new MixedTabularDataFileReader(20
                 , new File("/Users/user/Box Sync/data/4cellLineData/" + name), Delimiter.COMMA);
-        ((MixedTabularDataFileReader) dataReader).setHasHeader(true);
+        dataReader.setHasHeader(true);
 
         return (DataSet) DataConvertUtils.toDataModel(dataReader.readInData());
-    }
-
-    private DataSet loadData2(String name) throws IOException {
-        DataReader dataReader = new ContinuousTabularDataFileReader(
-                new File("/Users/user/Box Sync/data/pairs/" + name), Delimiter.WHITESPACE);
-        ((ContinuousTabularDataFileReader) dataReader).setHasHeader(false);
-
-        return (DataSet) DataConvertUtils.toDataModel(dataReader.readInData());
-    }
-
-    public static void main(String... args) {
-        new TestSimulatedFmri().task(false);
-    }
-
-    @Test
-    public void testToyExample() {
-        RandomGraph graph = new RandomForward();
-
-        Simulations simulations = new Simulations();
-        simulations.add(new LinearFisherModel(graph));
-
-        Algorithms algorithms = new Algorithms();
-        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.multi.Fask_B(new SemBicTest()));
-
-        Statistics statistics = new Statistics();
-        statistics.add(new AdjacencyPrecision());
-        statistics.add(new AdjacencyRecall());
-        statistics.add(new ArrowheadPrecision());
-        statistics.add(new ArrowheadRecall());
-
-        Parameters parameters = new Parameters();
-
-        parameters.set("numMeasures", 20);
-        parameters.set("numLatents", 0);
-        parameters.set("avgDegree", 2);
-        parameters.set("maxDegree", 100);
-        parameters.set("maxIndegree", 100);
-        parameters.set("maxOutdegree", 100);
-        parameters.set("connected", false);
-
-//        parameters.add("coefLow");
-//        parameters.add("coefHigh");
-//        parameters.add("varLow");
-//        parameters.add("varHigh");
-//        parameters.add("verbose");
-        parameters.set("includePositiveCoefs", true);
-        parameters.set("includeNegativeCoefs", true);
-        parameters.set("includePositiveSkewsForBeta", true);
-        parameters.set("includeNegativeSkewsForBeta", false);
-        parameters.set("errorsNormal", false);
-        parameters.set("betaLeftValue", 1);
-        parameters.set("betaRightValue", 5);
-        parameters.set("numRuns", 10);
-//        parameters.add("percentDiscrete");
-//        parameters.add("numCategories");
-//        parameters.add("differentGraphs");
-        parameters.set("sampleSize", 1000);
-        parameters.set("intervalBetweenShocks", 20);
-        parameters.set("intervalBetweenRecordings", 20);
-        parameters.set("selfLoopCoef", 0);
-        parameters.set("fisherEpsilon", 0.001);
-//        parameters.add("randomizeColumns");
-//        parameters.add("measurementVariance");
-//        parameters.add("saveLatentVars");
-
-        parameters.set("depth", -1);
-        parameters.set("skewEdgeAlpha", 0.01);
-        parameters.set("twoCycleAlpha", 0);
-        parameters.set("faskDelta", -0.0);
-
-        parameters.set("useFasAdjacencies", true);
-        parameters.set("useSkewAdjacencies", true);
-        parameters.set("useMask", true);
-        parameters.set("maskThreshold", 0.3);
-
-        // Bootstrapping
-//        parameters.add("numberResampling");
-//        parameters.add("percentResampleSize");
-//        parameters.add("resamplingWithReplacement");
-//        parameters.add("resamplingEnsemble");
-//        parameters.add("verbose");
-
-
-        new Comparison().compareFromSimulations("/Users/user/tetrad/toyexample", simulations, algorithms, statistics, parameters);
     }
 }
 

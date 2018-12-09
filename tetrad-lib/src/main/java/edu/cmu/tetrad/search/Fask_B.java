@@ -625,7 +625,7 @@ public final class Fask_B implements GraphSearch {
         return b1 || b2;
     }
 
-    private double leftRight(Node X, Node Y) {
+    private double leftRight2(Node X, Node Y) {
         double[] x = colData[variables.indexOf(X)];
         double[] y = colData[variables.indexOf(Y)];
 
@@ -634,7 +634,7 @@ public final class Fask_B implements GraphSearch {
         final double kx = StatUtils.kurtosis(x);
         final double ky = StatUtils.kurtosis(y);
 
-//        x = times(x, signum(sx));
+        x = times(x, signum(sx));
         y = times(y, signum(sy));
 
         double lr = E(x, y, y, -1) / E(x, x, y, -1) - E(x, y, y, +1) / E(x, x, y, +1);
@@ -651,8 +651,8 @@ public final class Fask_B implements GraphSearch {
                             + " LR = " + lr
                             + " sx = " + sx
                             + " sy = " + sy
-                            + " kx = " + kx
-                            + " ky = " + ky
+//                            + " kx = " + kx
+//                            + " ky = " + ky
                             + " corr = " + correlation(x, y)
             );
         }
@@ -660,7 +660,7 @@ public final class Fask_B implements GraphSearch {
         return lr;
     }
 
-    private double leftRight2(Node X, Node Y) {
+    private double leftRight(Node X, Node Y) {
         double[] x = colData[variables.indexOf(X)];
         double[] y = colData[variables.indexOf(Y)];
 
@@ -689,8 +689,8 @@ public final class Fask_B implements GraphSearch {
                             + " LR = " + lr
                             + " sx = " + sx
                             + " sy = " + sy
-                            + " kx = " + kx
-                            + " ky = " + ky
+//                            + " kx = " + kx
+//                            + " ky = " + ky
                             + " corr = " + correlation(x, y)
             );
         }
@@ -700,7 +700,7 @@ public final class Fask_B implements GraphSearch {
 
     private double[] times(double[] data, double r) {
         double[] data2 = new double[data.length];
-        for (int i = 0; i < data.length; i++) data2[i] = data[i] * Math.signum(r);
+        for (int i = 0; i < data.length; i++) data2[i] = data[i] * r;
         return data2;
     }
 

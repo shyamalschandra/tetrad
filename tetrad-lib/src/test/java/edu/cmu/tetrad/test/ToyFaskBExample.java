@@ -99,9 +99,9 @@ public class ToyFaskBExample {
 //        parameters.add("varHigh");
         parameters.set("verbose", true);
         parameters.set("includePositiveCoefs", true);
-        parameters.set("includeNegativeCoefs", true);
-        parameters.set("includePositiveSkewsForBeta", true);
-        parameters.set("includeNegativeSkewsForBeta", false);
+        parameters.set("includeNegativeCoefs", false);
+        parameters.set("includePositiveSkewsForBeta", false);
+        parameters.set("includeNegativeSkewsForBeta", true);
         parameters.set("errorsNormal", false);
         parameters.set("betaLeftValue", 2);
         parameters.set("betaRightValue", 5);
@@ -121,7 +121,7 @@ public class ToyFaskBExample {
         parameters.set("depth", -1);
         parameters.set("skewEdgeAlpha", 0.01);
         parameters.set("twoCycleAlpha", 0);
-        parameters.set("faskDelta", -0.2);
+        parameters.set("faskDelta", -0);
 
         parameters.set("useFasAdjacencies", true);
         parameters.set("useSkewAdjacencies", true);
@@ -136,7 +136,7 @@ public class ToyFaskBExample {
 //        parameters.add("verbose");
 
 
-        new Comparison().compareFromSimulations("/Users/user/tetrad/toyexample", simulations, algorithms, statistics, parameters);
+        new Comparison().compareFromSimulations("/Users/user/tetrad/aatoyexample", simulations, algorithms, statistics, parameters);
     }
 }
 
