@@ -57,18 +57,28 @@ import static java.lang.Math.abs;
 public class TestSimulatedFmri {
 
     @Test
-    public void simulatedFmri() {
-        boolean testing = true;
+    public void testingData() {
+        simulatedFmri(true);
+    }
+
+    @Test
+    public void trainingData() {
+        simulatedFmri(false);
+    }
+
+    public void simulatedFmri(boolean test) {
+        boolean testing = false;
 
         Parameters parameters = new Parameters();
         parameters.set("depth", 5);
         parameters.set("skewEdgeAlpha", 0.001);
-        parameters.set("twoCycleAlpha", .0000000);
+        parameters.set("twoCycleAlpha", 0);
         parameters.set("faskDelta", 0);
         parameters.set("useFasAdjacencies", true);
         parameters.set("useSkewAdjacencies", true);
         parameters.set("useMask", true);
         parameters.set("maskThreshold", 2);
+        parameters.set("correctSkews", false);
 
         parameters.set("penaltyDiscount", 2);
 

@@ -110,6 +110,9 @@ public final class Fask_B implements GraphSearch {
     // True if the data is multiplicative; in this case, the judgment is reversed.
     private boolean multiplicative = false;
 
+    // True iff skewnesses of each variable should be made positive by multiply by the signum of its skewness.
+    private boolean correctSkews = true;
+
     /**
      * @param dataSet These datasets must all have the same variables, in the same order.
      */
@@ -429,6 +432,13 @@ public final class Fask_B implements GraphSearch {
         this.multiplicative = multiplicative;
     }
 
+    public boolean isCorrectSkews() {
+        return correctSkews;
+    }
+
+    public void setCorrectSkews(boolean correctSkews) {
+        this.correctSkews = correctSkews;
+    }
 
     /////////////////////////////////////// PRIVATE METHODS ////////////////////////////////////
 
@@ -625,17 +635,17 @@ public final class Fask_B implements GraphSearch {
         return b1 || b2;
     }
 
-    private double leftRight2(Node X, Node Y) {
+    private double leftRight(Node X, Node Y) {
         double[] x = colData[variables.indexOf(X)];
         double[] y = colData[variables.indexOf(Y)];
 
         final double sx = StatUtils.skewness(x);
         final double sy = StatUtils.skewness(y);
-        final double kx = StatUtils.kurtosis(x);
-        final double ky = StatUtils.kurtosis(y);
 
-        x = times(x, signum(sx));
-        y = times(y, signum(sy));
+        if (isCorrectSkews()) {
+//            x = times(x, signum(sx));
+            y = times(y, signum(sy));
+        }
 
         double lr = E(x, y, y, -1) / E(x, x, y, -1) - E(x, y, y, +1) / E(x, x, y, +1);
 
@@ -651,8 +661,6 @@ public final class Fask_B implements GraphSearch {
                             + " LR = " + lr
                             + " sx = " + sx
                             + " sy = " + sy
-//                            + " kx = " + kx
-//                            + " ky = " + ky
                             + " corr = " + correlation(x, y)
             );
         }
@@ -660,17 +668,17 @@ public final class Fask_B implements GraphSearch {
         return lr;
     }
 
-    private double leftRight(Node X, Node Y) {
+    private double leftRight2(Node X, Node Y) {
         double[] x = colData[variables.indexOf(X)];
         double[] y = colData[variables.indexOf(Y)];
 
         final double sx = StatUtils.skewness(x);
         final double sy = StatUtils.skewness(y);
-        final double kx = StatUtils.kurtosis(x);
-        final double ky = StatUtils.kurtosis(y);
 
-        x = times(x, signum(sx));
-        y = times(y, signum(sy));
+        if (isCorrectSkews()) {
+            x = times(x, signum(sx));
+            y = times(y, signum(sy));
+        }
 
         final double left = E(x, y, x) / sqrt(E(x, x, x) * E(y, y, x));
         final double right = E(x, y, y) / sqrt(E(x, x, y) * E(y, y, y));
@@ -689,8 +697,6 @@ public final class Fask_B implements GraphSearch {
                             + " LR = " + lr
                             + " sx = " + sx
                             + " sy = " + sy
-//                            + " kx = " + kx
-//                            + " ky = " + ky
                             + " corr = " + correlation(x, y)
             );
         }

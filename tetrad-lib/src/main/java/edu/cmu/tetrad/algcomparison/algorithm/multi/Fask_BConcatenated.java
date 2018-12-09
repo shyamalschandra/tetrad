@@ -69,6 +69,7 @@ public class Fask_BConcatenated implements MultiDataSetAlgorithm, HasKnowledge, 
             search.setUseFasAdjacencies(parameters.getBoolean("useFasAdjacencies"));
             search.setUseMask(parameters.getBoolean("useMask"));
             search.setMaskThreshold(parameters.getDouble("maskThreshold"));
+            search.setCorrectSkews(parameters.getBoolean("correctSkews"));
             search.setKnowledge(knowledge);
             
             return search.search();
@@ -164,6 +165,7 @@ public class Fask_BConcatenated implements MultiDataSetAlgorithm, HasKnowledge, 
         parameters.add("useSkewAdjacencies");
         parameters.add("useMask");
         parameters.add("maskThreshold");
+        parameters.add("correctSkews");
 
         // Bootstrapping
         parameters.add("numberResampling");

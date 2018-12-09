@@ -68,7 +68,16 @@ import static java.lang.Math.tan;
 public class ToyFaskBExample {
 
     @Test
-    public void testToyExample() {
+    public void toy_positiveSkews() {
+        testToyExample(true);
+    }
+
+    @Test
+    public void toy_negativeSkews() {
+        testToyExample(false);
+    }
+
+    public void testToyExample(boolean positivceSkews) {
         RandomGraph graph = new RandomForward();
 
         Simulations simulations = new Simulations();
@@ -99,9 +108,9 @@ public class ToyFaskBExample {
 //        parameters.add("varHigh");
         parameters.set("verbose", true);
         parameters.set("includePositiveCoefs", true);
-        parameters.set("includeNegativeCoefs", false);
-        parameters.set("includePositiveSkewsForBeta", false);
-        parameters.set("includeNegativeSkewsForBeta", true);
+        parameters.set("includeNegativeCoefs", true);
+        parameters.set("includePositiveSkewsForBeta", positivceSkews);
+        parameters.set("includeNegativeSkewsForBeta", !positivceSkews);
         parameters.set("errorsNormal", false);
         parameters.set("betaLeftValue", 2);
         parameters.set("betaRightValue", 5);
@@ -121,7 +130,7 @@ public class ToyFaskBExample {
         parameters.set("depth", -1);
         parameters.set("skewEdgeAlpha", 0.01);
         parameters.set("twoCycleAlpha", 0);
-        parameters.set("faskDelta", -0);
+        parameters.set("faskDelta", 0);
 
         parameters.set("useFasAdjacencies", true);
         parameters.set("useSkewAdjacencies", true);
@@ -135,8 +144,16 @@ public class ToyFaskBExample {
 //        parameters.add("resamplingEnsemble");
 //        parameters.add("verbose");
 
+        String type;
 
-        new Comparison().compareFromSimulations("/Users/user/tetrad/aatoyexample", simulations, algorithms, statistics, parameters);
+        if (positivceSkews) {
+            type = "_positive_skews";
+        } else {
+            type = "_negative_skews";
+        }
+
+
+        new Comparison().compareFromSimulations("/Users/user/tetrad/aatoyexample" + type, simulations, algorithms, statistics, parameters);
     }
 }
 
