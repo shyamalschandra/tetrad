@@ -128,7 +128,7 @@ public class ToyFaskBExample {
 //        parameters.add("saveLatentVars");
 
         parameters.set("depth", -1);
-        parameters.set("skewEdgeAlpha", 0.01);
+        parameters.set("skewEdgeAlpha", 0.0001);
         parameters.set("twoCycleAlpha", 0);
         parameters.set("faskDelta", 0);
 

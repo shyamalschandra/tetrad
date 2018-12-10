@@ -643,7 +643,7 @@ public final class Fask_B implements GraphSearch {
         final double sy = StatUtils.skewness(y);
 
         if (isCorrectSkews()) {
-//            x = times(x, signum(sx));
+            x = times(x, signum(sx));
             y = times(y, signum(sy));
         }
 
