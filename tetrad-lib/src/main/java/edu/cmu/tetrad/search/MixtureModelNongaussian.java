@@ -6,8 +6,6 @@ import edu.cmu.tetrad.data.DoubleDataBox;
 import edu.cmu.tetrad.util.TetradMatrix;
 import edu.cmu.tetrad.util.TetradVector;
 
-import java.util.Random;
-
 /**
  * Created by user on 7/21/18.
  */
@@ -17,15 +15,15 @@ public class MixtureModelNongaussian {
     private TetradMatrix gammas;
     private TetradMatrix[] mixingMatrices;
     private TetradMatrix[] sourceVectors;
-    private TetradVector[] biasVectors;
     private TetradMatrix weights;
+    private TetradMatrix[] bias;
     private int[] cases;
     private int[] caseCounts;
     private double[][] dataArray;
     private double[][] gammaArray;
 
     public MixtureModelNongaussian(DataSet data, TetradMatrix gammas, TetradMatrix[] mixingMatrices,
-                                   TetradMatrix[] sourceVectors, TetradVector[] biasVectors, TetradMatrix weights) {
+                                   TetradMatrix[] sourceVectors, TetradMatrix[] biasVectors, TetradMatrix weights) {
 
         this.data = data;
         this.dataArray = data.getDoubleData().toArray();
@@ -33,7 +31,7 @@ public class MixtureModelNongaussian {
         this.gammaArray = gammas.toArray();
         this.mixingMatrices = mixingMatrices;
         this.sourceVectors = sourceVectors;
-        this.biasVectors = biasVectors;
+        this.bias = biasVectors;
         this.weights = weights;
 
         this.cases = new int[data.getNumRows()];
@@ -158,5 +156,5 @@ public class MixtureModelNongaussian {
 
     public TetradMatrix[] getMixingMatrices() { return mixingMatrices; }
 
-    public TetradVector[] getBiasVectors() {return biasVectors; }
+    public TetradMatrix[] getBias() {return bias; }
 }
