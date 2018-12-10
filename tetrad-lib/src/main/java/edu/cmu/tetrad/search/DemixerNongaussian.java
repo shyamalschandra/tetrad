@@ -78,7 +78,7 @@ public class DemixerNongaussian {
             TetradMatrix _bias = new TetradMatrix(1, numVars);
 
             for (int i = 0; i < numVars; i++) {
-                _bias.set(0, i, RandomUtil.getInstance().nextNormal(0, 0.01));
+                _bias.set(0, i, 0);// RandomUtil.getInstance().nextNormal(0, 0.01));
             }
 
             bias[k] = _bias;
@@ -258,42 +258,15 @@ public class DemixerNongaussian {
     }
 
     /*
-     * Helper method for matrix multiplication
-     */
-    private TetradMatrix toColumnMatrix(TetradVector vector) {
-        TetradMatrix m = new TetradMatrix(vector.size(), 1);
-
-        for (int i = 0; i < vector.size(); i++) {
-            m.set(i, 0, vector.get(i));
-        }
-
-        return m;
-    }
-
-    /*
-     * Helper method for matrix multiplication
-     */
-    private TetradMatrix toRowMatrix(TetradVector vector) {
-        TetradMatrix m = new TetradMatrix(1, vector.size());
-
-        for (int i = 0; i < vector.size(); i++) {
-            m.set(0, i, vector.get(i));
-        }
-
-        return m;
-    }
-
-
-    /*
      * Find posteriors of observations based on maximally likely values of mixing matrices, bias vectors, source vectors, and weights
      */
     private boolean expectation() {
 
         // determine log-likelihoods
         TetradMatrix likelihoods = new TetradMatrix(T, numComponents); // Nxk
+        double sum;
         double det;
-
-        double L = 0;
+        double _sum = 0.0;
 
         for (int k = 0; k < numComponents; k++) {
             det = Math.log(Math.abs(W[k].det()));
@@ -302,28 +275,29 @@ public class DemixerNongaussian {
                 return true;
             }
 
-            for (int c = 0; c < numVars; c++) {
-                double sum = 0.0;
+            for (int t = 0; t < X.rows(); t++) {
+                sum = 0;
 
-                for (int t = 0; t < T; t++) {
-                    double l = -.5 * Math.log(2.0 * Math.PI) - (K[k].get(c, c) * log(cosh(S[k].get(t, c))))
-                            - (pow(S[k].get(t, c), 2.0) / 2.0);
+                for (int i = 0; i < X.columns(); i++) {
+                    double _l = -.5 * Math.log(2.0 * Math.PI) - (K[k].get(i, i) * log(cosh(S[k].get(t, i))))
+                            - (pow(S[k].get(t, i), 2.0) / 2.0);
 
-                    if (K[k].get(c, c) > 0) {
-                        l = l - Math.log(0.7413);
+                    if (K[k].get(i, i) > 0) {
+                        _l = _l - Math.log(0.7413);
                     }
 
-                    likelihoods.set(t, k, l / T);
+                    sum += _l;
                 }
 
-                sum -= det;
-                L = L + sum;
+                double L = sum - det;
+
+                likelihoods.set(t, k, L);
+                sum += L;
             }
         }
 
-
         System.out.println("Likelihoods = " + likelihoods);
-        System.out.println("L = " + L);
+        System.out.println("L = " + _sum);
         System.out.println(" Done");
 
         for (int t = 0; t < T; t++) {
@@ -333,19 +307,11 @@ public class DemixerNongaussian {
                 probs[k] = exp(likelihoods.get(t, k)) * weights.get(0, k);
             }
 
-            double _sum = 0.0;
-
-            for (int k = 0; k < numComponents; k++) {
-                _sum += probs[k];
-            }
-
-            for (int k = 0; k < numComponents; k++) {
-                probs[k] /= _sum;
-            }
-
             for (int k = 0; k < numComponents; k++) {
                 posteriorProbs.set(t, k, probs[k]);
             }
+            
+            normalize(posteriorProbs, t);
 
 //            System.out.println("t = " + t + " " + Arrays.toString(_weightedProbs)
 //                    + " " + likelihoods.row(t) + " weights = " + weights
