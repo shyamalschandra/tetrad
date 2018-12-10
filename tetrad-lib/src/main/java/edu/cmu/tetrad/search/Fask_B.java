@@ -635,7 +635,7 @@ public final class Fask_B implements GraphSearch {
         return b1 || b2;
     }
 
-    private double leftRight(Node X, Node Y) {
+    private double leftRight1(Node X, Node Y) {
         double[] x = colData[variables.indexOf(X)];
         double[] y = colData[variables.indexOf(Y)];
 
@@ -668,7 +668,7 @@ public final class Fask_B implements GraphSearch {
         return lr;
     }
 
-    private double leftRight2(Node X, Node Y) {
+    private double leftRight(Node X, Node Y) {
         double[] x = colData[variables.indexOf(X)];
         double[] y = colData[variables.indexOf(Y)];
 
