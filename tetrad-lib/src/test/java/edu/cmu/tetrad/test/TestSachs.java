@@ -48,7 +48,7 @@ import org.junit.Test;
  */
 public class TestSachs {
 
-    private void task() {
+    void task() {
         Parameters parameters = new Parameters();
         parameters.set("structurePrior", 1);
         parameters.set("discretize", false);

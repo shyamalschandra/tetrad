@@ -57,6 +57,17 @@ import static java.lang.Math.abs;
 public class TestSimulatedFmri {
 
     @Test
+    public void allTests() {
+//        new TestSimulatedFmri().trainingData();
+//        new TestSimulatedFmri().testingData();
+//        new TestSimulatedFmri().smithSim();
+        new ToyFaskBExample().toy_positiveSkews();
+        new ToyFaskBExample().toy_negativeSkews();
+        new ToyFaskBExample().toy_mixedSkews();
+//        new TestSachs().task();
+    }
+
+    @Test
     public void testingData() {
         simulatedFmri(true);
     }

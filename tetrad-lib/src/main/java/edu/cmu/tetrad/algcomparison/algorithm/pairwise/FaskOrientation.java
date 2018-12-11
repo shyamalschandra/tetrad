@@ -1,6 +1,7 @@
 package edu.cmu.tetrad.algcomparison.algorithm.pairwise;
 
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithm;
+import edu.cmu.tetrad.algcomparison.utils.HasKnowledge;
 import edu.cmu.tetrad.algcomparison.utils.TakesInitialGraph;
 import edu.cmu.tetrad.annotation.AlgType;
 import edu.cmu.tetrad.data.*;
@@ -41,7 +42,7 @@ import java.util.List;
 //                "- Cutoff for p-values (alpha). Conditional independence tests with p-values greater than this will be judged to be independent (H0).\n" +
 //                "- Maximum size of conditioning set (depth). PC in the adjacency phase will consider conditioning sets for conditional independences of increasing size, up to this value. For instance, for depth 3, the maximum size of a conditioning set considered will be 3."
 )
-public class FaskOrientation implements Algorithm, TakesInitialGraph {
+public class FaskOrientation implements Algorithm, TakesInitialGraph, HasKnowledge {
 
     static final long serialVersionUID = 23L;
     private Algorithm algorithm = null;
@@ -64,7 +65,7 @@ public class FaskOrientation implements Algorithm, TakesInitialGraph {
                 initialGraph = algorithm.search(dataSet, parameters);
             } else {
                 throw new IllegalArgumentException("This Fask Orientation algorithm needs both data and a graph source as inputs; it \n"
-                        + "will orient the edges in the input graph using the data");
+                        + "will orient the  edges in the input graph using the data");
             }
 
             List<String> nodes = initialGraph.getNodeNames();
@@ -94,6 +95,9 @@ public class FaskOrientation implements Algorithm, TakesInitialGraph {
             search.setUseFasAdjacencies(true);
             search.setUseMask(false);
 //            search.setMaskThreshold(parameters.getDouble("maskThreshold"));
+
+            search.setVerbose(parameters.getBoolean("verbose"));
+            search.setKnowledge(knowledge);
 
             return search.search();
         } else {
@@ -160,7 +164,14 @@ public class FaskOrientation implements Algorithm, TakesInitialGraph {
 //        parameters.add("useMask");
 //        parameters.add("maskThreshold");
 
+        parameters.add("verbose");
+
         return parameters;
+    }
+
+    @Override
+    public IKnowledge getKnowledge() {
+        return knowledge;
     }
 
     public void setKnowledge(IKnowledge knowledge) {

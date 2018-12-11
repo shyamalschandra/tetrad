@@ -69,15 +69,20 @@ public class ToyFaskBExample {
 
     @Test
     public void toy_positiveSkews() {
-        testToyExample(true);
+        testToyExample(true, false);
     }
 
     @Test
     public void toy_negativeSkews() {
-        testToyExample(false);
+        testToyExample(false, true);
     }
 
-    public void testToyExample(boolean positivceSkews) {
+    @Test
+    public void toy_mixedSkews() {
+        testToyExample(true, true);
+    }
+
+    public void testToyExample(boolean positiveSkews, boolean negativeSkews) {
         RandomGraph graph = new RandomForward();
 
         Simulations simulations = new Simulations();
@@ -109,8 +114,8 @@ public class ToyFaskBExample {
         parameters.set("verbose", true);
         parameters.set("includePositiveCoefs", true);
         parameters.set("includeNegativeCoefs", true);
-        parameters.set("includePositiveSkewsForBeta", positivceSkews);
-        parameters.set("includeNegativeSkewsForBeta", !positivceSkews);
+        parameters.set("includePositiveSkewsForBeta", positiveSkews);
+        parameters.set("includeNegativeSkewsForBeta", negativeSkews);
         parameters.set("errorsNormal", false);
         parameters.set("betaLeftValue", 2);
         parameters.set("betaRightValue", 5);
@@ -146,12 +151,13 @@ public class ToyFaskBExample {
 
         String type;
 
-        if (positivceSkews) {
+        if (positiveSkews && !negativeSkews) {
             type = "_positive_skews";
-        } else {
+        } else if (!positiveSkews && negativeSkews) {
             type = "_negative_skews";
+        } else {
+            type = "_mixed_skews";
         }
-
 
         new Comparison().compareFromSimulations("/Users/user/tetrad/aatoyexample" + type, simulations, algorithms, statistics, parameters);
     }
