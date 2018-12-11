@@ -2092,7 +2092,7 @@ public final class StatUtils {
                     rows.add(k);
                 }
             } else if (direction < threshold) {
-                if (x[k] > threshold) {
+                if (x[k] < threshold) {
                     rows.add(k);
                 }
             } else {
