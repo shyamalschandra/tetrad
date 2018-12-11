@@ -669,15 +669,15 @@ public final class Fask_B implements GraphSearch {
 
         double lr = left - right;
 
-//        if (correlation(x, y) < 0) {
-//            lr *= -1;
-//        }
-//
-//        if (isCorrectSkews()) {
-//            if (signum(StatUtils.skewness(x)) < 0) {
-//                lr *= -1;
-//            }
-//        }
+        if (correlation(x, y) < 0) {
+            lr *= -1;
+        }
+
+        if (isCorrectSkews()) {
+            if (StatUtils.skewness(x) < 0) {
+                lr *= -1;
+            }
+        }
 
         if (isVerbose()) {
             TetradLogger.getInstance().forceLogMessage(
@@ -685,10 +685,11 @@ public final class Fask_B implements GraphSearch {
                             + " X = " + X.getName()
                             + " Y = " + Y.getName()
                             + " LR = " + lr
-                            + " sx = " + StatUtils.skewness(x)
-                            + " sy = " + StatUtils.skewness(y)
-                            + " corr = " + correlation(x, y)
-            );
+//                            + " sx = " + StatUtils.skewness(x)
+//                            + " sy = " + StatUtils.skewness(y)
+//                            + " corr = " + correlation(x, y)
+                            + " prod = " + signum(correlation(x, y) * StatUtils.skewness(x))
+                    );
         }
 
         return lr;
