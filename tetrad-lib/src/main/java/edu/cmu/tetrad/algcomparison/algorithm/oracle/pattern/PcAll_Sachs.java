@@ -8,6 +8,7 @@ import edu.cmu.tetrad.algcomparison.utils.SachsUtils;
 import edu.cmu.tetrad.algcomparison.utils.TakesIndependenceWrapper;
 import edu.cmu.tetrad.algcomparison.utils.TakesInitialGraph;
 import edu.cmu.tetrad.annotation.AlgType;
+import edu.cmu.tetrad.annotation.Experimental;
 import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.EdgeListGraph;
 import edu.cmu.tetrad.graph.Graph;
@@ -29,6 +30,7 @@ import java.util.List;
         command = "pc-all",
         algoType = AlgType.forbid_latent_common_causes
 )
+@Experimental
 public class PcAll_Sachs implements Algorithm, TakesInitialGraph, HasKnowledge, TakesIndependenceWrapper, TrueGraphSetter {
 
     static final long serialVersionUID = 23L;

@@ -59,8 +59,7 @@ public class Fask implements Algorithm, HasKnowledge, UsesScoreWrapper {
 //            search.setPercentBootstrapForLinearityTest(parameters.getDouble("percentBootstrapForLinearityTest"));
 //            search.setNumBootstrapForLinearityTest(parameters.getInt("numBootstrapForLinearityTest"));
 //            search.setCutoffForLinearityTest(parameters.getDouble("cutoffForLinearityTest"));
-
-
+            search.setKnowledge(knowledge);
             return getGraph(search);
         } else {
             Fask fask = new Fask(score);
