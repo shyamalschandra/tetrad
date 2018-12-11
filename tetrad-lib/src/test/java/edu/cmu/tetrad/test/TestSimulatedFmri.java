@@ -58,13 +58,13 @@ public class TestSimulatedFmri {
 
     @Test
     public void allTests() {
-//        new TestSimulatedFmri().trainingData();
-//        new TestSimulatedFmri().testingData();
-//        new TestSimulatedFmri().smithSim();
+        new TestSimulatedFmri().trainingData();
+        new TestSimulatedFmri().testingData();
+        new TestSimulatedFmri().smithSim();
         new ToyFaskBExample().toy_positiveSkews();
         new ToyFaskBExample().toy_negativeSkews();
         new ToyFaskBExample().toy_mixedSkews();
-//        new TestSachs().task();
+        new TestSachs().task();
     }
 
     @Test
@@ -78,8 +78,6 @@ public class TestSimulatedFmri {
     }
 
     public void simulatedFmri(boolean test) {
-        boolean testing = false;
-
         Parameters parameters = new Parameters();
         parameters.set("depth", 5);
         parameters.set("skewEdgeAlpha", 0.001);
@@ -123,7 +121,7 @@ public class TestSimulatedFmri {
 
         Simulations simulations = new Simulations();
 
-        if (!testing) {
+        if (!test) {
             String dir = "/Users/user/Downloads/Cycles_Data_fMRI/";
             String subdir = "data_fslfilter";
 
@@ -239,7 +237,7 @@ public class TestSimulatedFmri {
 
         String directory;
 
-        if (!testing) {
+        if (!test) {
             directory = "/Users/user/tetrad/comparison_training";
         } else {
             directory = "/Users/user/tetrad/comparison_testing";

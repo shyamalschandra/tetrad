@@ -63,7 +63,7 @@ public class FaskSachs implements Algorithm, HasKnowledge, UsesScoreWrapper {
             knowledge = su.getKnowledge();
 
             search.setKnowledge(knowledge);
-            search.setVerbose(parameters.getBoolean("verbose"));
+//            search.setVerbose(parameters.getBoolean("verbose"));
 
 //            search.setPercentBootstrapForLinearityTest(parameters.getDouble("percentBootstrapForLinearityTest"));
 //            search.setNumBootstrapForLinearityTest(parameters.getInt("numBootstrapForLinearityTest"));

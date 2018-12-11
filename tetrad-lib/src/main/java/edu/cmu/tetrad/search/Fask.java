@@ -35,7 +35,6 @@ import java.util.List;
 import java.util.Set;
 
 import static edu.cmu.tetrad.util.StatUtils.correlation;
-import static edu.cmu.tetrad.util.StatUtils.covMatrix;
 import static edu.cmu.tetrad.util.StatUtils.skewness;
 import static java.lang.Math.*;
 
@@ -196,7 +195,7 @@ public final class Fask implements GraphSearch {
                         graph.addEdge(edge1);
                         graph.addEdge(edge2);
                     } else {
-                        if (leftright(X, Y)) {
+                        if (leftright(x, y)) {
                             graph.addDirectedEdge(X, Y);
                         } else {
                             graph.addDirectedEdge(Y, X);
@@ -205,8 +204,6 @@ public final class Fask implements GraphSearch {
                 }
             }
         }
-
-        TetradLogger.getInstance().forceLogMessage("\n\nFinal graph: \n\n" + graph);
 
         System.out.println();
         System.out.println("Done");
@@ -284,6 +281,26 @@ public final class Fask implements GraphSearch {
         return true;
     }
 
+    private boolean leftright(double[] x, double[] y) {
+        final double cxyx = cu(x, y, x);
+        final double cxyy = cu(x, y, y);
+
+        double left = cxyx / sqrt(cu(x, x, x) * cu(y, y, x));
+        double right = cxyy / sqrt(cu(x, x, y) * cu(y, y, y));
+
+        double lr = left - right;
+
+        double r = StatUtils.correlation(x, y);
+        double sx = StatUtils.skewness(x);
+        double sy = StatUtils.skewness(y);
+
+        r *= signum(sx) * signum(sy);
+        lr *= signum(r);
+        if (r < getDelta()) lr *= -1;
+
+        return lr > 0;
+    }
+
     private boolean leftRightMinnesota(double[] x, double[] y) {
         x = correctSkewness(x);
         y = correctSkewness(y);
@@ -345,34 +362,83 @@ public final class Fask implements GraphSearch {
         return y.minus(yHat).getColumn(0).toArray();
     }
 
-    private boolean leftright(Node X, Node Y) {
-        final double[] x = data[variables.indexOf(X)];
-        final double[] y = data[variables.indexOf(Y)];
+    private double leftright(Node X, Node Y) {
+        double[] x = data[variables.indexOf(X)];
+        double[] y = data[variables.indexOf(Y)];
 
-        final double cxyx = cu(x, y, x);
-        final double cxyy = cu(x, y, y);
-
-        double left = cxyx / sqrt(cu(x, x, x) * cu(y, y, x));
-        double right = cxyy / sqrt(cu(x, x, y) * cu(y, y, y));
+        double left = E(x, y, x) / sqrt(E(x, x, x) * E(y, y, x));
+        double right = E(x, y, y) / sqrt(E(x, x, y) * E(y, y, y));
 
         double lr = left - right;
 
-        double r = StatUtils.correlation(x, y);
-        double sx = StatUtils.skewness(x);
-        double sy = StatUtils.skewness(y);
-
-        r *= signum(sx) * signum(sy);
-        lr *= signum(r);
-        if (r < getDelta()) lr *= -1;
+//        if (correlation(x, y) < 0) {
+//            lr *= -1;
+//        }
+//
+//        if (isCorrectSkews()) {
+//            if (signum(StatUtils.skewness(x)) < 0) {
+//                lr *= -1;
+//            }
+//        }
 
         if (isVerbose()) {
             TetradLogger.getInstance().forceLogMessage(
-                    Edges.directedEdge(X, Y) + " skew X = " + sx + " skew Y = " + sy + " corr = " + r + " LR = " + lr
+                    Edges.directedEdge(X, Y)
+                            + " X = " + X.getName()
+                            + " Y = " + Y.getName()
+                            + " LR = " + lr
+                            + " sx = " + StatUtils.skewness(x)
+                            + " sy = " + StatUtils.skewness(y)
+                            + " corr = " + correlation(x, y)
             );
         }
 
-        return lr > 0;
+        return lr;
     }
+
+    private static double E(double[] x, double[] y, double[] condition) {
+        double exy = 0.0;
+
+        int n = 0;
+
+        for (int k = 0; k < x.length; k++) {
+            if (condition[k] > 0) {
+                exy += x[k] * y[k];
+                n++;
+            }
+        }
+
+        return exy / n;
+    }
+
+//    private boolean leftright(Node X, Node Y) {
+//        final double[] x = data[variables.indexOf(X)];
+//        final double[] y = data[variables.indexOf(Y)];
+//
+//        final double cxyx = cu(x, y, x);
+//        final double cxyy = cu(x, y, y);
+//
+//        double left = cxyx / sqrt(cu(x, x, x) * cu(y, y, x));
+//        double right = cxyy / sqrt(cu(x, x, y) * cu(y, y, y));
+//
+//        double lr = left - right;
+//
+//        double r = StatUtils.correlation(x, y);
+//        double sx = StatUtils.skewness(x);
+//        double sy = StatUtils.skewness(y);
+//
+//        r *= signum(sx) * signum(sy);
+//        lr *= signum(r);
+//        if (r < getDelta()) lr *= -1;
+//
+//        if (isVerbose()) {
+//            TetradLogger.getInstance().forceLogMessage(
+//                    Edges.directedEdge(X, Y) + " skew X = " + sx + " skew Y = " + sy + " corr = " + r + " LR = " + lr
+//            );
+//        }
+//
+//        return lr > 0;
+//    }
 
     private static double cov(double[] x, double[] y, double[] condition) {
         double exy = 0.0;

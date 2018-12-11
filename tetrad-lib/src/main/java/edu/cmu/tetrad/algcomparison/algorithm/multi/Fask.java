@@ -37,7 +37,7 @@ public class Fask implements Algorithm, HasKnowledge, UsesScoreWrapper {
 
     }
 
-    public      Fask(ScoreWrapper score) {
+    public Fask(ScoreWrapper score) {
         this.score = score;
     }
 
@@ -54,10 +54,10 @@ public class Fask implements Algorithm, HasKnowledge, UsesScoreWrapper {
             search.setUseSkewAdjacencies(parameters.getBoolean("useSkewAdjacencies"));
             search.setExtraEdgeThreshold(parameters.getDouble("maskThreshold"));
             search.setUseFasAdjacencies(parameters.getBoolean("useFasAdjacencies"));
-             search.setAlpha(parameters.getDouble("twoCycleAlpha"));
+            search.setAlpha(parameters.getDouble("twoCycleAlpha"));
             search.setDelta(parameters.getDouble("faskDelta"));
             search.setKnowledge(knowledge);
-            search.setVerbose(parameters.getBoolean("verbose"));
+//            search.setVerbose(parameters.getBoolean("verbose"));
 
 //            search.setPercentBootstrapForLinearityTest(parameters.getDouble("percentBootstrapForLinearityTest"));
 //            search.setNumBootstrapForLinearityTest(parameters.getInt("numBootstrapForLinearityTest"));
@@ -71,10 +71,10 @@ public class Fask implements Algorithm, HasKnowledge, UsesScoreWrapper {
             DataSet data = (DataSet) dataSet;
             GeneralResamplingTest search = new GeneralResamplingTest(data, fask, parameters.getInt("numberResampling"));
             search.setKnowledge(knowledge);
-            
+
             search.setPercentResampleSize(parameters.getDouble("percentResampleSize"));
             search.setResamplingWithReplacement(parameters.getBoolean("resamplingWithReplacement"));
-            
+
             ResamplingEdgeEnsemble edgeEnsemble = ResamplingEdgeEnsemble.Highest;
             switch (parameters.getInt("resamplingEnsemble", 1)) {
                 case 0:

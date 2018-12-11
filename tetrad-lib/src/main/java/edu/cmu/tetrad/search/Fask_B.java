@@ -635,15 +635,15 @@ public final class Fask_B implements GraphSearch {
 
         double lr = E(x, y, y, -1) / E(x, x, y, -1) - E(x, y, y, +1) / E(x, x, y, +1);
 
-        if (isCorrectSkews()) {
-            if (signum(StatUtils.skewness(y)) * correlation(x, y) < 0) {
-                lr *= -1;
-            }
-        } else {
-            if (correlation(x, y) < 0) {
-                lr *= -1;
-            }
-        }
+//        if (isCorrectSkews()) {
+//            if (signum(StatUtils.skewness(y)) * correlation(x, y) < 0) {
+//                lr *= -1;
+//            }
+//        } else {
+//            if (correlation(x, y) < 0) {
+//                lr *= -1;
+//            }
+//        }
 
         if (isVerbose()) {
             TetradLogger.getInstance().forceLogMessage(
@@ -669,15 +669,15 @@ public final class Fask_B implements GraphSearch {
 
         double lr = left - right;
 
-        if (correlation(x, y) < 0) {
-            lr *= -1;
-        }
-
-        if (isCorrectSkews()) {
-            if (signum(StatUtils.skewness(x)) < 0) {
-                lr *= -1;
-            }
-        }
+//        if (correlation(x, y) < 0) {
+//            lr *= -1;
+//        }
+//
+//        if (isCorrectSkews()) {
+//            if (signum(StatUtils.skewness(x)) < 0) {
+//                lr *= -1;
+//            }
+//        }
 
         if (isVerbose()) {
             TetradLogger.getInstance().forceLogMessage(
@@ -693,6 +693,40 @@ public final class Fask_B implements GraphSearch {
 
         return lr;
     }
+
+//    private double leftRight(Node X, Node Y) {
+//        double[] x = colData[variables.indexOf(X)];
+//        double[] y = colData[variables.indexOf(Y)];
+//
+//        double left = E(x, y, x) / sqrt(E(x, x, x) * E(y, y, x));
+//        double right = E(x, y, y) / sqrt(E(x, x, y) * E(y, y, y));
+//
+//        double lr = left - right;
+//
+////        if (correlation(x, y) < 0) {
+////            lr *= -1;
+////        }
+////
+////        if (isCorrectSkews()) {
+////            if (signum(StatUtils.skewness(x)) < 0) {
+////                lr *= -1;
+////            }
+////        }
+//
+//        if (isVerbose()) {
+//            TetradLogger.getInstance().forceLogMessage(
+//                    Edges.directedEdge(X, Y)
+//                            + " X = " + X.getName()
+//                            + " Y = " + Y.getName()
+//                            + " LR = " + lr
+//                            + " sx = " + StatUtils.skewness(x)
+//                            + " sy = " + StatUtils.skewness(y)
+//                            + " corr = " + correlation(x, y)
+//            );
+//        }
+//
+//        return lr;
+//    }
 
     private double[] times(double[] data, double r) {
         double[] data2 = new double[data.length];
