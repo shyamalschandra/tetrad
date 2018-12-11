@@ -68,6 +68,8 @@ public final class LargeScaleSimulation {
     private boolean alreadySetUp = false;
     private boolean includePositiveCoefs = true;
     private boolean includeNegativeCoefs = true;
+    private boolean includePositiveSkewsforBeta = true;
+    private boolean includeNegativeSkewsForBeta = false;
 
     private boolean errorsNormal = true;
     private double betaLeftValue;
@@ -814,11 +816,25 @@ public final class LargeScaleSimulation {
         double[][] shocks = new double[sampleSize][numVars];
 
         for (int j = 0; j < numVars; j++) {
+            double dir;
+
+            if (includePositiveSkewsforBeta && !includeNegativeSkewsForBeta) {
+                dir = +1.0;
+            } else if (!includePositiveSkewsforBeta && includeNegativeSkewsForBeta) {
+                dir = -1.0;
+            } else {
+                dir = RandomUtil.getInstance().nextDouble() > 0.5 ? 1 : -1;
+            }
+
             for (int i = 0; i < sampleSize; i++) {
                 double sample = distribution.sample();
 
                 if (errorsNormal) {
                     sample *= sqrt(varDist.sample());
+                } else {
+                    double mean = getBetaLeftValue() / (getBetaLeftValue() + getBetaRightValue());
+
+                    sample *= dir * 10 * (sample - mean);
                 }
 
                 shocks[i][j] = sample;
@@ -894,5 +910,21 @@ public final class LargeScaleSimulation {
 
     public void setSelfLoopCoef(double selfLoopCoef) {
         this.selfLoopCoef = selfLoopCoef;
+    }
+
+    public boolean isIncludePositiveSkewsforBeta() {
+        return includePositiveSkewsforBeta;
+    }
+
+    public void setIncludePositiveSkewsforBeta(boolean includePositiveSkewsforBeta) {
+        this.includePositiveSkewsforBeta = includePositiveSkewsforBeta;
+    }
+
+    public boolean isIncludeNegativeSkewsForBeta() {
+        return includeNegativeSkewsForBeta;
+    }
+
+    public void setIncludeNegativeSkewsForBeta(boolean includeNegativeSkewsForBeta) {
+        this.includeNegativeSkewsForBeta = includeNegativeSkewsForBeta;
     }
 }

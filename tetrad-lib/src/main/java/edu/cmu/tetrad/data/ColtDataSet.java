@@ -1085,8 +1085,8 @@ public final class ColtDataSet implements DataSet, TetradSerializable {
         StringBuilder buf = new StringBuilder();
         List<Node> variables = getVariables();
 
-        buf.append("\n");
-
+//        buf.append("\n");
+//
         if (isLineNumbersWritten()) {
             buf.append("\t");
         }

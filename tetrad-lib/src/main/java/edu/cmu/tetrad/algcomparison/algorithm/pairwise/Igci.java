@@ -3,7 +3,6 @@ package edu.cmu.tetrad.algcomparison.algorithm.pairwise;
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithm;
 import edu.cmu.tetrad.algcomparison.utils.TakesInitialGraph;
 import edu.cmu.tetrad.annotation.AlgType;
-import edu.cmu.tetrad.annotation.Experimental;
 import edu.cmu.tetrad.data.DataModel;
 import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.data.DataType;
@@ -20,28 +19,25 @@ import java.util.LinkedList;
 import java.util.List;
 
 /**
- * RSkewE.
+ * RSkew.
  *
  * @author jdramsey
  */
-@Experimental
 @edu.cmu.tetrad.annotation.Algorithm(
-        name = "RSkewE",
-        command = "engine-skew-e",
+        name = "IGCI",
+        command = "engine-igci",
         algoType = AlgType.orient_pairwise
 )
-public class RSkewE implements Algorithm, TakesInitialGraph {
+public class Igci implements Algorithm, TakesInitialGraph {
 
     static final long serialVersionUID = 23L;
-    
     private Algorithm algorithm = null;
     private Graph initialGraph = null;
 
-    public RSkewE() {
-
+    public Igci() {
     }
 
-    public RSkewE(Algorithm algorithm) {
+    public Igci(Algorithm algorithm) {
         this.algorithm = algorithm;
     }
 
@@ -53,7 +49,7 @@ public class RSkewE implements Algorithm, TakesInitialGraph {
             if (graph != null) {
                 initialGraph = graph;
             } else {
-                throw new IllegalArgumentException("This RSkewE algorithm needs both data and a graph source as inputs; it \n"
+                throw new IllegalArgumentException("This RSkew algorithm needs both data and a graph source as inputs; it \n"
                         + "will orient the edges in the input graph using the data");
             }
 
@@ -61,17 +57,17 @@ public class RSkewE implements Algorithm, TakesInitialGraph {
             dataSets.add(DataUtils.getContinuousDataSet(dataSet));
 
             Lofs2 lofs = new Lofs2(initialGraph, dataSets);
-            lofs.setRule(Lofs2.Rule.RSkewE);
+            lofs.setRule(Lofs2.Rule.IGCI);
 
             return lofs.orient();
         } else {
-            RSkewE rSkewE = new RSkewE(algorithm);
+            Igci igci = new Igci(algorithm);
             if (initialGraph != null) {
-                rSkewE.setInitialGraph(initialGraph);
+                igci.setInitialGraph(initialGraph);
             }
 
             DataSet data = (DataSet) dataSet;
-            GeneralResamplingTest search = new GeneralResamplingTest(data, rSkewE, parameters.getInt("numberResampling"));
+            GeneralResamplingTest search = new GeneralResamplingTest(data, igci, parameters.getInt("numberResampling"));
 
             search.setPercentResampleSize(parameters.getDouble("percentResampleSize"));
             search.setResamplingWithReplacement(parameters.getBoolean("resamplingWithReplacement"));
@@ -101,7 +97,7 @@ public class RSkewE implements Algorithm, TakesInitialGraph {
 
     @Override
     public String getDescription() {
-        return "RSkewE" + (initialGraph != null ? " with initial graph from "
+        return "RSkew" + (algorithm != null ? " with initial graph from "
                 + algorithm.getDescription() : "");
     }
 
@@ -141,7 +137,7 @@ public class RSkewE implements Algorithm, TakesInitialGraph {
     @Override
     public void setInitialGraph(Algorithm algorithm) {
         if (algorithm == null) {
-            throw new IllegalArgumentException("This RSkewE algorithm needs both data and a graph source as inputs; it \n"
+            throw new IllegalArgumentException("This RSkew algorithm needs both data and a graph source as inputs; it \n"
                     + "will orient the edges in the input graph using the data.");
         }
 

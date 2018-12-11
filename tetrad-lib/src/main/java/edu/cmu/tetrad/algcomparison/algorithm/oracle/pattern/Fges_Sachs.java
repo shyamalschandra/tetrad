@@ -115,7 +115,7 @@ public class Fges_Sachs implements Algorithm, TakesInitialGraph, HasKnowledge, U
                     parameters.getBoolean("requiredEdgeKnowledge", false));
             search.setKnowledge(knowledge);
             
-            search.setResampleSize(parameters.getInt("resampleSize"));
+            search.setPercentResampleSize(parameters.getInt("percentResampleSize"));
             search.setResamplingWithReplacement(parameters.getBoolean("resamplingWithReplacement"));
             
             ResamplingEdgeEnsemble edgeEnsemble = ResamplingEdgeEnsemble.Highest;

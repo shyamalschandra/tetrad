@@ -318,11 +318,17 @@ public class EdgeListGraph implements Graph, TripleClassifier {
             Node A = Edges.getDirectedEdgeTail(edge);
             Node B = Edges.getDirectedEdgeHead(edge);
 
-            if (isParentOf(A, B)) {
-                return true;
-            } else {
-                return visibleEdgeHelper(A, B, this);
+            for (Node C : getAdjacentNodes(A)) {
+                if (C != B && !isAdjacentTo(C, B)) {
+                    Edge e = getEdge(C, A);
+
+                    if (e.getProximalEndpoint(A) == Endpoint.ARROW) {
+                        return true;
+                    }
+                }
             }
+
+            return visibleEdgeHelper(A, B, this);
         } else {
             throw new IllegalArgumentException(
                     "Given edge is not in the graph.");
@@ -340,7 +346,9 @@ public class EdgeListGraph implements Graph, TripleClassifier {
         final LinkedList<Node> path = new LinkedList<>();
         path.add(A);
 
-        for (Node C : graph.getAdjacentNodes(A)) {
+        for (Node C : graph.getNodesInTo(A, Endpoint.ARROW)) {
+            if (graph.isParentOf(C, A)) return true;
+
             if (visibleEdgeHelperVisit(graph, C, A, B, path)) {
                 return true;
             }
@@ -349,8 +357,8 @@ public class EdgeListGraph implements Graph, TripleClassifier {
         return false;
     }
 
-    public static boolean visibleEdgeHelperVisit(Graph graph, Node c, Node a, Node b,
-                                                 LinkedList<Node> path) {
+    private static boolean visibleEdgeHelperVisit(Graph graph, Node c, Node a, Node b,
+                                                  LinkedList<Node> path) {
         if (path.contains(a)) {
             return false;
         }
@@ -373,7 +381,7 @@ public class EdgeListGraph implements Graph, TripleClassifier {
             }
 
             if (graph.isDefCollider(D, c, a)) {
-                if (!graph.isAncestorOf(c, b)) {
+                if (!graph.isParentOf(c, b)) {
                     continue;
                 }
             }
@@ -685,7 +693,7 @@ public class EdgeListGraph implements Graph, TripleClassifier {
      * Determines whether one node is a descendent of another.
      */
     public boolean isDescendentOf(Node node1, Node node2) {
-        return isAncestorOf(node2, node1);
+        return (node1 == node2) || isProperDescendentOf(node1, node2);
     }
 
     /**
@@ -1281,18 +1289,16 @@ public class EdgeListGraph implements Graph, TripleClassifier {
      * @return true if the the node was added, false if not.
      */
     public boolean addNode(Node node) {
-//        if (nodes.contains(node)) return true;
+        if (nodes.contains(node)) return true;
 
         if (node == null) {
             throw new NullPointerException();
         }
 
         if (!(getNode(node.getName()) == null)) {
-//            if (nodes.contains(node)) {
-//                namesHash.put(node.getName(), node);
-//            }
-
-            return true;
+            if (nodes.contains(node)) {
+                namesHash.put(node.getName(), node);
+            }
         }
 
         if (edgeLists.containsKey(node)) {
@@ -1651,7 +1657,7 @@ public class EdgeListGraph implements Graph, TripleClassifier {
 
 
     /**
-     * States whether engine-s-engine is an underline triple or not.
+     * States whether r-s-r is an underline triple or not.
      */
     public boolean isAmbiguousTriple(Node x, Node y, Node z) {
 //        Triple triple = new Triple(x, y, z);
@@ -1663,19 +1669,19 @@ public class EdgeListGraph implements Graph, TripleClassifier {
     }
 
     /**
-     * States whether engine-s-engine is an underline triple or not.
+     * States whether r-s-r is an underline triple or not.
      */
     public boolean isUnderlineTriple(Node x, Node y, Node z) {
 //        Triple triple = new Triple(x, y, z);
 //        if (!triple.alongPathIn(this)) {
-//            throw new IllegalArgumentException("<" + engine + ", " + s + ", " + t + "> is not along a path.");
+//            throw new IllegalArgumentException("<" + r + ", " + s + ", " + t + "> is not along a path.");
 //        }
 //        removeTriplesNotInGraph();
         return underLineTriples.contains(new Triple(x, y, z));
     }
 
     /**
-     * States whether engine-s-engine is an underline triple or not.
+     * States whether r-s-r is an underline triple or not.
      */
     public boolean isDottedUnderlineTriple(Node x, Node y, Node z) {
 //        Triple triple = new Triple(x, y, z);

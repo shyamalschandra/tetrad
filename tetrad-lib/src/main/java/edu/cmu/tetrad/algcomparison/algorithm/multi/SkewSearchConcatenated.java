@@ -79,7 +79,6 @@ public class SkewSearchConcatenated implements MultiDataSetAlgorithm, HasKnowled
             GeneralResamplingTest search = new GeneralResamplingTest(datasets, algorithm, parameters.getInt("numberResampling"));
             search.setKnowledge(knowledge);
 
-            search.setResampleSize(parameters.getInt("resampleSize"));
             search.setResamplingWithReplacement(parameters.getBoolean("resamplingWithReplacement"));
 
             ResamplingEdgeEnsemble edgeEnsemble = ResamplingEdgeEnsemble.Highest;
@@ -112,7 +111,6 @@ public class SkewSearchConcatenated implements MultiDataSetAlgorithm, HasKnowled
             GeneralResamplingTest search = new GeneralResamplingTest(dataSets, algorithm, parameters.getInt("numberResampling"));
             search.setKnowledge(knowledge);
 
-            search.setResampleSize(parameters.getInt("resampleSize"));
             search.setResamplingWithReplacement(parameters.getBoolean("resamplingWithReplacement"));
 
             ResamplingEdgeEnsemble edgeEnsemble = ResamplingEdgeEnsemble.Highest;

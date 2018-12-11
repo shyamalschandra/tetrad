@@ -90,6 +90,12 @@ public final class Fask implements GraphSearch {
     // Threshold for reversing casual judgments for negative coefficients.
     private double delta = -0.2;
 
+    // The variables in the dataset.
+    private List<Node> variables;
+
+    // True iff verbose output should be printed.
+    private boolean verbose = false;
+
     /**
      * @param dataSet These datasets must all have the same variables, in the same order.
      */
@@ -98,6 +104,14 @@ public final class Fask implements GraphSearch {
         this.score = score;
 
         data = dataSet.getDoubleData().transpose().toArray();
+        variables = dataSet.getVariables();
+
+        if (isVerbose()) {
+            for (int i = 0; i < data.length; i++) {
+                TetradLogger.getInstance().forceLogMessage(variables.get(i) + " skewness = " + skewness(data[i]));
+            }
+        }
+
     }
 
     //======================================== PUBLIC METHODS ====================================//
@@ -114,6 +128,8 @@ public final class Fask implements GraphSearch {
     public Graph search() {
         long start = System.currentTimeMillis();
 
+        TetradLogger.getInstance().forceLogMessage("\nStarting FASK Algorithm");
+
         setCutoff(alpha);
 
         DataSet dataSet = DataUtils.standardizeData(this.dataSet);
@@ -123,6 +139,8 @@ public final class Fask implements GraphSearch {
         Graph G0;
 
         if (getInitialGraph() != null) {
+            TetradLogger.getInstance().forceLogMessage("\nUsing initial graph.");
+
             Graph g1 = new EdgeListGraph(getInitialGraph().getNodes());
 
             for (Edge edge : getInitialGraph().getEdges()) {
@@ -136,8 +154,9 @@ public final class Fask implements GraphSearch {
 
             G0 = g1;
         } else {
+            TetradLogger.getInstance().forceLogMessage("\nFAS");
+
             IndependenceTest test = new IndTestScore(score, dataSet);
-            System.out.println("FAS");
 
             FasStable fas = new FasStable(test);
             fas.setDepth(getDepth());
@@ -146,9 +165,8 @@ public final class Fask implements GraphSearch {
             G0 = fas.search();
         }
 
+        TetradLogger.getInstance().forceLogMessage("\nOrienting required edges");
         SearchGraphUtils.pcOrientbk(knowledge, G0, G0.getNodes());
-
-        System.out.println("Orientation");
 
         Graph graph = new EdgeListGraph(variables);
 
@@ -282,6 +300,145 @@ public final class Fask implements GraphSearch {
 
         return lr > 0;
     }
+
+    private boolean leftRightMinnesota(double[] x, double[] y) {
+        x = correctSkewness(x);
+        y = correctSkewness(y);
+
+        final double cxyx = cov(x, y, x);
+        final double cxyy = cov(x, y, y);
+        final double cxxx = cov(x, x, x);
+        final double cyyx = cov(y, y, x);
+        final double cxxy = cov(x, x, y);
+        final double cyyy = cov(y, y, y);
+
+        double a1 = cxyx / cxxx;
+        double a2 = cxyy / cxxy;
+        double b1 = cxyy / cyyy;
+        double b2 = cxyx / cyyx;
+
+        double Q = (a2 > 0) ? a1 / a2 : a2 / a1;
+        double R = (b2 > 0) ? b1 / b2 : b2 / b1;
+
+        double lr = Q - R;
+
+//        if (StatUtils.correlation(x, y) < 0) lr += delta;
+
+        final double sk_ey = StatUtils.skewness(residuals(y, new double[][]{x}));
+
+        if (sk_ey < 0) {
+            lr *= -1;
+        }
+
+        final double a = correlation(x, y);
+
+        if (a < 0 && sk_ey > delta) {
+            lr *= -1;
+        }
+
+        return lr > 0;
+    }
+
+    private double[] correctSkewness(double[] data) {
+        double skewness = StatUtils.skewness(data);
+        double[] data2 = new double[data.length];
+        for (int i = 0; i < data.length; i++) data2[i] = data[i] * Math.signum(skewness);
+        return data2;
+    }
+
+    private double[] residuals(double[] _y, double[][] _x) {
+        TetradMatrix y = new TetradMatrix(new double[][]{_y}).transpose();
+        TetradMatrix x = new TetradMatrix(_x).transpose();
+
+        TetradMatrix xT = x.transpose();
+        TetradMatrix xTx = xT.times(x);
+        TetradMatrix xTxInv = xTx.inverse();
+        TetradMatrix xTy = xT.times(y);
+        TetradMatrix b = xTxInv.times(xTy);
+
+        TetradMatrix yHat = x.times(b);
+        if (yHat.columns() == 0) yHat = y.copy();
+
+        return y.minus(yHat).getColumn(0).toArray();
+    }
+
+    private double leftright(Node X, Node Y) {
+        double[] x = data[variables.indexOf(X)];
+        double[] y = data[variables.indexOf(Y)];
+
+        double left = E(x, y, x) / sqrt(E(x, x, x) * E(y, y, x));
+        double right = E(x, y, y) / sqrt(E(x, x, y) * E(y, y, y));
+
+        double lr = left - right;
+
+//        if (correlation(x, y) < 0) {
+//            lr *= -1;
+//        }
+//
+//        if (isCorrectSkews()) {
+//            if (signum(StatUtils.skewness(x)) < 0) {
+//                lr *= -1;
+//            }
+//        }
+
+        if (isVerbose()) {
+            TetradLogger.getInstance().forceLogMessage(
+                    Edges.directedEdge(X, Y)
+                            + " X = " + X.getName()
+                            + " Y = " + Y.getName()
+                            + " LR = " + lr
+                            + " sx = " + StatUtils.skewness(x)
+                            + " sy = " + StatUtils.skewness(y)
+                            + " corr = " + correlation(x, y)
+            );
+        }
+
+        return lr;
+    }
+
+    private static double E(double[] x, double[] y, double[] condition) {
+        double exy = 0.0;
+
+        int n = 0;
+
+        for (int k = 0; k < x.length; k++) {
+            if (condition[k] > 0) {
+                exy += x[k] * y[k];
+                n++;
+            }
+        }
+
+        return exy / n;
+    }
+
+//    private boolean leftright(Node X, Node Y) {
+//        final double[] x = data[variables.indexOf(X)];
+//        final double[] y = data[variables.indexOf(Y)];
+//
+//        final double cxyx = cu(x, y, x);
+//        final double cxyy = cu(x, y, y);
+//
+//        double left = cxyx / sqrt(cu(x, x, x) * cu(y, y, x));
+//        double right = cxyy / sqrt(cu(x, x, y) * cu(y, y, y));
+//
+//        double lr = left - right;
+//
+//        double r = StatUtils.correlation(x, y);
+//        double sx = StatUtils.skewness(x);
+//        double sy = StatUtils.skewness(y);
+//
+//        r *= signum(sx) * signum(sy);
+//        lr *= signum(r);
+//        if (r < getDelta()) lr *= -1;
+//
+//        if (isVerbose()) {
+//            TetradLogger.getInstance().forceLogMessage(
+//                    Edges.directedEdge(X, Y) + " skew X = " + sx + " skew Y = " + sy + " corr = " + r + " LR = " + lr
+//            );
+//        }
+//
+//        return lr > 0;
+//    }
 
     private static double cov(double[] x, double[] y, double[] condition) {
         double exy = 0.0;
@@ -440,6 +597,14 @@ public final class Fask implements GraphSearch {
 
     public void setDelta(double delta) {
         this.delta = delta;
+    }
+
+    public boolean isVerbose() {
+        return verbose;
+    }
+
+    public void setVerbose(boolean verbose) {
+        this.verbose = verbose;
     }
 }
 

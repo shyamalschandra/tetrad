@@ -52,11 +52,11 @@ public class Gfci_Sachs implements Algorithm, HasKnowledge, UsesScoreWrapper, Ta
 
     @Override
     public Graph search(DataModel dataSet, Parameters parameters) {
-    	if (parameters.getInt("numberResampling") < 1) {
+        if (parameters.getInt("numberResampling") < 1) {
 
             GFci search;
 //            if (score.getClass() != KciMatlabScore.class && score.getClass() != CciScore.class && test.getClass() != KciMatlab.class && test.getClass() != CciTest.class) {
-                search = new GFci(test.getTest(dataSet, parameters), score.getScore(dataSet, parameters));
+            search = new GFci(test.getTest(dataSet, parameters), score.getScore(dataSet, parameters));
 //            } else {
 //                DataModel resampledDataSet = DataUtils.getResamplingDataset(((DataSet) dataSet), parameters.getInt("resampleSize"));
 //                search = new GFci(test.getTest(dataSet, parameters), score.getScore(resampledDataSet, parameters));
@@ -96,9 +96,8 @@ public class Gfci_Sachs implements Algorithm, HasKnowledge, UsesScoreWrapper, Ta
                     parameters.getBoolean("forbidAmongInterventions",true),
                     parameters.getBoolean("requiredEdgeKnowledge", false));
             search.setKnowledge(knowledge);
-            search.setResampleSize(parameters.getInt("resampleSize"));
             search.setResamplingWithReplacement(parameters.getBoolean("resamplingWithReplacement"));
-            
+
             ResamplingEdgeEnsemble edgeEnsemble = ResamplingEdgeEnsemble.Highest;
             switch (parameters.getInt("resamplingEnsemble", 1)) {
                 case 0:
@@ -155,6 +154,17 @@ public class Gfci_Sachs implements Algorithm, HasKnowledge, UsesScoreWrapper, Ta
         parameters.add("resamplingWithReplacement");
         parameters.add("resamplingEnsemble");
         parameters.add("verbose");
+        // Sachs
+        parameters.add("forbidAmongInterventions");
+        parameters.add("requiredEdgeKnowledge");
+@Experimental
+            knowledge = SU.getKnowledge(
+                    parameters.getBoolean("forbidAmongInterventions",true),
+                    parameters.getBoolean("requiredEdgeKnowledge", false));
+            knowledge = SU.getKnowledge(
+                    parameters.getBoolean("forbidAmongInterventions",true),
+                    parameters.getBoolean("requiredEdgeKnowledge", false));
+            search.setResampleSize(parameters.getInt("resampleSize"));
         // Sachs
         parameters.add("forbidAmongInterventions");
         parameters.add("requiredEdgeKnowledge");

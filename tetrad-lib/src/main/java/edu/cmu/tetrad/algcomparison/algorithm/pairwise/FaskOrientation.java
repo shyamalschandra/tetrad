@@ -1,6 +1,7 @@
 package edu.cmu.tetrad.algcomparison.algorithm.pairwise;
 
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithm;
+import edu.cmu.tetrad.algcomparison.utils.HasKnowledge;
 import edu.cmu.tetrad.algcomparison.utils.TakesInitialGraph;
 import edu.cmu.tetrad.annotation.AlgType;
 import edu.cmu.tetrad.data.*;
@@ -8,7 +9,10 @@ import edu.cmu.tetrad.graph.EdgeListGraph;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.GraphUtils;
 import edu.cmu.tetrad.graph.Node;
+import edu.cmu.tetrad.search.IndTestScore;
+import edu.cmu.tetrad.search.SemBicScore;
 import edu.cmu.tetrad.util.Parameters;
+import edu.cmu.tetrad.util.TetradMatrix;
 import edu.pitt.dbmi.algo.resampling.GeneralResamplingTest;
 import edu.pitt.dbmi.algo.resampling.ResamplingEdgeEnsemble;
 
@@ -38,7 +42,7 @@ import java.util.List;
 //                "- Cutoff for p-values (alpha). Conditional independence tests with p-values greater than this will be judged to be independent (H0).\n" +
 //                "- Maximum size of conditioning set (depth). PC in the adjacency phase will consider conditioning sets for conditional independences of increasing size, up to this value. For instance, for depth 3, the maximum size of a conditioning set considered will be 3."
 )
-public class FaskOrientation implements Algorithm, TakesInitialGraph {
+public class FaskOrientation implements Algorithm, TakesInitialGraph, HasKnowledge {
 
     static final long serialVersionUID = 23L;
     private Algorithm algorithm = null;
@@ -57,12 +61,12 @@ public class FaskOrientation implements Algorithm, TakesInitialGraph {
         if (parameters.getInt("bootstrapSampleSize") < 1) {
             initialGraph = algorithm.search(dataSet, parameters);
 
-//            if (initialGraph != null) {
-//                initialGraph = algorithm.search(dataSet, parameters);
-//            } else {
-//                throw new IllegalArgumentException("This R3 algorithm needs both data and a graph source as inputs; it \n"
-//                        + "will orient the edges in the input graph using the data");
-//            }
+            if (initialGraph != null) {
+                initialGraph = algorithm.search(dataSet, parameters);
+            } else {
+                throw new IllegalArgumentException("This Fask Orientation algorithm needs both data and a graph source as inputs; it \n"
+                        + "will orient the  edges in the input graph using the data");
+            }
 
             List<String> nodes = initialGraph.getNodeNames();
 
@@ -78,11 +82,23 @@ public class FaskOrientation implements Algorithm, TakesInitialGraph {
 
             edu.cmu.tetrad.search.SemBicScore score = new edu.cmu.tetrad.search.SemBicScore(new CovarianceMatrixOnTheFly((DataSet) dataSet, false));
             score.setPenaltyDiscount(parameters.getDouble("penaltyDiscount"));
-            edu.cmu.tetrad.search.Fask search = new edu.cmu.tetrad.search.Fask((DataSet) dataSet, score);
+
+            edu.cmu.tetrad.search.Fask_B search
+                    = new edu.cmu.tetrad.search.Fask_B((DataSet) dataSet, new IndTestScore(score));
             search.setInitialGraph(initialGraph);
-            search.setExtraEdgeThreshold(parameters.getDouble("extraEdgeThreshold"));
-            search.setAlpha(parameters.getDouble("twoCycleAlpha"));
+            search.setDepth(parameters.getInt("depth"));
+//            search.setSkewEdgeAlpha(parameters.getDouble("skewEdgeAlpha"));
+            search.setTwoCycleAlpha(parameters.getDouble("twoCycleAlpha"));
             search.setDelta(parameters.getDouble("faskDelta"));
+//            search.setVerbose(parameters.getBoolean("verbose"));
+            search.setUseSkewAdjacencies(false);
+            search.setUseFasAdjacencies(true);
+            search.setUseMask(false);
+//            search.setMaskThreshold(parameters.getDouble("maskThreshold"));
+
+            search.setVerbose(parameters.getBoolean("verbose"));
+            search.setKnowledge(knowledge);
+
             return search.search();
         } else {
             FaskOrientation r3 = new FaskOrientation(algorithm);
@@ -94,7 +110,6 @@ public class FaskOrientation implements Algorithm, TakesInitialGraph {
             GeneralResamplingTest search = new GeneralResamplingTest(data, algorithm, parameters.getInt("numberResampling"));
             search.setKnowledge(knowledge);
 
-            search.setResampleSize(parameters.getInt("resampleSize"));
             search.setResamplingWithReplacement(parameters.getBoolean("resamplingWithReplacement"));
 
             ResamplingEdgeEnsemble edgeEnsemble = ResamplingEdgeEnsemble.Highest;
@@ -139,15 +154,24 @@ public class FaskOrientation implements Algorithm, TakesInitialGraph {
             parameters.addAll(algorithm.getParameters());
         }
 
-        // Bootstrapping
+        parameters.add("depth");
+//        parameters.add("skewEdgeAlpha");
         parameters.add("twoCycleAlpha");
-        parameters.add("extraEdgeThreshold");
         parameters.add("faskDelta");
-        parameters.add("bootstrapSampleSize");
-        parameters.add("bootstrapEnsemble");
+
+//        parameters.add("useFasAdjacencies");
+//        parameters.add("useSkewAdjacencies");
+//        parameters.add("useMask");
+//        parameters.add("maskThreshold");
+
         parameters.add("verbose");
 
         return parameters;
+    }
+
+    @Override
+    public IKnowledge getKnowledge() {
+        return knowledge;
     }
 
     public void setKnowledge(IKnowledge knowledge) {

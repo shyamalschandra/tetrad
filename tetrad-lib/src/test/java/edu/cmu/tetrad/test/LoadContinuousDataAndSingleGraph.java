@@ -66,11 +66,25 @@ public class LoadContinuousDataAndSingleGraph implements Simulation, HasParamete
         if (dir2.exists()) {
             File[] files = dir2.listFiles();
 
-            if (files.length != 1) {
-                throw new IllegalArgumentException("Expecting exactly one graph file.");
+//            if (files.length != 1) {
+//                throw new IllegalArgumentException("Expecting exactly one graph file.");
+//            }
+
+            File file = null;
+            boolean found = false;
+
+            for (File _file : files) {
+                if (found) {
+                    throw new IllegalArgumentException("More than one graph in that directory.");
+                }
+
+                if (_file.getName().endsWith(".txt")) {
+                    file = _file;
+                    found = true;
+                }
             }
 
-            File file = files[0];
+//            File file = files[0];
 
             System.out.println("Loading graph from " + file.getAbsolutePath());
             this.graph = GraphUtils.loadGraphTxt(file);

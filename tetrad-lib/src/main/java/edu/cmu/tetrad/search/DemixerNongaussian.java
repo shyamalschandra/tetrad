@@ -1,10 +1,12 @@
 package edu.cmu.tetrad.search;
 
 import edu.cmu.tetrad.data.DataSet;
-import edu.cmu.tetrad.data.DelimiterType;
+import edu.cmu.tetrad.util.DataConvertUtils;
 import edu.cmu.tetrad.util.RandomUtil;
 import edu.cmu.tetrad.util.TetradMatrix;
 import edu.cmu.tetrad.util.TetradVector;
+import edu.pitt.dbmi.data.Delimiter;
+import edu.pitt.dbmi.data.reader.tabular.ContinuousTabularDataFileReader;
 
 import java.io.File;
 import java.io.IOException;
@@ -18,92 +20,87 @@ import static java.lang.Math.*;
  * @author Madelyn Glymour 7/21/18
  */
 public class DemixerNongaussian {
-    private int numCases;
-    private int numVars;
-    private TetradMatrix dataMatrix;
+    private TetradMatrix X;
+    private int C;
+    private double[] weights;
+    private TetradMatrix[] A;
+    private TetradMatrix[] W;
+    private TetradVector[] bias;
+    private TetradMatrix[] S;
+    private TetradMatrix[] K;
+    private TetradMatrix posteriorProbs;
+    private double learningRate = .001;
 
     public DemixerNongaussian(DataSet data) {
-        numCases = data.getNumRows();
-        numVars = data.getNumColumns();
-        dataMatrix = data.getDoubleData();
+        X = data.getDoubleData();
     }
 
     public MixtureModelNongaussian demix(DataSet data, int numComponents) {
+        this.C = numComponents;
 
-        double[] weights = new double[numComponents];
-        TetradMatrix[] mixingMatrices = new TetradMatrix[numComponents];
-        TetradVector[] biasVectors = new TetradVector[numComponents];
-        TetradMatrix[] sourceVectors = new TetradMatrix[numComponents];
-        TetradMatrix[] kurtosisMatrices = new TetradMatrix[numComponents];
-        TetradMatrix sourceVectorMatrix;
-        TetradMatrix kurtosisMatrix;
-        TetradVector vector;
-
-        FastIca ica = new FastIca(dataMatrix, numVars);
+        FastIca ica = new FastIca(data.getDoubleData(), X.columns());
         FastIca.IcaResult result = ica.findComponents();
-        TetradMatrix A = result.getA();
 
-        for (int k = 0; k < numComponents; k++) {
-            weights[k] = 1.0 / numComponents;
+        X = result.getX();
 
-            sourceVectorMatrix = new TetradMatrix(numVars, numVars); // MxM
-            vector = new TetradVector(numVars); // 1xM
-            kurtosisMatrix = new TetradMatrix(numVars, numVars); // MxM
+        TetradMatrix _A = result.getA();
+        TetradMatrix _W = result.getW();
 
-            for (int r = 0; r < A.rows(); r++) {
-                for (int i = 0; i < A.columns(); i++) {
-                    sourceVectorMatrix.set(r, i, A.get(r, i) + RandomUtil.getInstance().nextNormal(0, 1));
-                }
+        weights = new double[C];
+        A = new TetradMatrix[C];
+        W = new TetradMatrix[C];
+        K = new TetradMatrix[C];
+        S = new TetradMatrix[C];
+        posteriorProbs = new TetradMatrix(X.rows(), C);
+        bias = new TetradVector[C];
+
+        for (int k = 0; k < C; k++) {
+            weights[k] = 1.0 / C;
+
+            A[k] = _A;
+            W[k] = _W;
+
+//            A[k] = TetradMatrix.identity(X.columns());
+//
+//            for (int r = 0; r < A[k].rows(); r++) {
+//                for (int c = 0; c < A[k].columns(); c++) {
+//                    A[k].set(r, c, A[k].get(r, c) + RandomUtil.getInstance().nextNormal(0, .1));
+//                }
+//            }
+//
+//            W[k] = A[k].inverse();
+
+            TetradVector _bias = new TetradVector(X.columns());
+
+            for (int i = 0; i < X.columns(); i++) {
+                _bias.set(i, 0);
             }
 
-            for (int i = 0; i < numVars; i++) {
-                vector.set(i, 0);
-            }
-
-            mixingMatrices[k] = sourceVectorMatrix;
-            biasVectors[k] = vector;
-            kurtosisMatrices[k] = kurtosisMatrix;
-
-            sourceVectorMatrix = new TetradMatrix(numCases, numVars); // NxM
-
-            for (int r = 0; r < numCases; r++) {
-                TetradVector v = dataMatrix.getRow(r).minus(vector); // Mx1
-                v = mixingMatrices[k].inverse().times(v); // MxM * Mx1 = Mx1
-                sourceVectorMatrix.assignRow(r, v);
-            }
-
-            sourceVectors[k] = sourceVectorMatrix;
+            bias[k] = _bias;
+            K[k] = new TetradMatrix(X.columns(), X.columns());
+            S[k] = X.minus(repmat(_bias, X.rows())).times(W[k].transpose());
         }
 
-        double sechSum;
-        double sum;
-        double tanhSum;
-        double kurtosis;
+        for (int k = 0; k < C; k++) {
+            for (int i = 0; i < X.columns(); i++) {
+                double sechSum = 0;
+                double sum = 0;
+                double tanhSum = 0;
 
-        for (int k = 0; k < numComponents; k++) {
-            kurtosisMatrix = kurtosisMatrices[k]; // MxM
-            sourceVectorMatrix = sourceVectors[k]; // NxM
-
-            for (int i = 0; i < numVars; i++) {
-                sechSum = 0;
-                sum = 0;
-                tanhSum = 0;
-
-                for (int r = 0; r < numCases; r++) {
-                    sechSum += 1.0 / pow(cosh(sourceVectorMatrix.get(r, i)), 2.0);
-                    sum += pow(sourceVectorMatrix.get(r, i), 2.0);
-                    tanhSum += tanh(sourceVectorMatrix.get(r, i)) * sourceVectorMatrix.get(r, i);
+                for (int r = 0; r < X.rows(); r++) {
+                    sechSum += 1.0 / pow(cosh(S[k].get(r, i)), 2.0);
+                    sum += pow(S[k].get(r, i), 2.0);
+                    tanhSum += tanh(S[k].get(r, i)) * S[k].get(r, i);
                 }
 
-                sechSum /= numCases;
-                sum /= numCases;
-                tanhSum /= numCases;
-                kurtosis = signum(sechSum * sum - tanhSum);
+                sechSum /= X.rows();
+                sum /= X.rows();
+                tanhSum /= X.rows();
 
-                kurtosisMatrix.set(i, i, kurtosis);
+                double kurtosis = signum(sechSum * sum - tanhSum);
+
+                K[k].set(i, i, kurtosis);
             }
-
-            kurtosisMatrices[k] = kurtosisMatrix; // MxM
         }
 
         double[] tempWeights = Arrays.copyOf(weights, weights.length);
@@ -114,105 +111,122 @@ public class DemixerNongaussian {
 
         System.out.println("Weights: " + Arrays.toString(weights));
 
-        DeterminingStats stats = new DeterminingStats();
-        stats.setSourceVectors(sourceVectors);
-        stats.setWeights(weights);
-        stats.setMixingMatrices(mixingMatrices);
-        stats.setBiasVectors(biasVectors);
-        stats.setK(numComponents);
-        stats.setKurtosisMatrices(kurtosisMatrices);
-
         while (weightsUnequal) {
-            expectation(stats);
-            maximization(stats);
+            expectation();
+            maximization();
 
-            System.out.println("Weights: " + Arrays.toString(stats.getWeights()));
+            System.out.println("Weights: " + Arrays.toString(weights));
 
             diffsList = new ArrayList<>();
 
-            for (int k = 0; k < numComponents; k++) {
-                diffsList.add(abs(stats.getWeights()[k] - tempWeights[k]));
+            for (int k = 0; k < C; k++) {
+                diffsList.add(abs(weights[k] - tempWeights[k]));
             }
 
             Collections.sort(diffsList);
 
-            if (diffsList.get(numComponents - 1) < 0.001 || iterCounter > 100) {
+            if (diffsList.get(C - 1) < 0.001 || iterCounter > 100) {
                 weightsUnequal = false;
             }
 
-            for (int k = 0; k < numComponents; k++) {
-                tempWeights[k] = stats.getWeights()[k];
+            for (int k = 0; k < C; k++) {
+                tempWeights[k] = weights[k];
             }
 
             iterCounter++;
         }
 
-        return new MixtureModelNongaussian(data, stats.getGammas(), stats.getMixingMatrices(),
-                stats.getSourceVectors(), stats.getBiasVectors(), stats.getWeights());
+        return new MixtureModelNongaussian(data, posteriorProbs, A, S, bias, weights);
+    }
+
+    private TetradMatrix repmat(TetradVector _bias, int rows) {
+        TetradMatrix rep = X.like();
+
+        for (int r = 0; r < rows; r++) {
+            for (int c = 0; c < _bias.size(); c++) {
+                rep.set(r, c, _bias.get(c));
+            }
+        }
+
+        return rep;
     }
 
     /*
      * Inline updating of the mixing matrix A, updated every time a new posterior is determined
      */
-    private TetradMatrix[] adaptMixingMatrices(DeterminingStats stats, int t) {
+    private TetradMatrix[] adaptMixingMatrices(int t) {
 
-        TetradMatrix[] mixingMatrices = stats.getMixingMatrices();
-        TetradMatrix[] kurtosisMatrices = stats.getKurtosisMatrices();
-        TetradMatrix[] sourceVectors = stats.getSourceVectors();
-        TetradMatrix gammas = stats.getGammas();
+        for (int k = 0; k < C; k++) {
+            double _gamma = posteriorProbs.get(t, k); // scalar
+            TetradMatrix _tanhS = X.like(); // NxM
 
-        TetradMatrix mixingMatrix;
-        TetradMatrix K;
-        TetradMatrix sourceVector;
-        TetradMatrix tanhSourceVector;
-        double gamma;
-
-
-        I:
-        for (int k = 0; k < stats.getNumComponents(); k++) {
-            mixingMatrix = mixingMatrices[k]; // MxM
-            K = kurtosisMatrices[k]; // MxM
-            sourceVector = sourceVectors[k]; // NxM
-            gamma = gammas.get(t, k); // scalar
-            tanhSourceVector = new TetradMatrix(numCases, numVars); // NxM
-
-            for (int i = 0; i < numVars; i++) {
-                tanhSourceVector.set(t, i, Math.tanh(sourceVector.get(t, i)));
+            for (int i = 0; i < X.columns(); i++) {
+                _tanhS.set(t, i, Math.tanh(S[k].get(t, i)));
             }
 
-            TetradMatrix skskt = toColumnMatrix(sourceVector.getRow(t)).times(toRowMatrix(sourceVector.getRow(t))); // Mx1 * 1xM = MxM
-            TetradMatrix tanhSk = toColumnMatrix(tanhSourceVector.getRow(t)).times(toRowMatrix(sourceVector.getRow(t))); // Mx1 * 1xM = MxM
-
-            TetradMatrix kurtosisSquare = K.times(tanhSk);
-
-            TetradMatrix smketc = TetradMatrix.identity(numVars).minus(kurtosisSquare);
-
+            TetradMatrix skskt = toColumnMatrix(S[k].getRow(t)).times(toRowMatrix(S[k].getRow(t))); // Mx1 * 1xM = MxM
+            TetradMatrix tanhSk = toColumnMatrix(_tanhS.getRow(t)).times(toRowMatrix(S[k].getRow(t))); // Mx1 * 1xM = MxM
+            TetradMatrix kurtosisSquare = K[k].times(tanhSk);
+            TetradMatrix smketc = TetradMatrix.identity(X.columns()).minus(kurtosisSquare);
             TetradMatrix minusSquare = smketc.minus(skskt);
 
-            final double learningRate = 1e-3;
-            TetradMatrix tempMixingMatrix = mixingMatrix.times((minusSquare)).scalarMult(-gamma * learningRate); // MxM * (MxM - (MxM * MxM - MxM)) = MxM
+            // tempMixingMatrix = minusSquare.times(wMatrix).scalarMult(-_gamma * learningRate); // MxM * (MxM - (MxM * MxM - MxM)) = MxM
+            TetradMatrix tempWMatrix = minusSquare.times(W[k]).scalarMult(_gamma * getLearningRate()); // MxM * (MxM - (MxM * MxM - MxM)) = MxM
 
-            System.out.println(tempMixingMatrix);
+            TetradMatrix newW = W[k].plus(tempWMatrix);
 
-            //debugging
-            for (int c1 = 0; c1 < mixingMatrices[k].columns(); c1++) {
-                for (int c2 = 0; c2 < mixingMatrices[k].columns(); c2++) {
-                    double val = mixingMatrices[k].get(c1, c2);
-
-                    if (Double.isNaN(val)) {
-                        throw new IllegalArgumentException("NaN in Mixing Matrix " + k);
-//                        continue I;
-                    } else if (Double.isInfinite(val)) {
-                        throw new IllegalArgumentException("Inf in Mixing Matrix " + k);
-//                        continue I;
-                    }
-                }
+            if (newW.det() == 0) {
+                newW = W[k];
             }
 
-            mixingMatrices[k] = mixingMatrix.plus(tempMixingMatrix);
+            W[k] = newW;
         }
 
-        return mixingMatrices;
+        return W;
+    }
+
+    private TetradMatrix[] invertWMatrices(TetradMatrix[] m) {
+        TetradMatrix[] n = new TetradMatrix[m.length];
+
+        for (int k = 0; k < m.length; k++) {
+            n[k] = m[k].inverse();
+        }
+
+        return n;
+    }
+
+    private TetradVector[] adaptBiasVectors(int t) {
+        for (int k = 0; k < C; k++) {
+            TetradMatrix _W = W[k];
+            TetradMatrix sourceVector = S[k];
+            double gamma = posteriorProbs.get(t, k);
+
+            TetradVector _bias = new TetradVector(X.columns());
+            double sum = 0;
+            double det = Math.log(Math.abs(_W.det()));
+
+            for (int i = 0; i < X.columns(); i++) {
+                TetradVector bMatrix = _W.getRow(i);
+                _bias = _bias.plus((bMatrix.scalarMult(Math.tanh(sourceVector.get(t, i)))).plus(bMatrix.scalarMult(sourceVector.get(t, i))));
+
+                double tempSum = -.5 * Math.log(2.0 * Math.PI) - (K[k].get(i, i) * log(cosh(S[k].get(t, i))))
+                        - (pow(S[k].get(t, i), 2.0) / 2.0);
+
+                if (K[k].get(i, i) > 0) {
+                    tempSum = tempSum - Math.log(0.7413);
+                }
+
+                sum += tempSum;
+            }
+
+            double L = -sum - det;
+
+            _bias = _bias.scalarMult(gamma * L);
+            // bias[k] = bias[k].plus(bias);
+            bias[k] = _bias;
+        }
+
+        return bias;
     }
 
     /*
@@ -241,281 +255,173 @@ public class DemixerNongaussian {
         return m;
     }
 
+
+    /*
+     * Find posteriors of observations based on maximally likely values of mixing matrices, bias vectors, source vectors, and weights
+     */
+    private void expectation() {
+
+        // determine log-likelihoods
+        TetradMatrix likelihoods = new TetradMatrix(X.rows(), C); // Nxk
+        double sum;
+        double det;
+
+        for (int k = 0; k < C; k++) {
+            det = Math.log(Math.abs(A[k].det()));
+
+            for (int t = 0; t < X.rows(); t++) {
+                sum = 0;
+
+                for (int i = 0; i < X.columns(); i++) {
+                    double _l = -.5 * Math.log(2.0 * Math.PI) - (K[k].get(i, i) * log(cosh(S[k].get(t, i))))
+                            - (pow(S[k].get(t, i), 2.0) / 2.0);
+
+                    if (K[k].get(i, i) > 0) {
+                        _l = _l - Math.log(0.7413);
+                    }
+
+                    sum += _l;
+                }
+
+                double L = sum - det;
+
+                likelihoods.set(t, k, L);
+            }
+        }
+
+        for (int t = 0; t < X.rows(); t++) {
+            double[] _weightedLIkelihoods = new double[C];
+            double _sum = 0.0;
+
+            for (int c = 0; c < C; c++) {
+                _weightedLIkelihoods[c] = exp(likelihoods.get(t, c)) * weights[c];
+                _sum += _weightedLIkelihoods[c];
+            }
+
+            for (int c = 0; c < C; c++) {
+                double prob = _weightedLIkelihoods[c] / _sum;
+                posteriorProbs.set(t, c, prob);
+            }
+        }
+
+        for (int t = 0; t < X.rows(); t++) {
+            W = adaptMixingMatrices(t);
+            A = invertWMatrices(W);
+            bias = adaptBiasVectors(t);
+        }
+    }
+
     /*
      * Find maximally likely values for source vectors, bias vectors, and weights of components
      */
-    private void maximization(DeterminingStats stats) {
+    private void maximization1() {
 
-        int K = stats.getNumComponents();
-        TetradMatrix[] mixingMatrices = stats.getMixingMatrices();
-        TetradMatrix[] sourceVectors = stats.getSourceVectors();
-        TetradVector[] biasVectors = new TetradVector[K];
-        TetradMatrix gammas = stats.getGammas();
+        // find values of weights
+        double sum;
 
-        double[] weights = new double[K];
+        for (int i = 0; i < C; i++) {
+            sum = 0;
+
+            for (int r = 0; r < X.rows(); r++) {
+                sum += posteriorProbs.get(r, i);
+            }
+
+            weights[i] = sum / X.rows();
+        }
+
+        for (int k = 0; k < C; k++) {
+            S[k] = X.minus(repmat(bias[k], X.rows())).times(W[k].transpose());
+        }
+    }
+
+    private void maximization() {
+
+        double[] weights = new double[C];
 
         TetradMatrix sourceVector;
 
         // find values of weights
         double sum;
 
-        for (int I = 0; I < K; I++) {
+        for (int i = 0; i < C; i++) {
             sum = 0;
 
-            for (int r = 0; r < numCases; r++) {
-                for (int c = 0; c < numVars; c++) {
-                    sum += gammas.get(r, I);
-                }
+            for (int r = 0; r < X.rows(); r++) {
+                sum += posteriorProbs.get(r, i);
+
             }
 
-            weights[I] = sum / numCases;
-
-            //debugging
-            if (Double.isNaN(weights[I])) {
-                throw new NullPointerException("NaN in Weight " + Integer.toString(I));
-            }
+            weights[i] = sum / X.rows();
         }
 
-        stats.setWeights(weights);
+        this.weights = weights;
+
+//        sourceVector = X.like();
+//
+//        for (int k = 0; k < C; k++) {
+//            // find values of source vectors
+//            for (int r = 0; r < X.rows(); r++) {
+//                TetradVector vector = X.getRow(r).minus(bias[k]);
+//                TetradVector tempVector = A[k].transpose().inverse().times(vector);
+//
+//                sourceVector.assignRow(r, tempVector);
+//            }
+//        }
+
+        for (int k = 0; k < C; k++) {
+            S[k] = X.minus(repmat(bias[k], X.rows())).times(W[k].transpose());
+        }
 
         // find values of bias vectors
-        TetradVector biasVector;
-        double biasVectorDenom;
-        sourceVector = new TetradMatrix(numCases, numVars);
+        //  TetradVector biasVector;
+        //  double biasVectorDenom;
+        // sourceVector = new TetradMatrix(numCases, numVars);
 
-        I:
-        for (int I = 0; I < K; I++) {
-            biasVector = new TetradVector(numVars);
-            for (int c = 0; c < numVars; c++) {
-                biasVector.set(c, 0);
-            }
+        // I:
+        // for (int I = 0; I < K; I++) {
+        //    biasVector = new TetradVector(numVars);
+        //    for (int c = 0; c < numVars; c++) {
+        //       biasVector.set(c, 0);
+        //    }
 
-            biasVectorDenom = 0;
+        //    biasVectorDenom = 0;
 
-            for (int r = 0; r < numCases; r++) {
-                biasVector = biasVector.plus(dataMatrix.getRow(r)).scalarMult(gammas.get(r, I));
-                biasVectorDenom += gammas.get(r, I);
-            }
+        //   for (int r = 0; r < numCases; r++) {
+        //       biasVector = biasVector.plus(dataMatrix.getRow(r)).scalarMult(gammas.get(r, I));
+        //       biasVectorDenom += gammas.get(r, I);
+        //  }
 
-            biasVector = biasVector.scalarMult(1.0 / biasVectorDenom);
+        //   biasVector = biasVector.scalarMult(1.0 / biasVectorDenom);
+        //   biasVector = stats.getBiasVectors()[I];
 
-            //debugging
-            for (int b = 0; b < biasVector.size(); b++) {
+        //debugging
+            /* for (int b = 0; b < biasVector.size(); b++) {
                 double val = biasVector.get(b);
 
                 if (Double.isNaN(val)) {
                     throw new IllegalArgumentException("NaN in Bias Vector " + I);
 //                    continue I;
                 }
-            }
+            } */
 
-            // find values of source vectors
-            for (int r = 0; r < numCases; r++) {
-                TetradVector tempVector = mixingMatrices[I].transpose().times(dataMatrix.getRow(r).minus(biasVector));
-                sourceVector.assignRow(r, tempVector);
-            }
-
-            //debugging
-            for (int r = 0; r < sourceVector.rows(); r++) {
-                for (int c = 0; c < sourceVector.columns(); c++) {
-                    double val = sourceVector.get(r, c);
-                    if (Double.isNaN(val)) {
-                        System.out.println("NaN in Source Vector " + I);
-                        continue I;
-                    }
-                }
-            }
-
-            biasVectors[I] = biasVector;
-            sourceVectors[I] = sourceVector;
-        }
-
-        stats.setBiasVectors(biasVectors);
-        stats.setSourceVectors(sourceVectors);
-    }
-
-    /*
-     * Find posteriors of observations based on maximally likely values of mixing matrices, bias vectors, source vectors, and weights
-     */
-    private void expectation(DeterminingStats stats) {
-
-        TetradMatrix[] mixingMatrices = stats.getMixingMatrices();
-        TetradMatrix[] kurtosisMatrices = stats.getKurtosisMatrices();
-        TetradMatrix[] sourceVectors = stats.getSourceVectors();
-        double[] weights = stats.getWeights();
-
-        // determine log-likelihoods
-        TetradMatrix likelihoods = new TetradMatrix(numCases, stats.getNumComponents()); // Nxk
-        double sum;
-        double det;
-
-        for (int k = 0; k < stats.getNumComponents(); k++) {
-            det = Math.log(Math.abs(mixingMatrices[k].det()));
-
-            for (int t = 0; t < numCases; t++) {
-                sum = 0;
-
-                for (int i = 0; i < numVars; i++) {
-                    double tempSum = (kurtosisMatrices[k].get(i, i) * log(cosh(sourceVectors[k].get(t, i)))
-                            - pow(sourceVectors[k].get(t, i), 2.0) / 2.0);
-
-//                    double d = log(cosh(sourceVectors[k].get(t, i)));
-                    double d =  tempSum;
-
-                    if (Double.isInfinite(d)) d = 0.0;
-                    if (Double.isNaN(d)) d = 0.0;
-
-                    if (Double.isNaN(d) || Double.isInfinite(d)) {
-                        continue;
-//                        throw new IllegalArgumentException("this thing = " + d + " sum = " + sum + " det = " + det);
-                    }
-
-                    sum += tempSum;
-                }
-
-                double likelihood = -sum - det;
-
-                if (Double.isNaN(likelihood) || Double.isInfinite(likelihood)) {
-                    throw new IllegalArgumentException("HEY!!! likelihood = " + likelihood + " sum = " + sum + " det = " + det);
-                }
-
-                likelihoods.set(t, k, likelihood);
-            }
-        }
-
-        // determine posteriors
-        double gamma;
-        double divisor;
-        TetradMatrix gammas = new TetradMatrix(numCases, stats.getNumComponents()); // N x K
-
-        for (int r = 0; r < numCases; r++) {
-            for (int c1 = 0; c1 < stats.getNumComponents(); c1++) {
-                gamma = likelihoods.get(r, c1) * weights[c1];
-                divisor = 0;
-
-                for (int c2 = 0; c2 < stats.getNumComponents(); c2++) {
-                    divisor += likelihoods.get(r, c2) * weights[c2];
-                }
-
-                //System.out.println(Double.toString(gamma) + "\t" + Double.toString(divisor));
-                gamma = gamma / divisor;
-
-                //debugging
-                if (Double.isNaN(gamma)) {
-                    System.out.println("NaN in Gamma " + Integer.toString(c1) + ", " + Integer.toString(r));
-                    continue;
-                }
-
-                gammas.set(r, c1, gamma);
-            }
-        }
-
-        stats.setGammas(gammas);
-
-        for (int r = 0; r < numCases; r++) {
-            mixingMatrices = adaptMixingMatrices(stats, r);
-        }
-
-        stats.setMixingMatrices(mixingMatrices);
-    }
-
-    /*
-     * This class holds all of the information that we're going to update as we go
-     */
-    private class DeterminingStats {
-        private TetradMatrix[] mixingMatrices;
-        private TetradVector[] biasVectors;
-        private TetradMatrix[] sourceVectors;
-        private TetradMatrix[] kurtosisMatrices;
-        private TetradMatrix gammas;
-        private double[] weights;
-        private int K;
-
-        public DeterminingStats() {
-
-        }
-
-        public void setMixingMatrices(TetradMatrix[] mixingMatrices) {
-            this.mixingMatrices = mixingMatrices;
-        }
-
-        public void setBiasVectors(TetradVector[] biasVectors) {
-            this.biasVectors = biasVectors;
-        }
-
-        public void setSourceVectors(TetradMatrix[] sourceVectors) {
-            this.sourceVectors = sourceVectors;
-        }
-
-        public void setKurtosisMatrices(TetradMatrix[] kurtosisMatrices) {
-            this.kurtosisMatrices = kurtosisMatrices;
-        }
-
-        public void setGammas(TetradMatrix gammas) {
-            this.gammas = gammas;
-        }
-
-        public void setWeights(double[] weights) {
-            this.weights = weights;
-        }
-
-        public void setK(int K) {
-            this.K = K;
-        }
-
-        public TetradMatrix[] getMixingMatrices() {
-            return mixingMatrices;
-        }
-
-        public TetradVector[] getBiasVectors() {
-            return biasVectors;
-        }
-
-        public TetradMatrix[] getSourceVectors() {
-            return sourceVectors;
-        }
-
-        public TetradMatrix[] getKurtosisMatrices() {
-            return kurtosisMatrices;
-        }
-
-        public TetradMatrix getGammas() {
-            return gammas;
-        }
-
-        public double[] getWeights() {
-            return weights;
-        }
-
-        public int getNumComponents() {
-            return K;
-        }
+        //stats.setBiasVectors(biasVectors);
+        //stats.setSourceVectors(sourceVectors);
     }
 
     public static void main(String... args) {
-        edu.cmu.tetrad.data.DataReader dataReader = new edu.cmu.tetrad.data.DataReader();
-        dataReader.setVariablesSupplied(false);
-        dataReader.setDelimiter(DelimiterType.WHITESPACE);
-
-        DataSet dataSet = null;
-        try {
-            dataSet = dataReader.parseTabular(new File("/Users/user/Downloads/gamma_3000_4var.txt"));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        DataSet dataSet = loadData("/Users/user/Downloads/16.txt");
 
         DemixerNongaussian pedro = new DemixerNongaussian(dataSet);
         long startTime = System.currentTimeMillis();
-        MixtureModelNongaussian model = pedro.demix(dataSet, 3);
+        MixtureModelNongaussian model = pedro.demix(dataSet, 2);
         long elapsed = System.currentTimeMillis() - startTime;
-
-        double[] weights = model.getWeights();
-        for (int i = 0; i < weights.length; i++) {
-            System.out.print(Double.toString(weights[i]) + "\t");
-        }
 
         DataSet[] datasets = model.getDemixedData();
 
+        System.out.println(model.getMixingMatrices()[0]);
+        System.out.println();
+        System.out.println(model.getBiasVectors()[0]);
+        System.out.println();
         System.out.println("\n\nDatasets:");
 
         int count = 1;
@@ -526,7 +432,25 @@ public class DemixerNongaussian {
 
         System.out.println();
 
-        System.out.println("Elapsed: " + Long.toString(elapsed / 1000));
+        System.out.println("Elapsed: " + (elapsed / 1000));
     }
 
+    private static DataSet loadData(String path) {
+        try {
+            ContinuousTabularDataFileReader dataReader = new ContinuousTabularDataFileReader(
+                    new File(path), Delimiter.WHITESPACE);
+            dataReader.setHasHeader(true);
+            return (DataSet) DataConvertUtils.toDataModel(dataReader.readInData());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public double getLearningRate() {
+        return learningRate;
+    }
+
+    public void setLearningRate(double learningRate) {
+        this.learningRate = learningRate;
+    }
 }

@@ -27,8 +27,8 @@ import java.util.List;
  * @author jdramsey
  */
 @edu.cmu.tetrad.annotation.Algorithm(
-        name = "FASK Concatenated",
-        command = "fask-concatenated",
+        name = "FASK-B Concatenated",
+        command = "fask-b-concatenated",
         algoType = AlgType.forbid_latent_common_causes
 )
 public class Fask_BConcatenated implements MultiDataSetAlgorithm, HasKnowledge, TakesIndependenceWrapper {
@@ -61,16 +61,15 @@ public class Fask_BConcatenated implements MultiDataSetAlgorithm, HasKnowledge, 
             edu.cmu.tetrad.search.Fask_B search = new edu.cmu.tetrad.search.Fask_B(dataSet, test.getTest(dataSet, parameters));
 
             search.setDepth(parameters.getInt("depth"));
-            search.setTwoCycleAlpha(parameters.getDouble("twoCycleAlpha"));
             search.setSkewEdgeAlpha(parameters.getDouble("skewEdgeAlpha"));
-            search.setMaskThreshold(parameters.getDouble("extraEdgeThreshold"));
-
+            search.setTwoCycleAlpha(parameters.getDouble("twoCycleAlpha"));
+            search.setDelta(parameters.getDouble("faskDelta"));
+            search.setVerbose(parameters.getBoolean("verbose"));
+            search.setUseSkewAdjacencies(parameters.getBoolean("useSkewAdjacencies"));
             search.setUseFasAdjacencies(parameters.getBoolean("useFasAdjacencies"));
-            search.setUseSkewAdjacencies(parameters.getBoolean("useCorrDiffAdjacencies"));
-
-            search.setUseFasAdjacencies(parameters.getBoolean("useFasAdjacencies"));
-            search.setUseSkewAdjacencies(parameters.getBoolean("useCorrDiffAdjacencies"));
-
+            search.setUseMask(parameters.getBoolean("useMask"));
+            search.setMaskThreshold(parameters.getDouble("maskThreshold"));
+            search.setCorrectSkews(parameters.getBoolean("correctSkews"));
             search.setKnowledge(knowledge);
             
             return search.search();
@@ -87,7 +86,6 @@ public class Fask_BConcatenated implements MultiDataSetAlgorithm, HasKnowledge, 
             GeneralResamplingTest search = new GeneralResamplingTest(datasets, algorithm, parameters.getInt("numberResampling"));
             search.setKnowledge(knowledge);
 
-            search.setResampleSize(parameters.getInt("resampleSize"));
             search.setResamplingWithReplacement(parameters.getBoolean("resamplingWithReplacement"));
 
             ResamplingEdgeEnsemble edgeEnsemble = ResamplingEdgeEnsemble.Highest;
@@ -120,7 +118,6 @@ public class Fask_BConcatenated implements MultiDataSetAlgorithm, HasKnowledge, 
             GeneralResamplingTest search = new GeneralResamplingTest(dataSets, algorithm, parameters.getInt("numberResampling"));
             search.setKnowledge(knowledge);
 
-            search.setResampleSize(parameters.getInt("resampleSize"));
             search.setResamplingWithReplacement(parameters.getBoolean("resamplingWithReplacement"));
 
             ResamplingEdgeEnsemble edgeEnsemble = ResamplingEdgeEnsemble.Highest;
@@ -160,16 +157,21 @@ public class Fask_BConcatenated implements MultiDataSetAlgorithm, HasKnowledge, 
     public List<String> getParameters() {
         List<String> parameters = test.getParameters();
         parameters.add("depth");
-        parameters.add("twoCycleAlpha");
         parameters.add("skewEdgeAlpha");
-        parameters.add("maskThreshold");
+        parameters.add("twoCycleAlpha");
+        parameters.add("faskDelta");
 
         parameters.add("useFasAdjacencies");
-        parameters.add("useCorrDiffAdjacencies");
+        parameters.add("useSkewAdjacencies");
+        parameters.add("useMask");
+        parameters.add("maskThreshold");
+        parameters.add("correctSkews");
 
         // Bootstrapping
-        parameters.add("bootstrapSampleSize");
-        parameters.add("bootstrapEnsemble");
+        parameters.add("numberResampling");
+        parameters.add("percentResampleSize");
+        parameters.add("resamplingWithReplacement");
+        parameters.add("resamplingEnsemble");
         parameters.add("verbose");
 
         parameters.add("numRuns");

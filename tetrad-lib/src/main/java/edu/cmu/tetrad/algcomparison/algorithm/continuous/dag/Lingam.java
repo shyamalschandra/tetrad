@@ -4,11 +4,11 @@ import edu.cmu.tetrad.algcomparison.algorithm.Algorithm;
 import edu.cmu.tetrad.annotation.AlgType;
 import edu.cmu.tetrad.data.DataModel;
 import edu.cmu.tetrad.data.DataSet;
+import edu.cmu.tetrad.data.DataType;
 import edu.cmu.tetrad.data.DataUtils;
 import edu.cmu.tetrad.graph.EdgeListGraph;
-import edu.cmu.tetrad.util.Parameters;
-import edu.cmu.tetrad.data.DataType;
 import edu.cmu.tetrad.graph.Graph;
+import edu.cmu.tetrad.util.Parameters;
 import edu.pitt.dbmi.algo.resampling.GeneralResamplingTest;
 import edu.pitt.dbmi.algo.resampling.ResamplingEdgeEnsemble;
 
@@ -30,19 +30,19 @@ public class Lingam implements Algorithm {
     static final long serialVersionUID = 23L;
 
     public Graph search(DataModel dataSet, Parameters parameters) {
-        if (parameters.getInt("bootstrapSampleSize") < 1) {
+        if (parameters.getInt("numberResampling") < 1) {
             edu.cmu.tetrad.search.Lingam lingam = new edu.cmu.tetrad.search.Lingam();
+            lingam.setPenaltyDiscount(parameters.getDouble("penaltyDiscount"));
             return lingam.search(DataUtils.getContinuousDataSet(dataSet));
         } else {
             Lingam algorithm = new Lingam();
 
             DataSet data = (DataSet) dataSet;
-
             GeneralResamplingTest search = new GeneralResamplingTest(data, algorithm, parameters.getInt("numberResampling"));
-
-            search.setResampleSize(parameters.getInt("resampleSize"));
+            
+            search.setPercentResampleSize(parameters.getDouble("percentResampleSize"));
             search.setResamplingWithReplacement(parameters.getBoolean("resamplingWithReplacement"));
-
+            
             ResamplingEdgeEnsemble edgeEnsemble = ResamplingEdgeEnsemble.Highest;
             switch (parameters.getInt("resamplingEnsemble", 1)) {
                 case 0:
@@ -78,9 +78,11 @@ public class Lingam implements Algorithm {
     @Override
     public List<String> getParameters() {
         List<String> parameters = new ArrayList<>();
-        // Bootstrapping
-        parameters.add("bootstrapSampleSize");
-        parameters.add("bootstrapEnsemble");
+        // Resampling
+        parameters.add("numberResampling");
+        parameters.add("percentResampleSize");
+        parameters.add("resamplingWithReplacement");
+        parameters.add("resamplingEnsemble");
         parameters.add("verbose");
         return parameters;
     }

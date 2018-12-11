@@ -324,6 +324,8 @@ public class TetradLogger {
      * will be logged if the logger has been turned off.
      */
     public void forceLogMessage(String message) {
+        System.out.println(message);
+
         if (this.logging) {
             if (this.config == null) {
                 this.fireActived(new EmptyConfig(true));
