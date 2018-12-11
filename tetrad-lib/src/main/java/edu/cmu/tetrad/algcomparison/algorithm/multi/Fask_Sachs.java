@@ -83,7 +83,7 @@ public class Fask_Sachs implements Algorithm, HasKnowledge, UsesScoreWrapper {
                     parameters.getBoolean("requiredEdgeKnowledge", false));
             search.setKnowledge(knowledge);
             
-            search.setResampleSize(parameters.getInt("resampleSize"));
+            search.setPercentResampleSize(parameters.getInt("percentResampleSize"));
             search.setResamplingWithReplacement(parameters.getBoolean("resamplingWithReplacement"));
             
             ResamplingEdgeEnsemble edgeEnsemble = ResamplingEdgeEnsemble.Highest;

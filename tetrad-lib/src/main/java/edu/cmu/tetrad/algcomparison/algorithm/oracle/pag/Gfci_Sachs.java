@@ -96,6 +96,7 @@ public class Gfci_Sachs implements Algorithm, HasKnowledge, UsesScoreWrapper, Ta
                     parameters.getBoolean("forbidAmongInterventions",true),
                     parameters.getBoolean("requiredEdgeKnowledge", false));
             search.setKnowledge(knowledge);
+            search.setPercentResampleSize(parameters.getInt("percentResampleSize"));
             search.setResamplingWithReplacement(parameters.getBoolean("resamplingWithReplacement"));
 
             ResamplingEdgeEnsemble edgeEnsemble = ResamplingEdgeEnsemble.Highest;
@@ -134,6 +135,7 @@ public class Gfci_Sachs implements Algorithm, HasKnowledge, UsesScoreWrapper, Ta
 
     @Override
     public List<String> getParameters() {
+
         List<String> parameters = test.getParameters();
         List<String> parameters1 = score.getParameters();
 
@@ -157,14 +159,13 @@ public class Gfci_Sachs implements Algorithm, HasKnowledge, UsesScoreWrapper, Ta
         // Sachs
         parameters.add("forbidAmongInterventions");
         parameters.add("requiredEdgeKnowledge");
-@Experimental
-            knowledge = SU.getKnowledge(
-                    parameters.getBoolean("forbidAmongInterventions",true),
-                    parameters.getBoolean("requiredEdgeKnowledge", false));
-            knowledge = SU.getKnowledge(
-                    parameters.getBoolean("forbidAmongInterventions",true),
-                    parameters.getBoolean("requiredEdgeKnowledge", false));
-            search.setResampleSize(parameters.getInt("resampleSize"));
+//            knowledge = SU.getKnowledge(
+//                    parameters.getBoolean("forbidAmongInterventions",true),
+//                    parameters.getBoolean("requiredEdgeKnowledge", false));
+//            knowledge = SU.getKnowledge(
+//                    parameters.getBoolean("forbidAmongInterventions",true),
+//                    parameters.getBoolean("requiredEdgeKnowledge", false));
+//            search.setResampleSize(parameters.getInt("resampleSize"));
         // Sachs
         parameters.add("forbidAmongInterventions");
         parameters.add("requiredEdgeKnowledge");
