@@ -31,7 +31,7 @@ import edu.cmu.tetrad.data.ContinuousVariable;
 import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.data.DataUtils;
 import edu.cmu.tetrad.data.DiscreteVariable;
-import edu.cmu.tetrad.graph.Node;
+import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.util.DataConvertUtils;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.RandomUtil;
@@ -39,13 +39,8 @@ import edu.pitt.dbmi.data.Delimiter;
 import edu.pitt.dbmi.data.reader.tabular.MixedTabularDataFileReader;
 import org.junit.Test;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.PrintStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.io.*;
+import java.util.*;
 
 import static java.lang.Math.abs;
 
@@ -58,13 +53,13 @@ public class TestSimulatedFmri {
 
     @Test
     public void allTests() {
-        new TestSimulatedFmri().trainingData();
-        new TestSimulatedFmri().testingData();
-        new TestSimulatedFmri().smithSim();
+//        new TestSimulatedFmri().trainingData();
+//        new TestSimulatedFmri().testingData();
+//        new TestSimulatedFmri().smithSim();
         new ToyFaskBExample().toy_positiveSkews();
         new ToyFaskBExample().toy_negativeSkews();
         new ToyFaskBExample().toy_mixedSkews();
-        new TestSachs().task();
+//        new TestSachsJoe().task();
     }
 
     @Test
@@ -468,6 +463,55 @@ public class TestSimulatedFmri {
         dataReader.setHasHeader(true);
 
         return (DataSet) DataConvertUtils.toDataModel(dataReader.readInData());
+    }
+
+    @Test
+    public void loadNodePairs() {
+        try {
+            final String name = "goldNet2_35N_no_circles.csv";
+            File file = new File("/Users/user/Box Sync/data/4cellLineData/", name);
+
+            BufferedReader buf = new BufferedReader(new FileReader(file));
+
+            Map<String, Node> variables = new HashMap<>();
+            List<Node> nodes = new ArrayList<>();
+            List<Edge> edges = new ArrayList<>();
+
+            String line;
+
+            while ((line = buf.readLine()) != null) {
+                System.out.println(line);
+
+                String[] tokens = line.split(",");
+
+                if (!variables.containsKey(tokens[0])) {
+                    variables.put(tokens[0], new ContinuousVariable(tokens[0]));
+                    nodes.add(variables.get(tokens[0]));
+                }
+
+                if (!variables.containsKey(tokens[1])) {
+                    variables.put(tokens[1], new ContinuousVariable(tokens[1]));
+                    nodes.add(variables.get(tokens[1]));
+                }
+
+                Node n1 = variables.get(tokens[0]);
+                Node n2 = variables.get(tokens[1]);
+                edges.add(Edges.directedEdge(n1, n2));
+            }
+
+            Graph g = new EdgeListGraph(nodes);
+
+            for (Edge edge : edges) {
+                g.addEdge(edge);
+            }
+
+            System.out.println(g);
+
+            GraphUtils.saveGraph(g, new File("/Users/user/Box Sync/data/4cellLineData/goldNet2_35N_no_circles.graph.txt"), false);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
 

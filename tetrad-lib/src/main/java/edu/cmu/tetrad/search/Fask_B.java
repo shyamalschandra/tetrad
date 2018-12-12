@@ -111,7 +111,7 @@ public final class Fask_B implements GraphSearch {
     private boolean multiplicative = false;
 
     // True iff skewnesses of each variable should be made positive by multiply by the signum of its skewness.
-    private boolean correctSkews = true;
+    private boolean assumeSkewsPositive = false;
 
     /**
      * @param dataSet These datasets must all have the same variables, in the same order.
@@ -426,12 +426,12 @@ public final class Fask_B implements GraphSearch {
         this.multiplicative = multiplicative;
     }
 
-    public boolean isCorrectSkews() {
-        return correctSkews;
+    public boolean isAssumeSkewsPositive() {
+        return assumeSkewsPositive;
     }
 
-    public void setCorrectSkews(boolean correctSkews) {
-        this.correctSkews = correctSkews;
+    public void setAssumeSkewsPositive(boolean assumeSkewsPositive) {
+        this.assumeSkewsPositive = assumeSkewsPositive;
     }
 
     /////////////////////////////////////// PRIVATE METHODS ////////////////////////////////////
@@ -463,10 +463,26 @@ public final class Fask_B implements GraphSearch {
                 } else if (knowledgeOrients(Y, X)) {
                     graph.addDirectedEdge(Y, X);
                 } else {
-                    if (leftRight(X, Y) > leftRight(Y, X)) {
+//                    if (leftRight(X, Y) > leftRight(Y, X)) {
+//                        graph.addDirectedEdge(X, Y);
+//                    } else {
+//                        graph.addDirectedEdge(Y, X);
+//                    }
+
+//                    if (leftRight(X, Y) > 0 &&  leftRight(Y, X) < 0) {
+//                        graph.addDirectedEdge(X, Y);
+//                    } else if (leftRight(X, Y) > 0 &&  leftRight(Y, X) < 0)  {
+//                        graph.addDirectedEdge(Y, X);
+//                    } else if (leftRight(X, Y) < 0 &&  leftRight(Y, X) < 0)  {
+//                        graph.addBidirectedEdge(Y, X);
+//                    }
+
+                    if (leftRight(X, Y) > 0) {
                         graph.addDirectedEdge(X, Y);
-                    } else {
+                    } else if (leftRight(Y, X) > 0) {
                         graph.addDirectedEdge(Y, X);
+                    } else {
+                        graph.addUndirectedEdge(Y, X);
                     }
                 }
             }
@@ -635,7 +651,7 @@ public final class Fask_B implements GraphSearch {
 
         double lr = E(x, y, y, -1) / E(x, x, y, -1) - E(x, y, y, +1) / E(x, x, y, +1);
 
-//        if (isCorrectSkews()) {
+//        if (isAssumeSkewsPositive()) {
 //            if (signum(StatUtils.skewness(y)) * correlation(x, y) < 0) {
 //                lr *= -1;
 //            }
@@ -660,7 +676,7 @@ public final class Fask_B implements GraphSearch {
         return lr;
     }
 
-    private double leftRight(Node X, Node Y) {
+    private double leftRight2(Node X, Node Y) {
         double[] x = colData[variables.indexOf(X)];
         double[] y = colData[variables.indexOf(Y)];
 
@@ -673,7 +689,7 @@ public final class Fask_B implements GraphSearch {
 //            lr *= -1;
 //        }
 //
-//        if (isCorrectSkews()) {
+//        if (isAssumeSkewsPositive()) {
 //            if (signum(StatUtils.skewness(x)) < 0) {
 //                lr *= -1;
 //            }
@@ -694,39 +710,68 @@ public final class Fask_B implements GraphSearch {
         return lr;
     }
 
-//    private double leftRight(Node X, Node Y) {
-//        double[] x = colData[variables.indexOf(X)];
-//        double[] y = colData[variables.indexOf(Y)];
-//
-//        double left = E(x, y, x) / sqrt(E(x, x, x) * E(y, y, x));
-//        double right = E(x, y, y) / sqrt(E(x, x, y) * E(y, y, y));
-//
-//        double lr = left - right;
-//
-////        if (correlation(x, y) < 0) {
-////            lr *= -1;
-////        }
-////
-////        if (isCorrectSkews()) {
-////            if (signum(StatUtils.skewness(x)) < 0) {
-////                lr *= -1;
-////            }
-////        }
-//
-//        if (isVerbose()) {
-//            TetradLogger.getInstance().forceLogMessage(
-//                    Edges.directedEdge(X, Y)
-//                            + " X = " + X.getName()
-//                            + " Y = " + Y.getName()
-//                            + " LR = " + lr
-//                            + " sx = " + StatUtils.skewness(x)
-//                            + " sy = " + StatUtils.skewness(y)
-//                            + " corr = " + correlation(x, y)
-//            );
+    // Minnesota rule. If X->Y then this number should be > 0.
+    private double leftRight(Node X, Node Y) {
+        double[] x = colData[variables.indexOf(X)];
+        double[] y = colData[variables.indexOf(Y)];
+
+        final double cxyx = E(x, y, x);
+        final double cxyy = E(x, y, y);
+        final double cxxx = E(x, x, x);
+        final double cyyx = E(y, y, x);
+        final double cxxy = E(x, x, y);
+        final double cyyy = E(y, y, y);
+
+        double a1 = cxyx / cxxx;
+        double a2 = cxyy / cxxy;
+        double b1 = cxyy / cyyy;
+        double b2 = cxyx / cyyx;
+
+        double Q = (a2 > 0) ? a1 / a2 : a2 / a1;
+        double R = (b2 > 0) ? b1 / b2 : b2 / b1;
+
+//        double lr = Q - R;
+
+//        if (correlation(x, y) < 0) {
+//            lr *= -1;
 //        }
 //
-//        return lr;
-//    }
+//        if (isAssumeSkewsPositive()) {
+//            if (signum(StatUtils.skewness(x)) < 0) {
+//                lr *= -1;
+//            }
+//        }
+
+//        if (StatUtils.correlation(x, y) < 0) lr += delta;
+
+//        final double sk_ey = StatUtils.skewness(residuals(y, new double[][]{x}));
+//
+//        if (sk_ey < 0) {
+//            lr *= -1;
+//        }
+//
+//        final double a = correlation(x, y);
+//
+//        if (a < 0 && sk_ey > delta) {
+//            lr *= -1;
+//        }
+
+        double lr = a1 - a2;
+
+//        if (correlation(x, y) < 0) {
+//            lr *= -1;
+//        }
+//
+        if (!isAssumeSkewsPositive()) {
+            if (signum(StatUtils.skewness(x)) < 0) {
+                lr *= -1;
+            }
+
+//            if (correlation(x, y) < 0) lr *= -1;
+        }
+
+        return lr;
+    }
 
     private double[] times(double[] data, double r) {
         double[] data2 = new double[data.length];
