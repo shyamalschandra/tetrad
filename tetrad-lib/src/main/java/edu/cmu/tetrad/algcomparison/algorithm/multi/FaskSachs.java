@@ -53,7 +53,7 @@ public class FaskSachs implements Algorithm, HasKnowledge, UsesScoreWrapper {
             edu.cmu.tetrad.search.Fask search = new edu.cmu.tetrad.search.Fask((DataSet) dataSet, score.getScore(dataSet, parameters));
             search.setDepth(parameters.getInt("depth"));
             search.setPenaltyDiscount(parameters.getDouble("penaltyDiscount"));
-            search.setUseSkewAdjacencies(parameters.getBoolean("useMask"));
+            search.setUseSkewAdjacencies(parameters.getBoolean("useSkewAdjacencies"));
             search.setExtraEdgeThreshold(parameters.getDouble("maskThreshold"));
             search.setUseFasAdjacencies(parameters.getBoolean("useFasAdjacencies"));
              search.setAlpha(parameters.getDouble("twoCycleAlpha"));
@@ -126,7 +126,7 @@ public class FaskSachs implements Algorithm, HasKnowledge, UsesScoreWrapper {
         parameters.add("faskDelta");
 
         parameters.add("useFasAdjacencies");
-        parameters.add("useMask");
+        parameters.add("useSkewAdjacencies");
         parameters.add("maskThreshold");
 
         // Resampling

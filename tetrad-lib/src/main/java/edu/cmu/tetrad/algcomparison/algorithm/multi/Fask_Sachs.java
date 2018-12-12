@@ -61,7 +61,7 @@ public class Fask_Sachs implements Algorithm, HasKnowledge, UsesScoreWrapper {
             search.setPenaltyDiscount(parameters.getDouble("penaltyDiscount"));
             search.setExtraEdgeThreshold(parameters.getDouble("extraEdgeThreshold"));
             search.setUseFasAdjacencies(parameters.getBoolean("useFasAdjacencies"));
-            search.setUseSkewAdjacencies(parameters.getBoolean("useCorrDiffAdjacencies"));
+            search.setUseSkewAdjacencies(parameters.getBoolean("useSkewAdjacencies"));
             search.setAlpha(parameters.getDouble("twoCycleAlpha"));
             search.setDelta(parameters.getDouble("faskDelta"));
 
@@ -128,7 +128,7 @@ public class Fask_Sachs implements Algorithm, HasKnowledge, UsesScoreWrapper {
         parameters.add("faskDelta");
 
         parameters.add("useFasAdjacencies");
-        parameters.add("useCorrDiffAdjacencies");
+        parameters.add("useSkewAdjacencies");
         
         // Resampling
         parameters.add("numberResampling");
