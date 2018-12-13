@@ -17,43 +17,63 @@ import static java.lang.Math.*;
  * @author Madelyn Glymour 7/21/18
  */
 public class DemixerNongaussian {
+
+    // The given data, N rows, numVars vars.
     private final DataSet data;
+
+    // The data as an N x numVars matrix.
     private final TetradMatrix X;
-    private final int numComponents;
+
+    // Sample size
+    private int N;
+
+    // The number of variables.
     private final int numVars;
+
+    // The number of components. This must be specified up front.
+    private final int numComponents;
+
+    // The weight of each component.
     private final TetradMatrix weights;
+
+    // S matrices - N x numVars, numComponents of them.
     private final TetradMatrix[] S;
+
+    // Diagonal kurtosis matrices, numComponents of them.
     private final TetradMatrix[] K;
+
+    // Posterior probability of each record, per component.
     private final TetradMatrix posteriorProbs;
+
+    // Likelihood of each record, per component.
     private final TetradMatrix likelihoods;
+
+    // Learning rate, by default 0.001.
     private final double learningRate;
 
-    private int T;
 
+    // Biases. These are updated.
     private TetradMatrix[] bias;
+
+    // Unmixing matrices. These are updated.
     private TetradMatrix[] W;
 
 
     private DemixerNongaussian(DataSet data, int numComponents, double learningRate) {
         this.data = data;
         this.X = data.getDoubleData();
-        this.T = X.rows();
+        this.N = X.rows();
         this.numVars = X.columns();
         this.numComponents = numComponents;
         this.bias = new TetradMatrix[this.numComponents];
         this.weights = new TetradMatrix(1, this.numComponents);
-        this.likelihoods = new TetradMatrix(T, this.numComponents);
-        this.posteriorProbs = new TetradMatrix(T, this.numComponents);
+        this.likelihoods = new TetradMatrix(N, this.numComponents);
+        this.posteriorProbs = new TetradMatrix(N, this.numComponents);
         this.W = new TetradMatrix[this.numComponents];
         this.K = new TetradMatrix[this.numComponents];
         this.S = new TetradMatrix[this.numComponents];
         this.learningRate = learningRate;
 
-        for (int t = 0; t < T; t++) {
-            for (int k = 0; k < numComponents; k++) {
-                posteriorProbs.set(t, k, 1.0 / numComponents);
-            }
-        }
     }
 
     private MixtureModelNongaussian demix() {
@@ -61,7 +81,12 @@ public class DemixerNongaussian {
             weights.set(0, k, 1.0 / numComponents);//RandomUtil.getInstance().nextUniform(0, 1));
         }
 
-//        normalize(weights, 0);
+        // Initializing posterior probability of each record to be uniform.
+        for (int t = 0; t < N; t++) {
+            for (int k = 0; k < numComponents; k++) {
+                posteriorProbs.set(t, k, weights.get(0, k));
+            }
+        }
 
         for (int k = 0; k < numComponents; k++) {
             FastIca ica = new FastIca(X, numVars);
@@ -80,8 +105,7 @@ public class DemixerNongaussian {
 
             bias[k] = _bias;
             K[k] = new TetradMatrix(numVars, numVars);
-//            S[k] = X.minus(repmat(_bias.getRow(0), T)).times(W[k].transpose());
-            S[k] = X.minus(repmat(bias[k].getRow(0), T)).times(W[k].transpose());
+            S[k] = X.minus(repmat(bias[k].getRow(0), N)).times(W[k].transpose());
         }
 
         for (int k = 0; k < numComponents; k++) {
@@ -90,27 +114,21 @@ public class DemixerNongaussian {
                 double _sum = 0;
                 double tanhSum = 0;
 
-                for (int t = 0; t < T; t++) {
+                for (int t = 0; t < N; t++) {
                     sechSum += 1.0 / pow(cosh(S[k].get(t, v)), 2.0);
                     _sum += pow(S[k].get(t, v), 2.0);
                     tanhSum += tanh(S[k].get(t, v)) * S[k].get(t, v);
                 }
 
-                sechSum /= T;
-                _sum /= T;
-                tanhSum /= T;
+                sechSum /= N;
+                _sum /= N;
+                tanhSum /= N;
 
                 double kurtosis = signum(sechSum * _sum - tanhSum);
 
                 K[k].set(v, v, kurtosis);
             }
         }
-
-        TetradMatrix tempWeights = new TetradMatrix(weights);
-
-//        int i = 0;
-
-        int count = 0;
 
         double[] _likelihoods = new double[numComponents];
         for (int k = 0; k < numComponents; k++) _likelihoods[k] = Double.NEGATIVE_INFINITY;
@@ -119,16 +137,7 @@ public class DemixerNongaussian {
         for (int k = 0; k < numComponents; k++) converged[k] = false;
 
         while (true) {
-//            if (++count > 40) break;
-
-            for (int t = 0; t < T; t++) {
-                for (int k = 0; k < numComponents; k++) {
-                    likelihoods.set(t, k, log(posteriorProbs.get(t, k)));
-                }
-            }
-
             for (int k = 0; k < numComponents; k++) {
-
                 if (!converged[k]) {
                     double l = expectation(k);
 
@@ -148,11 +157,7 @@ public class DemixerNongaussian {
                 }
             }
 
-            if (allConverged) {
-                break;
-            }
-
-            for (int t = 0; t < T; t++) {
+            for (int t = 0; t < N; t++) {
                 normalize(posteriorProbs, t);
             }
 
@@ -167,6 +172,10 @@ public class DemixerNongaussian {
             maximization();
 
             System.out.println("Weights: " + weights);
+
+            if (allConverged) {
+                break;
+            }
         }
 
         return new MixtureModelNongaussian(data, posteriorProbs, invertWMatrices(W), bias, weights);
@@ -203,7 +212,7 @@ public class DemixerNongaussian {
 
         TetradMatrix _tanhS = X.like(); // NxM
 
-        for (int t = 0; t < T; t++) {
+        for (int t = 0; t < N; t++) {
             for (int i = 0; i < numVars; i++) {
                 _tanhS.set(t, i, Math.tanh(S[k].get(t, i)));
             }
@@ -218,9 +227,9 @@ public class DemixerNongaussian {
         TetradMatrix probs = posteriorProbs.column(k);
         TetradMatrix newW = new TetradMatrix(numVars, numVars);
 
-        for (int t = 0; t < T; t++) {
+        for (int t = 0; t < N; t++) {
             double p = probs.get(t, 0);
-            TetradMatrix tempWMatrix = minusSquare.times(W[k]).scalarMult(p * learningRate / (T * numComponents));
+            TetradMatrix tempWMatrix = minusSquare.times(W[k]).scalarMult(p * learningRate / (N * numComponents));
             newW = newW.plus(tempWMatrix);
         }
 
@@ -246,7 +255,7 @@ public class DemixerNongaussian {
         TetradMatrix sourceVector = S[k];
         TetradMatrix _bias = new TetradMatrix(1, numVars);
 
-        for (int t = 0; t < T; t++) {
+        for (int t = 0; t < N; t++) {
             double prob = posteriorProbs.get(t, k);
 
             double sum = 0;
@@ -266,7 +275,7 @@ public class DemixerNongaussian {
                 sum += tempSum;
             }
 
-            double L = (-sum + abs(det)) / T;
+            double L = (-sum + abs(det)) / N;
 
             _bias = _bias.scalarMult(prob * L);
         }
@@ -302,7 +311,7 @@ public class DemixerNongaussian {
             }
 
 
-            double L = (-sum + abs(det)) / T;
+            double L = (sum - det) / N;
 
 
             likelihoods.set(t, k, L);
@@ -315,12 +324,12 @@ public class DemixerNongaussian {
 
         System.out.println("L(" + k + ") = " + likelihood);
 
-        for (int t = 0; t < T; t++) {
+        for (int t = 0; t < N; t++) {
             double prob = exp(likelihoods.get(t, k)) * weights.get(0, k);
 //            if (prob < 1e-5) return Double.NEGATIVE_INFINITY;
         }
 
-        for (int t = 0; t < T; t++) {
+        for (int t = 0; t < N; t++) {
             double prob = exp(likelihoods.get(t, k)) * weights.get(0, k);
 
 //            System.out.println("L " + (likelihood) + " prob(" + k + ") = " + prob);
@@ -339,11 +348,11 @@ public class DemixerNongaussian {
         for (int k = 0; k < numComponents; k++) {
             sum = 0;
 
-            for (int t = 0; t < T; t++) {
+            for (int t = 0; t < N; t++) {
                 sum += posteriorProbs.get(t, k);
             }
 
-            weights.set(0, k, sum / T);//+ RandomUtil.getInstance().nextUniform(0, 1));
+            weights.set(0, k, sum / N);//+ RandomUtil.getInstance().nextUniform(0, 1));
         }
 
         System.out.println("Maximization weights = " + weights);
@@ -353,7 +362,7 @@ public class DemixerNongaussian {
 
 
         for (int k = 0; k < numComponents; k++) {
-            S[k] = X.minus(repmat(bias[k].getRow(0), T)).times(W[k].transpose());
+            S[k] = X.minus(repmat(bias[k].getRow(0), N)).times(W[k].transpose());
         }
     }
 
