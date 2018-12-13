@@ -82,7 +82,7 @@ public class TestSimulatedFmri {
         parameters.set("useSkewAdjacencies", true);
         parameters.set("useMask", true);
         parameters.set("maskThreshold", 2);
-        parameters.set("correctSkews", false);
+        parameters.set("assumeSkewsPositive", true);
 
         parameters.set("penaltyDiscount", 2);
 
@@ -252,6 +252,7 @@ public class TestSimulatedFmri {
         parameters.set("maskThreshold", 10);
         parameters.set("skewEdgeAlpha", 0.01);
         parameters.set("errorsPositivelySkewed", true);
+        parameters.set("assumeSkewsPositive", true);
 
         parameters.set("numRuns", 5);
         parameters.set("randomSelectionSize", 5);

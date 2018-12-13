@@ -142,6 +142,8 @@ public class ToyFaskBExample {
         parameters.set("useMask", true);
         parameters.set("maskThreshold", 0.3);
 
+//        parameters.set("assumeSkewsPositive", true);
+
         // Bootstrapping
 //        parameters.add("numberResampling");
 //        parameters.add("percentResampleSize");

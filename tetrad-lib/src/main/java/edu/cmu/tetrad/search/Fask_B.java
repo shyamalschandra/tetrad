@@ -715,6 +715,12 @@ public final class Fask_B implements GraphSearch {
         double[] x = colData[variables.indexOf(X)];
         double[] y = colData[variables.indexOf(Y)];
 
+        double[] ryx = residuals(y, new double[][]{x});
+
+        if (StatUtils.skewness(ryx) < 0) {
+            y = times(y, -1);
+        }
+
         final double cxyx = E(x, y, x);
         final double cxyy = E(x, y, y);
         final double cxxx = E(x, x, x);
@@ -744,7 +750,9 @@ public final class Fask_B implements GraphSearch {
 
 //        if (StatUtils.correlation(x, y) < 0) lr += delta;
 
-//        final double sk_ey = StatUtils.skewness(residuals(y, new double[][]{x}));
+
+//        System.out.println("sk_ey = " + sk_ey);
+
 //
 //        if (sk_ey < 0) {
 //            lr *= -1;
@@ -758,17 +766,11 @@ public final class Fask_B implements GraphSearch {
 
         double lr = a1 - a2;
 
-//        if (correlation(x, y) < 0) {
-//            lr *= -1;
+//        if (!isAssumeSkewsPositive()) {
+//            if (StatUtils.skewness(x) < 0) {
+//                lr *= -1;
+//            }
 //        }
-//
-        if (!isAssumeSkewsPositive()) {
-            if (signum(StatUtils.skewness(x)) < 0) {
-                lr *= -1;
-            }
-
-//            if (correlation(x, y) < 0) lr *= -1;
-        }
 
         return lr;
     }

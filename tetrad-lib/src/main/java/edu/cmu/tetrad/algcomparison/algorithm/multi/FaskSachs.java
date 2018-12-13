@@ -59,7 +59,7 @@ public class FaskSachs implements Algorithm, HasKnowledge, UsesScoreWrapper {
              search.setAlpha(parameters.getDouble("twoCycleAlpha"));
             search.setDelta(parameters.getDouble("faskDelta"));
 
-            SachsUtils su = new SachsUtils();   
+            SachsUtils su = new SachsUtils();
             knowledge = su.getKnowledge();
 
             search.setKnowledge(knowledge);

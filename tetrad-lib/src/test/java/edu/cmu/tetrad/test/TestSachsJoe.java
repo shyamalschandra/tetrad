@@ -80,14 +80,18 @@ public class TestSachsJoe {
         parameters.set("resamplingEnsemble", 0);
 
         // FASK-B
-        parameters.set("skewEdgeAlpha", 0.1, 0.05, 0.01, 0.001, 0.0001, 0.00001);
-        parameters.set("twoCycleAlpha", 0.1, 0);
+        parameters.set("skewEdgeAlpha", 0.1, 0.05);
+        parameters.set("twoCycleAlpha", 0.1, 0.0);
         parameters.set("faskDelta", 0);
 
         parameters.set("useFasAdjacencies", true);
         parameters.set("useSkewAdjacencies", true);
         parameters.set("useMask", true, false);
         parameters.set("maskThreshold", 0.3);
+
+        parameters.set("assumeSkewsPositive", true);
+
+        parameters.set("numRuns", 1);
 
         Statistics statistics = new Statistics();
 
