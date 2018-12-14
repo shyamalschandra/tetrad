@@ -18,6 +18,8 @@ import static java.lang.Math.*;
  */
 public class DemixerNongaussian {
 
+    // The following fields are fixed.
+
     // The given data, N rows, numVars vars.
     private final DataSet data;
 
@@ -25,7 +27,7 @@ public class DemixerNongaussian {
     private final TetradMatrix X;
 
     // Sample size
-    private int N;
+    private final int N;
 
     // The number of variables.
     private final int numVars;
@@ -33,38 +35,44 @@ public class DemixerNongaussian {
     // The number of components. This must be specified up front.
     private final int numComponents;
 
-    // The weight of each component.
-    private final TetradMatrix weights;
-
-    // S matrices - N x numVars, numComponents of them.
-    private final TetradMatrix[] S;
-
-    // Diagonal kurtosis matrices, numComponents of them.
-    private final TetradMatrix[] K;
-
-    // Posterior probability of each record, per component.
-    private final TetradMatrix posteriorProbs;
-
-    // Likelihood of each record, per component.
-    private final TetradMatrix likelihoods;
-
     // Learning rate, by default 0.001.
     private final double learningRate;
 
+    // The following fields are all updated.
 
-    // Biases. These are updated.
+    // S matrices - N x numVars, numComponents of them. This is updated.
+    private final TetradMatrix[] S;
+
+    // Diagonal kurtosis matrices, numComponents of them. This is updated.
+    private final TetradMatrix[] K;
+
+    // The weight of each component. This is updated.
+    private final TetradMatrix weights;
+
+    // Likelihood of each record, per component. This is updated but is rewritten every time and is only
+    // made a field to save memory allocation.
+    private final TetradMatrix likelihoods;
+
+    // Posterior probability of each record, per component. This is updated.
+    private final TetradMatrix posteriorProbs;
+
+    // Biases. This is updated.
     private TetradMatrix[] bias;
 
     // Unmixing matrices. These are updated.
     private TetradMatrix[] W;
 
-
     private DemixerNongaussian(DataSet data, int numComponents, double learningRate) {
+
+        // Fixed.
         this.data = data;
         this.X = data.getDoubleData();
         this.N = X.rows();
         this.numVars = X.columns();
         this.numComponents = numComponents;
+        this.learningRate = learningRate;
+
+        // Updated.
         this.bias = new TetradMatrix[this.numComponents];
         this.weights = new TetradMatrix(1, this.numComponents);
         this.likelihoods = new TetradMatrix(N, this.numComponents);
@@ -72,31 +80,33 @@ public class DemixerNongaussian {
         this.W = new TetradMatrix[this.numComponents];
         this.K = new TetradMatrix[this.numComponents];
         this.S = new TetradMatrix[this.numComponents];
-        this.learningRate = learningRate;
-
     }
 
     private MixtureModelNongaussian demix() {
         for (int k = 0; k < numComponents; k++) {
-            weights.set(0, k, 1.0 / numComponents);//RandomUtil.getInstance().nextUniform(0, 1));
+            weights.set(0, k, RandomUtil.getInstance().nextUniform(0, 1));
         }
 
+        normalize(weights, 0);
+
         // Initializing posterior probability of each record to be uniform.
-        for (int t = 0; t < N; t++) {
+        for (int n = 0; n < N; n++) {
             for (int k = 0; k < numComponents; k++) {
-                posteriorProbs.set(t, k, weights.get(0, k));
+                posteriorProbs.set(n, k, weights.get(0, k));
             }
         }
 
+        FastIca ica = new FastIca(X, numVars);
+        FastIca.IcaResult result = ica.findComponents();
+
+        TetradMatrix _W = result.getW();
+
         for (int k = 0; k < numComponents; k++) {
-            FastIca ica = new FastIca(X, numVars);
-            FastIca.IcaResult result = ica.findComponents();
-
-            TetradMatrix _W = result.getW();
-
             W[k] = _W;
-            W[k] = whiten(_W, 0.1);
+            W[k] = whiten(_W, 0.01);
+        }
 
+        for (int k = 0; k < numComponents; k++) {
             TetradMatrix _bias = new TetradMatrix(1, numVars);
 
             for (int i = 0; i < numVars; i++) {
@@ -104,31 +114,13 @@ public class DemixerNongaussian {
             }
 
             bias[k] = _bias;
-            K[k] = new TetradMatrix(numVars, numVars);
-            S[k] = X.minus(repmat(bias[k].getRow(0), N)).times(W[k].transpose());
         }
 
         for (int k = 0; k < numComponents; k++) {
-            for (int v = 0; v < numVars; v++) {
-                double sechSum = 0;
-                double _sum = 0;
-                double tanhSum = 0;
-
-                for (int t = 0; t < N; t++) {
-                    sechSum += 1.0 / pow(cosh(S[k].get(t, v)), 2.0);
-                    _sum += pow(S[k].get(t, v), 2.0);
-                    tanhSum += tanh(S[k].get(t, v)) * S[k].get(t, v);
-                }
-
-                sechSum /= N;
-                _sum /= N;
-                tanhSum /= N;
-
-                double kurtosis = signum(sechSum * _sum - tanhSum);
-
-                K[k].set(v, v, kurtosis);
-            }
+            adaptSVectors(k);
         }
+
+        initializeKurtosisMatrices();
 
         double[] _likelihoods = new double[numComponents];
         for (int k = 0; k < numComponents; k++) _likelihoods[k] = Double.NEGATIVE_INFINITY;
@@ -157,17 +149,6 @@ public class DemixerNongaussian {
                 }
             }
 
-            for (int t = 0; t < N; t++) {
-                normalize(posteriorProbs, t);
-            }
-
-            for (int k = 0; k < numComponents; k++) {
-                adaptMixingMatrices(k);
-            }
-
-            for (int k = 0; k < numComponents; k++) {
-                adaptBiasVectors(k);
-            }
 
             maximization();
 
@@ -181,29 +162,32 @@ public class DemixerNongaussian {
         return new MixtureModelNongaussian(data, posteriorProbs, invertWMatrices(W), bias, weights);
     }
 
-    private TetradMatrix whiten(TetradMatrix w, double v) {
-        w = new TetradMatrix(w);
+    private void initializeKurtosisMatrices() {
+        for (int k = 0; k < numComponents; k++) {
+            if (K[k] == null) K[k] = new TetradMatrix(numVars, numVars);
 
-        for (int r = 0; r < w.rows(); r++) {
-            for (int c = 0; c < w.columns(); c++) {
-                w.set(r, c, w.get(r, c) + RandomUtil.getInstance().nextNormal(0, v));
+            for (int v = 0; v < numVars; v++) {
+                double sechSum = 0;
+                double _sum = 0;
+                double tanhSum = 0;
+
+                for (int n = 0; n < N; n++) {
+                    sechSum += 1.0 / pow(cosh(S[k].get(n, v)), 2.0);
+                    _sum += pow(S[k].get(n, v), 2.0);
+                    tanhSum += tanh(S[k].get(n, v)) * S[k].get(n, v);
+                }
+
+                sechSum /= N;
+                _sum /= N;
+                tanhSum /= N;
+
+                double kurtosis = signum(sechSum * _sum - tanhSum);
+
+                K[k].set(v, v, kurtosis);
             }
         }
-
-        return w;
     }
 
-    private TetradMatrix repmat(TetradVector _bias, int rows) {
-        TetradMatrix rep = X.like();
-
-        for (int r = 0; r < rows; r++) {
-            for (int c = 0; c < _bias.size(); c++) {
-                rep.set(r, c, _bias.get(c));
-            }
-        }
-
-        return rep;
-    }
 
     /*
      * Inline updating of the mixing matrix A, updated every time a new posterior is determined
@@ -212,9 +196,9 @@ public class DemixerNongaussian {
 
         TetradMatrix _tanhS = X.like(); // NxM
 
-        for (int t = 0; t < N; t++) {
+        for (int n = 0; n < N; n++) {
             for (int i = 0; i < numVars; i++) {
-                _tanhS.set(t, i, Math.tanh(S[k].get(t, i)));
+                _tanhS.set(n, i, Math.tanh(S[k].get(n, i)));
             }
         }
 
@@ -227,8 +211,8 @@ public class DemixerNongaussian {
         TetradMatrix probs = posteriorProbs.column(k);
         TetradMatrix newW = new TetradMatrix(numVars, numVars);
 
-        for (int t = 0; t < N; t++) {
-            double p = probs.get(t, 0);
+        for (int n = 0; n < N; n++) {
+            double p = probs.get(n, 0);
             TetradMatrix tempWMatrix = minusSquare.times(W[k]).scalarMult(p * learningRate / (N * numComponents));
             newW = newW.plus(tempWMatrix);
         }
@@ -240,33 +224,23 @@ public class DemixerNongaussian {
         }
     }
 
-    private TetradMatrix[] invertWMatrices(TetradMatrix[] m) {
-        TetradMatrix[] n = new TetradMatrix[m.length];
-
-        for (int k = 0; k < m.length; k++) {
-            n[k] = m[k].inverse();
-        }
-
-        return n;
-    }
-
     private void adaptBiasVectors(int k) {
         TetradMatrix _W = W[k];
         TetradMatrix sourceVector = S[k];
         TetradMatrix _bias = new TetradMatrix(1, numVars);
 
-        for (int t = 0; t < N; t++) {
-            double prob = posteriorProbs.get(t, k);
+        for (int n = 0; n < N; n++) {
+            double prob = posteriorProbs.get(n, k);
 
             double sum = 0;
             double det = Math.log(Math.abs(_W.det()));
 
             for (int i = 0; i < numVars; i++) {
                 TetradMatrix bMatrix = _W.row(i);
-                _bias = _bias.plus((bMatrix.scalarMult(Math.tanh(sourceVector.get(t, i)))).plus(bMatrix.scalarMult(sourceVector.get(t, i))));
+                _bias = _bias.plus((bMatrix.scalarMult(Math.tanh(sourceVector.get(n, i)))).plus(bMatrix.scalarMult(sourceVector.get(n, i))));
 
-                double tempSum = -.5 * Math.log(2.0 * Math.PI) - (K[k].get(i, i) * log(cosh(S[k].get(t, i))))
-                        - (pow(S[k].get(t, i), 2.0) / 2.0);
+                double tempSum = -.5 * Math.log(2.0 * Math.PI) - (K[k].get(i, i) * log(cosh(S[k].get(n, i))))
+                        - (pow(S[k].get(n, i), 2.0) / 2.0);
 
                 if (K[k].get(i, i) > 0) {
                     tempSum = tempSum - Math.log(0.7413);
@@ -275,7 +249,7 @@ public class DemixerNongaussian {
                 sum += tempSum;
             }
 
-            double L = (-sum + abs(det)) / N;
+            double L = (sum + abs(det)) / N;
 
             _bias = _bias.scalarMult(prob * L);
         }
@@ -284,24 +258,42 @@ public class DemixerNongaussian {
     }
 
     /*
-     * Find posteriors of observations based on maximally likely values of mixing matrices, bias vectors, source vectors, and weights
+     * Find posteriors of observations based on maximally likely values of mixing matrices, bias vectors,
+     * source vectors, and weights
      */
     private double expectation(int k) {
+        calculateLikleihoods(k);
+        return calculatePosteriors(k);
+    }
 
-        // determine log-likelihoods
+    private void maximization() {
+        for (int k = 0; k < numComponents; k++) {
+            adaptMixingMatrices(k);
+        }
+
+        for (int k = 0; k < numComponents; k++) {
+            adaptBiasVectors(k);
+        }
+
+        adaptWeights();
+
+        for (int k = 0; k < numComponents; k++) {
+            adaptSVectors(k);
+        }
+    }
+
+    private void calculateLikleihoods(int k) {
         double sum;
         double det;
 
-        double likelihood = 0.0;
-
         det = Math.log(Math.abs(W[k].det()));
 
-        for (int t = 0; t < X.rows(); t++) {
+        for (int N = 0; N < X.rows(); N++) {
             sum = 0;
 
             for (int i = 0; i < X.columns(); i++) {
-                double _l = -.5 * Math.log(2.0 * Math.PI) - (K[k].get(i, i) * log(cosh(S[k].get(t, i))))
-                        - (pow(S[k].get(t, i), 2.0) / 2.0);
+                double _l = -.5 * Math.log(2.0 * Math.PI) - (K[k].get(i, i) * log(cosh(S[k].get(N, i))))
+                        - (pow(S[k].get(N, i), 2.0) / 2.0);
 
                 if (K[k].get(i, i) > 0) {
                     _l = _l - Math.log(0.7413);
@@ -310,46 +302,33 @@ public class DemixerNongaussian {
                 sum += _l;
             }
 
+            double L = (sum - det) / this.N;
+            likelihoods.set(N, k, L);
+        }
+    }
 
-            double L = (sum - det) / N;
+    private double calculatePosteriors(int k) {
+        double likelihood = 0.0;
 
-
-            likelihoods.set(t, k, L);
-
-//            System.out.println("L " + (L));
-
-
-            likelihood += L;
+        for (int n = 0; n < N; n++) {
+            double prob = exp(likelihoods.get(n, k)) * weights.get(0, k);
+            posteriorProbs.set(n, k, prob);
+            likelihood += Math.log(posteriorProbs.get(n, k));
         }
 
         System.out.println("L(" + k + ") = " + likelihood);
 
-        for (int t = 0; t < N; t++) {
-            double prob = exp(likelihoods.get(t, k)) * weights.get(0, k);
-//            if (prob < 1e-5) return Double.NEGATIVE_INFINITY;
-        }
-
-        for (int t = 0; t < N; t++) {
-            double prob = exp(likelihoods.get(t, k)) * weights.get(0, k);
-
-//            System.out.println("L " + (likelihood) + " prob(" + k + ") = " + prob);
-
-            posteriorProbs.set(t, k, prob);
-        }
-
         return likelihood;
     }
 
-    private void maximization() {
-
-        // find values of weights
+    private void adaptWeights() {
         double sum;
 
         for (int k = 0; k < numComponents; k++) {
             sum = 0;
 
-            for (int t = 0; t < N; t++) {
-                sum += posteriorProbs.get(t, k);
+            for (int n = 0; n < N; n++) {
+                sum += posteriorProbs.get(n, k);
             }
 
             weights.set(0, k, sum / N);//+ RandomUtil.getInstance().nextUniform(0, 1));
@@ -359,39 +338,11 @@ public class DemixerNongaussian {
 
 
         normalize(weights, 0);
-
-
-        for (int k = 0; k < numComponents; k++) {
-            S[k] = X.minus(repmat(bias[k].getRow(0), N)).times(W[k].transpose());
-        }
     }
 
-    private void normalize(TetradMatrix weights, int row) {
-        double _sum = 0.0;
-
-        for (int k = 0; k < numComponents; k++) {
-            _sum += weights.get(row, k);
-        }
-
-        for (int k = 0; k < numComponents; k++) {
-            weights.set(0, k, weights.get(row, k) / _sum);
-        }
-    }
-
-
-    private static DataSet loadData(String path) {
-        try {
-            ContinuousTabularDataFileReader dataReader = new ContinuousTabularDataFileReader(
-                    new File(path), Delimiter.COMMA);
-            dataReader.setHasHeader(true);
-            return (DataSet) DataConvertUtils.toDataModel(dataReader.readInData());
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public double getLearningRate() {
-        return learningRate;
+    // Needs bias and W.
+    private void adaptSVectors(int k) {
+        S[k] = X.minus(repmat(bias[k].getRow(0), N)).times(W[k].transpose());
     }
 
     public static void main(String... args) {
@@ -429,4 +380,64 @@ public class DemixerNongaussian {
         System.out.println("Elapsed: " + (elapsed / 1000));
     }
 
+
+    private TetradMatrix whiten(TetradMatrix w, double v) {
+        w = new TetradMatrix(w);
+
+        for (int r = 0; r < w.rows(); r++) {
+            for (int c = 0; c < w.columns(); c++) {
+                w.set(r, c, w.get(r, c) + RandomUtil.getInstance().nextNormal(0, v));
+            }
+        }
+
+        return w;
+    }
+
+    private TetradMatrix repmat(TetradVector _bias, int rows) {
+        TetradMatrix rep = X.like();
+
+        for (int r = 0; r < rows; r++) {
+            for (int c = 0; c < _bias.size(); c++) {
+                rep.set(r, c, _bias.get(c));
+            }
+        }
+
+        return rep;
+    }
+
+
+    private TetradMatrix[] invertWMatrices(TetradMatrix[] m) {
+        TetradMatrix[] n = new TetradMatrix[m.length];
+
+        for (int k = 0; k < m.length; k++) {
+            n[k] = m[k].inverse();
+        }
+
+        return n;
+    }
+
+
+    private void normalize(TetradMatrix weights, int row) {
+        double _sum = 0.0;
+
+        for (int k = 0; k < numComponents; k++) {
+            _sum += weights.get(row, k);
+        }
+
+        for (int k = 0; k < numComponents; k++) {
+            weights.set(0, k, weights.get(row, k) / _sum);
+        }
+    }
+
+
+    private static DataSet loadData(String path) {
+        try {
+            ContinuousTabularDataFileReader dataReader = new ContinuousTabularDataFileReader(
+                    new File(path), Delimiter.COMMA);
+            dataReader.setHasHeader(true);
+            return (DataSet) DataConvertUtils.toDataModel(dataReader.readInData());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }
