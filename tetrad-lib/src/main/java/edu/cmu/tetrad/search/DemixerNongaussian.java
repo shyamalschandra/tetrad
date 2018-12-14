@@ -84,7 +84,7 @@ public class DemixerNongaussian {
 
     private MixtureModelNongaussian demix() {
         for (int k = 0; k < numComponents; k++) {
-            weights.set(0, k,  1.0 / numVars);//  RandomUtil.getInstance().nextUniform(0, 1));
+            weights.set(0, k,  RandomUtil.getInstance().nextUniform(0, 1));
         }
 
         normalize(weights, 0);
@@ -117,7 +117,7 @@ public class DemixerNongaussian {
         }
 
         for (int k = 0; k < numComponents; k++) {
-            adaptSVectors(k);
+            adaptSourceMatrices(k);
         }
 
         initializeKurtosisMatrices();
@@ -251,7 +251,7 @@ public class DemixerNongaussian {
 
         if (abs(det) > 0) {
             W[k] = W[k].plus(delta);
-        }
+            }
     }
 
     private void adaptBiasVectors(int k) {
@@ -308,7 +308,7 @@ public class DemixerNongaussian {
         adaptWeights();
 
         for (int k = 0; k < numComponents; k++) {
-            adaptSVectors(k);
+            adaptSourceMatrices(k);
         }
     }
 
@@ -341,18 +341,40 @@ public class DemixerNongaussian {
         }
     }
 
+//    // Returns the likelihood just for component k.
+//    private double calculatePosteriors(int k) {
+//        double likelihood = 0.0;
+//
+//        for (int n = 0; n < N; n++) {
+//            double prob = exp(likelihoods.get(n, k));// * weights.get(0, k);
+//            posteriorProbs.set(n, k, prob);
+//            likelihood += likelihoods.get(n, k);
+//        }
+//
+//        return likelihood;
+//    }
+
     // Returns the likelihood just for component k.
     private double calculatePosteriors(int k) {
         double likelihood = 0.0;
 
         for (int n = 0; n < N; n++) {
-            double prob = exp(likelihoods.get(n, k));// * weights.get(0, k);
+            double prob = exp(likelihoods.get(n, k)) * weights.get(0, k);
+
+            double divisor = 0;
+            for (int i = 0; i < numComponents; i++){
+                divisor += exp(likelihoods.get(n, i)) * weights.get(0, i);
+            }
+
+            prob = prob/divisor;
+
             posteriorProbs.set(n, k, prob);
             likelihood += likelihoods.get(n, k);
         }
 
         return likelihood;
     }
+
 
     private void adaptWeights() {
         double sum;
@@ -371,7 +393,7 @@ public class DemixerNongaussian {
     }
 
     // Needs bias and W.
-    private void adaptSVectors(int k) {
+    private void adaptSourceMatrices(int k) {
         S[k] = X.minus(repmat(bias[k].getRow(0), N)).times(W[k].transpose());
     }
 
