@@ -23,42 +23,16 @@ package edu.cmu.tetrad.test;
 
 import edu.cmu.tetrad.algcomparison.Comparison;
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithms;
-import edu.cmu.tetrad.algcomparison.algorithm.multi.Fask_BConcatenated;
 import edu.cmu.tetrad.algcomparison.graph.RandomForward;
 import edu.cmu.tetrad.algcomparison.graph.RandomGraph;
 import edu.cmu.tetrad.algcomparison.independence.SemBicTest;
 import edu.cmu.tetrad.algcomparison.simulation.LinearFisherModel;
 import edu.cmu.tetrad.algcomparison.simulation.Simulations;
 import edu.cmu.tetrad.algcomparison.statistic.*;
-import edu.cmu.tetrad.data.ContinuousVariable;
-import edu.cmu.tetrad.data.DataSet;
-import edu.cmu.tetrad.data.DataUtils;
-import edu.cmu.tetrad.data.DiscreteVariable;
-import edu.cmu.tetrad.graph.Edges;
-import edu.cmu.tetrad.graph.Graph;
-import edu.cmu.tetrad.graph.Node;
-import edu.cmu.tetrad.search.Fask_B;
-import edu.cmu.tetrad.search.IndTestFisherZ;
-import edu.cmu.tetrad.util.DataConvertUtils;
 import edu.cmu.tetrad.util.Parameters;
-import edu.cmu.tetrad.util.RandomUtil;
-import edu.cmu.tetrad.util.StatUtils;
-import edu.pitt.dbmi.data.Delimiter;
-import edu.pitt.dbmi.data.reader.DataReader;
-import edu.pitt.dbmi.data.reader.tabular.ContinuousTabularDataFileReader;
-import edu.pitt.dbmi.data.reader.tabular.MixedTabularDataFileReader;
 import org.junit.Test;
 
-import java.io.*;
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import static java.lang.Math.abs;
-import static java.lang.Math.tan;
 
 /**
  * Pulling this test out for Madelyn.
@@ -69,20 +43,20 @@ public class ToyFaskBExample {
 
     @Test
     public void toy_positiveSkews() {
-        testToyExample(true, false);
+        testToyExample(true);
     }
 
     @Test
     public void toy_negativeSkews() {
-        testToyExample(false, true);
+        testToyExample(false);
     }
 
     @Test
     public void toy_mixedSkews() {
-        testToyExample(true, true);
+        testToyExample(true);
     }
 
-    public void testToyExample(boolean positiveSkews, boolean negativeSkews) {
+    public void testToyExample(boolean positiveSkews) {
         RandomGraph graph = new RandomForward();
 
         Simulations simulations = new Simulations();
@@ -99,7 +73,7 @@ public class ToyFaskBExample {
 
         Parameters parameters = new Parameters();
 
-        parameters.set("numMeasures", 20);
+        parameters.set("numMeasures", 10);
         parameters.set("numLatents", 0);
         parameters.set("avgDegree", 2);
         parameters.set("maxDegree", 100);
@@ -114,11 +88,9 @@ public class ToyFaskBExample {
         parameters.set("verbose", true);
         parameters.set("includePositiveCoefs", true);
         parameters.set("includeNegativeCoefs", true);
-        parameters.set("includePositiveSkewsForBeta", positiveSkews);
-        parameters.set("includeNegativeSkewsForBeta", negativeSkews);
         parameters.set("errorsNormal", false);
-        parameters.set("betaLeftValue", 2);
-        parameters.set("betaRightValue", 5);
+        parameters.set("betaLeftValue", 6);
+        parameters.set("betaRightValue", 10);
         parameters.set("numRuns", 10);
 //        parameters.add("percentDiscrete");
 //        parameters.add("numCategories");
@@ -153,12 +125,10 @@ public class ToyFaskBExample {
 
         String type;
 
-        if (positiveSkews && !negativeSkews) {
+        if (positiveSkews) {
             type = "_positive_skews";
-        } else if (!positiveSkews && negativeSkews) {
-            type = "_negative_skews";
         } else {
-            type = "_mixed_skews";
+            type = "_negative_skews";
         }
 
         new Comparison().compareFromSimulations("/Users/user/tetrad/aatoyexample" + type, simulations, algorithms, statistics, parameters);

@@ -717,9 +717,13 @@ public final class Fask_B implements GraphSearch {
 
         double[] ryx = residuals(y, new double[][]{x});
 
-        if (StatUtils.skewness(ryx) < 0) {
+        if (StatUtils.skewness(ryx) < -.1) {
             y = times(y, -1);
         }
+
+//        if (StatUtils.skewness(x) < 0) {
+//            x = times(x, -1);
+//        }
 
         final double cxyx = E(x, y, x);
         final double cxyy = E(x, y, y);
