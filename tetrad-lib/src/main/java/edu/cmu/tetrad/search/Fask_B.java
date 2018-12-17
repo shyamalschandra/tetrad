@@ -175,12 +175,6 @@ public final class Fask_B implements GraphSearch {
                     Node Y = edge.getNode2();
 
                     orientEdge(graph, X, Y);
-
-//                    if (leftRight(X, Y) > leftRight(Y, X)) {
-//                        graph.addDirectedEdge(X, Y);
-//                    } else {
-//                        graph.addDirectedEdge(Y, X);
-//                    }
                 }
 
                 for (Edge edge : g1.getEdges()) {
@@ -398,14 +392,6 @@ public final class Fask_B implements GraphSearch {
         this.delta = delta;
     }
 
-//    public boolean isAssumeErrorsPositivelySkewed() {
-//        return assumeErrorsPositivelySkewed;
-//    }
-//
-//    public void setAssumeErrorsPositivelySkewed(boolean assumeErrorsPositivelySkewed) {
-//        this.assumeErrorsPositivelySkewed = assumeErrorsPositivelySkewed;
-//    }
-
     public boolean isVerbose() {
         return verbose;
     }
@@ -463,30 +449,11 @@ public final class Fask_B implements GraphSearch {
                 } else if (knowledgeOrients(Y, X)) {
                     graph.addDirectedEdge(Y, X);
                 } else {
-//                    if (leftRight(X, Y) > leftRight(Y, X)) {
-//                        graph.addDirectedEdge(X, Y);
-//                    } else {
-//                        graph.addDirectedEdge(Y, X);
-//                    }
-
-//                    if (leftRight(X, Y) > 0 &&  leftRight(Y, X) < 0) {
-//                        graph.addDirectedEdge(X, Y);
-//                    } else if (leftRight(X, Y) > 0 &&  leftRight(Y, X) < 0)  {
-//                        graph.addDirectedEdge(Y, X);
-//                    } else if (leftRight(X, Y) < 0 &&  leftRight(Y, X) < 0)  {
-//                        graph.addBidirectedEdge(Y, X);
-//                    }
-
                     if (leftRight(X, Y) > 0) {
                         graph.addDirectedEdge(X, Y);
                     } else if (leftRight(Y, X) > 0) {
                         graph.addDirectedEdge(Y, X);
                     } else {
-//                        if (leftRight(X, Y) > leftRight(Y, X)) {
-//                            graph.addDirectedEdge(X, Y);
-//                        } else {
-//                            graph.addDirectedEdge(Y, X);
-//                        }
                         graph.addUndirectedEdge(Y, X);
                     }
                 }
@@ -606,17 +573,26 @@ public final class Fask_B implements GraphSearch {
 
         double[][] z = new double[Z.size()][];
         for (int i = 0; i < Z.size(); i++) z[i] = colData[variables.indexOf(Z.get(i))];
+        for (double[] d : z) if (d.length == 0) throw new IllegalArgumentException();
 
-        double[] rxz = residuals(x, z);
-        double[] ryz = residuals(y, z);
-        double[] ryxz = residuals(y, new double[][]{x}, z);
-        double[] rxyz = residuals(x, new double[][]{y}, z);
+        double[] x1 = restrict(x, x);
+        double[] y1 = restrict(y, x);
+        double[][] z1 = restrict(z, x);
 
+        for (double[] d : z1) if (d.length == 0) throw new IllegalArgumentException();
+
+
+        double[] rx1 = residuals(x1, z1);
+        double[] ryx1 = residuals(y1, new double[][]{x1}, z1);
+
+//        double[] rxyz = residuals(x, new double[][]{y}, z);
+//
+//        double[] ryz = residuals(y, z);
         boolean b1, b2;
 
         {
-            double[] dx = rxz;
-            double[] dy = ryxz;
+            double[] dx = rx1;
+            double[] dy = ryx1;
 
             int nx = dx.length;
             int ny = dy.length;
@@ -631,24 +607,65 @@ public final class Fask_B implements GraphSearch {
             b1 = p < skewEdgeAlpha;
         }
 
-        {
-            double[] dx = ryz;
-            double[] dy = rxyz;
+//        {
+//            double[] dx = ryz;
+//            double[] dy = rxyz;
+//
+//            int nx = dx.length;
+//            int ny = dy.length;
+//
+//            // Unequal variances, unequal sample sizes, T test, 2-sided
+//            double exyy = variance(dy) / ((double) ny);
+//            double exyx = variance(dx) / ((double) nx);
+//            double t = (mean(dx) - mean(dy)) / sqrt(exyy + exyx);
+//            double df = ((exyy + exyx) * (exyy + exyx)) / ((exyy * exyy) / (ny - 1)) + ((exyx * exyx) / (nx - 1));
+//
+//            double p = new TDistribution(df).cumulativeProbability(t);
+//            b2 = p < skewEdgeAlpha;
+//        }
 
-            int nx = dx.length;
-            int ny = dy.length;
+        return b1;//|| b2;
+    }
 
-            // Unequal variances, unequal sample sizes, T test, 2-sided
-            double exyy = variance(dy) / ((double) ny);
-            double exyx = variance(dx) / ((double) nx);
-            double t = (mean(dx) - mean(dy)) / sqrt(exyy + exyx);
-            double df = ((exyy + exyx) * (exyy + exyx)) / ((exyy * exyy) / (ny - 1)) + ((exyx * exyx) / (nx - 1));
+    private double[] restrict(double[] z, double[] x) {
+        List<Integer> rows = new ArrayList<>();
 
-            double p = new TDistribution(df).cumulativeProbability(t);
-            b2 = p < skewEdgeAlpha;
+        for (int i = 0; i < z.length; i++) {
+            if (x[i] > 0) rows.add(i);
         }
 
-        return b1 || b2;
+        double[] restricted = new double[rows.size()];
+
+        for (int i = 0; i < rows.size(); i++) {
+            restricted[i] = z[rows.get(i)];
+        }
+
+        return restricted;
+    }
+
+    private double[][] restrict(double[][] z, double[] x) {
+        if (z.length == 0) return new double[0][];
+
+        for (double[] d : z) if (d.length == 0) throw new IllegalArgumentException();
+
+        List<Integer> rows = new ArrayList<>();
+
+        for (int i = 0; i < z[0].length; i++) {
+            if (x[i] > 0) rows.add(i);
+        }
+
+        if (rows.size() == 0) throw new IllegalArgumentException();
+
+        double[][] restricted = new double[z.length][];
+        for (int i = 0; i < restricted.length; i++) restricted[i] = new double[rows.size()];
+
+        for (int j = 0; j < z.length; j++) {
+            for (int i = 0; i < rows.size(); i++) {
+                restricted[j][i] = z[j][rows.get(i)];
+            }
+        }
+
+        return restricted;
     }
 
     private boolean skewAdjacent(Node X, Node Y, List<Node> Z) {
@@ -658,8 +675,6 @@ public final class Fask_B implements GraphSearch {
         boolean b1 = false, b2 = false;
 
         try {
-
-
             E2 hx = new E2(X, Y, Z, X).invoke();
             E2 hy = new E2(X, Y, Z, Y).invoke();
 
@@ -713,16 +728,6 @@ public final class Fask_B implements GraphSearch {
 
         double lr = E(x, y, y, -1) / E(x, x, y, -1) - E(x, y, y, +1) / E(x, x, y, +1);
 
-//        if (isAssumeSkewsPositive()) {
-//            if (signum(StatUtils.skewness(y)) * correlation(x, y) < 0) {
-//                lr *= -1;
-//            }
-//        } else {
-//            if (correlation(x, y) < 0) {
-//                lr *= -1;
-//            }
-//        }
-
         if (isVerbose()) {
             TetradLogger.getInstance().forceLogMessage(
                     Edges.directedEdge(X, Y)
@@ -746,16 +751,6 @@ public final class Fask_B implements GraphSearch {
         double right = E(x, y, y) / sqrt(E(x, x, y) * E(y, y, y));
 
         double lr = left - right;
-
-//        if (correlation(x, y) < 0) {
-//            lr *= -1;
-//        }
-//
-//        if (isAssumeSkewsPositive()) {
-//            if (signum(StatUtils.skewness(x)) < 0) {
-//                lr *= -1;
-//            }
-//        }
 
         if (isVerbose()) {
             TetradLogger.getInstance().forceLogMessage(
@@ -799,10 +794,18 @@ public final class Fask_B implements GraphSearch {
     }
 
     private double[] residuals(double[] _y, double[][] _x) {
+        for (double[] d : _x) if (d.length == 0) throw new IllegalArgumentException();
+
+        if (_x.length == 0) return Arrays.copyOf(_y, _y.length);
         return residuals(_y, _x, new double[0][]);
     }
 
     private double[] residuals(double[] y, double[][] x, double[][] z) {
+        if (x.length == 0 && z.length == 0) return Arrays.copyOf(y, y.length);
+
+        for (double[] d : x) if (d.length == 0) throw new IllegalArgumentException();
+        for (double[] d : z) if (d.length == 0) throw new IllegalArgumentException();
+
         double[][] allregressors = new double[x.length + z.length][];
         for (int i = 0; i < x.length; i++) allregressors[i] = x[i];
         for (int j = 0; j < z.length; j++) allregressors[j + x.length] = z[j];
@@ -835,21 +838,6 @@ public final class Fask_B implements GraphSearch {
         }
 
         return exy / n;
-    }
-
-    private static double[] EProd(double[] x, double[] y, double[] condition) {
-        List<Double> p = new ArrayList<>();
-
-        for (int k = 0; k < x.length; k++) {
-            if (condition[k] > 0) {
-                p.add(x[k] * y[k]);
-            }
-        }
-
-        double[] _p = new double[p.size()];
-        for (int i = 0; i < p.size(); i++) _p[i] = p.get(i);
-
-        return _p;
     }
 
     private double E(double[] x, double[] y, double[] condition, double dir) {
