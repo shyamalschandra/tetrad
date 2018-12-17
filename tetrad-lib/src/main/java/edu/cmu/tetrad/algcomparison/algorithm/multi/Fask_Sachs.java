@@ -63,6 +63,7 @@ public class Fask_Sachs implements Algorithm, HasKnowledge, UsesScoreWrapper {
             search.setUseFasAdjacencies(parameters.getBoolean("useFasAdjacencies"));
             search.setUseSkewAdjacencies(parameters.getBoolean("useSkewAdjacencies"));
             search.setAlpha(parameters.getDouble("twoCycleAlpha"));
+            search.setAlpha(parameters.getDouble("twoCycleAlpha"));
             search.setDelta(parameters.getDouble("faskDelta"));
 
 //            search.setPercentBootstrapForLinearityTest(parameters.getDouble("percentBootstrapForLinearityTest"));

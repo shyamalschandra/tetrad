@@ -482,6 +482,11 @@ public final class Fask_B implements GraphSearch {
                     } else if (leftRight(Y, X) > 0) {
                         graph.addDirectedEdge(Y, X);
                     } else {
+//                        if (leftRight(X, Y) > leftRight(Y, X)) {
+//                            graph.addDirectedEdge(X, Y);
+//                        } else {
+//                            graph.addDirectedEdge(Y, X);
+//                        }
                         graph.addUndirectedEdge(Y, X);
                     }
                 }
@@ -595,12 +600,68 @@ public final class Fask_B implements GraphSearch {
         return StatUtils.skewness(x);
     }
 
+    private boolean skewAdjacent1(Node X, Node Y, List<Node> Z) {
+        double[] x = colData[variables.indexOf(X)];
+        double[] y = colData[variables.indexOf(Y)];
+
+        double[][] z = new double[Z.size()][];
+        for (int i = 0; i < Z.size(); i++) z[i] = colData[variables.indexOf(Z.get(i))];
+
+        double[] rxz = residuals(x, z);
+        double[] ryz = residuals(y, z);
+        double[] ryxz = residuals(y, new double[][]{x}, z);
+        double[] rxyz = residuals(x, new double[][]{y}, z);
+
+        boolean b1, b2;
+
+        {
+            double[] dx = rxz;
+            double[] dy = ryxz;
+
+            int nx = dx.length;
+            int ny = dy.length;
+
+            // Unequal variances, unequal sample sizes, T test, 2-sided
+            double exyy = variance(dy) / ((double) ny);
+            double exyx = variance(dx) / ((double) nx);
+            double t = (mean(dx) - mean(dy)) / sqrt(exyy + exyx);
+            double df = ((exyy + exyx) * (exyy + exyx)) / ((exyy * exyy) / (ny - 1)) + ((exyx * exyx) / (nx - 1));
+
+            double p = new TDistribution(df).cumulativeProbability(t);
+            b1 = p < skewEdgeAlpha;
+        }
+
+        {
+            double[] dx = ryz;
+            double[] dy = rxyz;
+
+            int nx = dx.length;
+            int ny = dy.length;
+
+            // Unequal variances, unequal sample sizes, T test, 2-sided
+            double exyy = variance(dy) / ((double) ny);
+            double exyx = variance(dx) / ((double) nx);
+            double t = (mean(dx) - mean(dy)) / sqrt(exyy + exyx);
+            double df = ((exyy + exyx) * (exyy + exyx)) / ((exyy * exyy) / (ny - 1)) + ((exyx * exyx) / (nx - 1));
+
+            double p = new TDistribution(df).cumulativeProbability(t);
+            b2 = p < skewEdgeAlpha;
+        }
+
+        return b1 || b2;
+    }
+
     private boolean skewAdjacent(Node X, Node Y, List<Node> Z) {
+        double[] x = colData[variables.indexOf(X)];
+        double[] y = colData[variables.indexOf(Y)];
+
         boolean b1 = false, b2 = false;
 
         try {
-            Fask_B.E hx = new E(X, Y, Z, X).invoke();
-            Fask_B.E hy = new E(X, Y, Z, Y).invoke();
+
+
+            E2 hx = new E2(X, Y, Z, X).invoke();
+            E2 hy = new E2(X, Y, Z, Y).invoke();
 
             double[] dx = hx.getR();
             double[] dy = hy.getR();
@@ -621,8 +682,8 @@ public final class Fask_B implements GraphSearch {
         }
 
         try {
-            Fask_B.E hy = new E(Y, X, Z, Y).invoke();
-            Fask_B.E hx = new E(Y, X, Z, X).invoke();
+            E2 hy = new E2(Y, X, Z, Y).invoke();
+            E2 hx = new E2(Y, X, Z, X).invoke();
 
             double[] dx = hx.getR();
             double[] dy = hy.getR();
@@ -644,6 +705,7 @@ public final class Fask_B implements GraphSearch {
 
         return b1 || b2;
     }
+
 
     private double leftRight1(Node X, Node Y) {
         double[] x = colData[variables.indexOf(X)];
@@ -715,66 +777,17 @@ public final class Fask_B implements GraphSearch {
         double[] x = colData[variables.indexOf(X)];
         double[] y = colData[variables.indexOf(Y)];
 
-        double[] ryx = residuals(y, new double[][]{x});
+        double[] ry = residuals(y, new double[][]{x});
+        double lr = E(x, ry, x) - E(x, ry, y);
 
-        if (StatUtils.skewness(ryx) < -.1) {
-            y = times(y, -1);
+        if (isVerbose()) {
+            TetradLogger.getInstance().forceLogMessage(
+                    Edges.directedEdge(X, Y)
+                            + " X = " + X.getName()
+                            + " Y = " + Y.getName()
+                            + " LR = " + lr
+                            + " sey = " + StatUtils.skewness(ry));
         }
-
-//        if (StatUtils.skewness(x) < 0) {
-//            x = times(x, -1);
-//        }
-
-        final double cxyx = E(x, y, x);
-        final double cxyy = E(x, y, y);
-        final double cxxx = E(x, x, x);
-        final double cyyx = E(y, y, x);
-        final double cxxy = E(x, x, y);
-        final double cyyy = E(y, y, y);
-
-        double a1 = cxyx / cxxx;
-        double a2 = cxyy / cxxy;
-        double b1 = cxyy / cyyy;
-        double b2 = cxyx / cyyx;
-
-        double Q = (a2 > 0) ? a1 / a2 : a2 / a1;
-        double R = (b2 > 0) ? b1 / b2 : b2 / b1;
-
-//        double lr = Q - R;
-
-//        if (correlation(x, y) < 0) {
-//            lr *= -1;
-//        }
-//
-//        if (isAssumeSkewsPositive()) {
-//            if (signum(StatUtils.skewness(x)) < 0) {
-//                lr *= -1;
-//            }
-//        }
-
-//        if (StatUtils.correlation(x, y) < 0) lr += delta;
-
-
-//        System.out.println("sk_ey = " + sk_ey);
-
-//
-//        if (sk_ey < 0) {
-//            lr *= -1;
-//        }
-//
-//        final double a = correlation(x, y);
-//
-//        if (a < 0 && sk_ey > delta) {
-//            lr *= -1;
-//        }
-
-        double lr = a1 - a2;
-
-//        if (!isAssumeSkewsPositive()) {
-//            if (StatUtils.skewness(x) < 0) {
-//                lr *= -1;
-//            }
-//        }
 
         return lr;
     }
@@ -786,19 +799,27 @@ public final class Fask_B implements GraphSearch {
     }
 
     private double[] residuals(double[] _y, double[][] _x) {
-        TetradMatrix y = new TetradMatrix(new double[][]{_y}).transpose();
-        TetradMatrix x = new TetradMatrix(_x).transpose();
+        return residuals(_y, _x, new double[0][]);
+    }
 
-        TetradMatrix xT = x.transpose();
-        TetradMatrix xTx = xT.times(x);
+    private double[] residuals(double[] y, double[][] x, double[][] z) {
+        double[][] allregressors = new double[x.length + z.length][];
+        for (int i = 0; i < x.length; i++) allregressors[i] = x[i];
+        for (int j = 0; j < z.length; j++) allregressors[j + x.length] = z[j];
+
+        TetradMatrix _x = new TetradMatrix(allregressors).transpose();
+        TetradMatrix _y = new TetradMatrix(new double[][]{y}).transpose();
+
+        TetradMatrix xT = _x.transpose();
+        TetradMatrix xTx = xT.times(_x);
         TetradMatrix xTxInv = xTx.inverse();
-        TetradMatrix xTy = xT.times(y);
+        TetradMatrix xTy = xT.times(_y);
         TetradMatrix b = xTxInv.times(xTy);
 
-        TetradMatrix yHat = x.times(b);
-        if (yHat.columns() == 0) yHat = y.copy();
+        TetradMatrix yHat = _x.times(b);
+        if (yHat.columns() == 0) yHat = _y.copy();
 
-        return y.minus(yHat).getColumn(0).toArray();
+        return _y.minus(yHat).getColumn(0).toArray();
     }
 
     private static double E(double[] x, double[] y, double[] condition) {
@@ -814,6 +835,21 @@ public final class Fask_B implements GraphSearch {
         }
 
         return exy / n;
+    }
+
+    private static double[] EProd(double[] x, double[] y, double[] condition) {
+        List<Double> p = new ArrayList<>();
+
+        for (int k = 0; k < x.length; k++) {
+            if (condition[k] > 0) {
+                p.add(x[k] * y[k]);
+            }
+        }
+
+        double[] _p = new double[p.size()];
+        for (int i = 0; i < p.size(); i++) _p[i] = p.get(i);
+
+        return _p;
     }
 
     private double E(double[] x, double[] y, double[] condition, double dir) {
@@ -1033,9 +1069,8 @@ public final class Fask_B implements GraphSearch {
             int[] _rows = new int[rows.size()];
             for (int i = 0; i < rows.size(); i++) _rows[i] = rows.get(i);
 
-            regressionDataset.setRows(_rows);
-            double[] rx = regressionDataset.regress(x, z).getResiduals().toArray();
-            double[] ry = regressionDataset.regress(y, z).getResiduals().toArray();
+            double[] rx = conditionalResiduals(_rows, x);
+            double[] ry = conditionalResiduals(_rows, y);
 
             double[] rxy = new double[rows.size()];
 
@@ -1055,6 +1090,72 @@ public final class Fask_B implements GraphSearch {
             for (int i = 0; i < rxy_over_erxx.length; i++) rxy_over_erxx[i] /= erxx;
 
             return this;
+        }
+
+        private double[] conditionalResiduals(int[] _rows, Node x) {
+            regressionDataset.setRows(_rows);
+            return regressionDataset.regress(x, z).getResiduals().toArray();
+        }
+
+    }
+
+    private class E2 {
+        private Node x;
+        private Node y;
+        private List<Node> z;
+        private Node condition;
+        private List<Integer> rows;
+        private double[] rxy_over_erxx;
+
+        public E2(Node X, Node Y, List<Node> Z, Node condition) {
+            x = X;
+            y = Y;
+            z = Z;
+            this.condition = condition;
+        }
+
+        public List<Integer> getRows() {
+            return rows;
+        }
+
+        public double[] getR() {
+            return rxy_over_erxx;
+        }
+
+        public E2 invoke() {
+            final double[] _w = colData[variables.indexOf(condition)];
+
+            rows = StatUtils.getRows(_w, 0, +1);
+
+            int[] _rows = new int[rows.size()];
+            for (int i = 0; i < rows.size(); i++) _rows[i] = rows.get(i);
+
+            double[] rx = conditionalResiduals(_rows, x);
+            double[] ry = conditionalResiduals(_rows, y);
+
+            double[] rxy = new double[rows.size()];
+
+            for (int i = 0; i < rows.size(); i++) {
+                rxy[i] = rx[i] * ry[i];
+            }
+
+            double[] rxx = new double[rows.size()];
+
+            for (int i = 0; i < rows.size(); i++) {
+                rxx[i] = rx[i] * rx[i];
+            }
+
+            rxy_over_erxx = Arrays.copyOf(rxy, rxy.length);
+            double erxx = mean(rxx);
+
+            for (int i = 0; i < rxy_over_erxx.length; i++) rxy_over_erxx[i] /= erxx;
+
+            return this;
+        }
+
+        private double[] conditionalResiduals(int[] _rows, Node x) {
+            regressionDataset.setRows(_rows);
+            return regressionDataset.regress(x, z).getResiduals().toArray();
         }
 
     }

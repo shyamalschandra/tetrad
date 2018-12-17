@@ -53,12 +53,12 @@ public class TestSimulatedFmri {
 
     @Test
     public void allTests() {
-//        new TestSimulatedFmri().trainingData();
-//        new TestSimulatedFmri().testingData();
-//        new TestSimulatedFmri().smithSim();
+        new TestSimulatedFmri().trainingData();
+        new TestSimulatedFmri().testingData();
+        new TestSimulatedFmri().smithSim();
         new ToyFaskBExample().toy_positiveSkews();
         new ToyFaskBExample().toy_negativeSkews();
-//        new TestSachsJoe().task();
+        new TestSachsJoe().task();
     }
 
     @Test
@@ -86,7 +86,7 @@ public class TestSimulatedFmri {
         parameters.set("penaltyDiscount", 2);
 
         parameters.set("numRuns", 5);
-        parameters.set("randomSelectionSize", 3);
+        parameters.set("randomSelectionSize", 1);
 
         parameters.set("useFasAdjacencies", true);
         parameters.set("useCorrDiffAdjacencies", true);
@@ -254,7 +254,7 @@ public class TestSimulatedFmri {
         parameters.set("assumeSkewsPositive", true);
 
         parameters.set("numRuns", 5);
-        parameters.set("randomSelectionSize", 5);
+        parameters.set("randomSelectionSize", 1);
 
         parameters.set("Structure", "Placeholder");
 
@@ -283,10 +283,10 @@ public class TestSimulatedFmri {
         Algorithms algorithms = new Algorithms();
 
         for (int i = 1; i <= 28; i++) {
-            if (i == 21) continue;
-//            simulations.add(new LoadContinuousDataSmithSim("/Users/user/Downloads/smithsim/", i));
+//            if (i == 21) continue;
+            simulations.add(new LoadContinuousDataSmithSim("/Users/user/Downloads/smithsim/", i));
 //            simulations.add(new LoadContinuousDataPwdd7("/Users/user/Downloads/pwdd7/", i, "50_BOLDdemefilt1"));
-            simulations.add(new LoadContinuousDataPwdd7("/Users/user/Downloads/pwdd7/", i, "50_BOLDnoise"));
+//            simulations.add(new LoadContinuousDataPwdd7("/Users/user/Downloads/pwdd7/", i, "50_BOLDnoise"));
         }
 
 //        algorithms.add(new LofsConcatenated(Lofs2.Rule.FASKLR));

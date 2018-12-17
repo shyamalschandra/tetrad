@@ -80,8 +80,8 @@ public class TestSachsJoe {
         parameters.set("resamplingEnsemble", 0);
 
         // FASK-B
-        parameters.set("skewEdgeAlpha", 0.1, 0.05);
-        parameters.set("twoCycleAlpha", 0.1, 0.0);
+        parameters.set("skewEdgeAlpha", 0.05, 0.01);
+        parameters.set("twoCycleAlpha", 0.05, 0.0);
         parameters.set("faskDelta", 0);
 
         parameters.set("useFasAdjacencies", true);
@@ -135,6 +135,7 @@ public class TestSachsJoe {
 ////        algorithms.add(new Fci_Sachs(new KciMatlab()));
 
         algorithms.add(new Fask_Sachs(new SemBicScore()));
+        algorithms.add(new Fask_BSachs(new SemBicTest()));
 
 
 
