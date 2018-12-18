@@ -84,7 +84,7 @@ public class DemixerNongaussian {
 
     private MixtureModelNongaussian demix() {
         for (int k = 0; k < numComponents; k++) {
-            weights.set(0, k,  RandomUtil.getInstance().nextUniform(0, 1));
+            weights.set(0, k, RandomUtil.getInstance().nextUniform(0, 1));
         }
 
         normalize(weights, 0);
@@ -92,7 +92,7 @@ public class DemixerNongaussian {
         // Initializing posterior probability of each record to be uniform.
         for (int n = 0; n < N; n++) {
             for (int k = 0; k < numComponents; k++) {
-                posteriorProbs.set(n, k,  weights.get(0, k));
+                posteriorProbs.set(n, k, weights.get(0, k));
             }
         }
 
@@ -122,64 +122,23 @@ public class DemixerNongaussian {
 
         initializeKurtosisMatrices();
 
-        double[] _likelihoods = new double[numComponents];
-        for (int k = 0; k < numComponents; k++) _likelihoods[k] = Double.NEGATIVE_INFINITY;
-
-        boolean[] converged = new boolean[numComponents]; // All false.
-        for (int k = 0; k < numComponents; k++) converged[k] = false;
+        double _l = Double.NEGATIVE_INFINITY;
 
         while (true) {
-            boolean allConverged = tryConvergingUntilAllCoverged(_likelihoods, converged);
+            double l = expectation();
             maximization(); // each time.
 
             System.out.println("Weights: " + weights);
+            printLikelihoodFromPosteriorsArray();
 
-            if (allConverged) {
+            if (Double.isNaN(l) || l < _l) {
                 break;
             }
+
+            _l = l;
         }
 
         return new MixtureModelNongaussian(data, posteriorProbs, invertWMatrices(W), bias, weights);
-    }
-
-    private boolean tryConvergingUntilAllCoverged(double[] _likelihoods, boolean[] converged) {
-        for (int k = 0; k < numComponents; k++) {
-            if (!converged[k]) {
-                double l = expectation(k);
-
-                // likelihood just for component k..
-                if (l > _likelihoods[k]) {
-                    _likelihoods[k] = l;
-                } else {
-                    converged[k] = true;
-                }
-            }
-        }
-
-        printLikelihoodfromLikelihoodArray();
-        printLikelihoodFromPosteriorsArray();
-
-        boolean allConverged = true;
-
-        for (int k = 0; k < numComponents; k++) {
-            if (!converged[k]) {
-                allConverged = false;
-            }
-        }
-
-        return allConverged;
-    }
-
-    private void printLikelihoodfromLikelihoodArray() {
-        double l = 0;
-
-        for (int n = 0; n < N; n++) {
-            for (int k = 0; k < numComponents; k++) {
-                l += likelihoods.get(n, k);
-            }
-        }
-
-        System.out.println("L from likelihoods array = " + l);
     }
 
     private void printLikelihoodFromPosteriorsArray() {
@@ -187,11 +146,15 @@ public class DemixerNongaussian {
 
         for (int n = 0; n < N; n++) {
             for (int k = 0; k < numComponents; k++) {
-                l += log(posteriorProbs.get(n, k));
+                final double L = likelihoods.get(n, k);
+
+                if (L != 0) {
+                    l += L;
+                }
             }
         }
 
-        System.out.println("L from posteriors array = " + l);
+        System.out.println("L from likelihood array = " + l);
     }
 
     private void initializeKurtosisMatrices() {
@@ -251,7 +214,7 @@ public class DemixerNongaussian {
 
         if (abs(det) > 0) {
             W[k] = W[k].plus(delta);
-            }
+        }
     }
 
     private void adaptBiasVectors(int k) {
@@ -291,9 +254,9 @@ public class DemixerNongaussian {
      * Find posteriors of observations based on maximally likely values of mixing matrices, bias vectors,
      * source vectors, and weights
      */
-    private double expectation(int k) {
-        calculateLikelihoods(k);
-        return calculatePosteriors(k);
+    private double expectation() {
+        calculateLikelihoods();
+        return calculatePosteriors();
     }
 
     private void maximization() {
@@ -312,32 +275,33 @@ public class DemixerNongaussian {
         }
     }
 
-    private void calculateLikelihoods(int k) {
-        double det = Math.log(Math.abs(W[k].det()));
+    private void calculateLikelihoods() {
+        for (int k = 0; k < numComponents; k++) {
+            double det = Math.log(Math.abs(W[k].det()));
+//            if (Double.isNaN(det) || Double.isInfinite(det)) continue;
 
-        if (det == 0 || Double.isNaN(det) || Double.isInfinite(det)) return;
+            for (int n = 0; n < N; n++) {
+                double sum = 0;
 
-        for (int n = 0; n < N; n++) {
-            double sum = 0;
+                for (int c = 0; c < numVars; c++) {
+                    double l = -.5 * Math.log(2.0 * Math.PI) - (K[k].get(c, c) * log(cosh(S[k].get(n, c))))
+                            - (pow(S[k].get(n, c), 2.0) / 2.0);
 
-            for (int c = 0; c < numVars; c++) {
-                double l = -.5 * Math.log(2.0 * Math.PI) - (K[k].get(c, c) * log(cosh(S[k].get(n, c))))
-                        - (pow(S[k].get(n, c), 2.0) / 2.0);
+                    if (K[k].get(c, c) > 0) {
+                        l = l - Math.log(0.7413);
+                    }
 
-                if (K[k].get(c, c) > 0) {
-                    l = l - Math.log(0.7413);
+                    sum += l;
                 }
 
-                sum += l;
+                double L = (sum - det);
+
+//                if (Double.isNaN(L) || Double.isInfinite(L)) {
+//                    L = Double.NEGATIVE_INFINITY;
+//                }
+
+                likelihoods.set(n, k, L);
             }
-
-            double L = (sum - det);
-
-            if (Double.isNaN(L) || Double.isInfinite(L)) {
-                continue;
-            }
-
-            likelihoods.set(n, k, L);
         }
     }
 
@@ -355,22 +319,28 @@ public class DemixerNongaussian {
 //    }
 
     // Returns the likelihood just for component k.
-    private double calculatePosteriors(int k) {
+    private double calculatePosteriors() {
+
+        for (int k = 0; k < numComponents; k++) {
+            for (int n = 0; n < N; n++) {
+                double prob = exp(likelihoods.get(n, k));//  / weights.get(0, k);
+                posteriorProbs.set(n, k, prob);
+            }
+        }
+
+        for (int n = 0; n < posteriorProbs.rows(); n++) {
+            normalize(posteriorProbs, n);
+        }
+
         double likelihood = 0.0;
 
-        for (int n = 0; n < N; n++) {
-            double prob = exp(likelihoods.get(n, k)) * weights.get(0, k);
-
-            double divisor = 0;
-            for (int i = 0; i < numComponents; i++){
-                divisor += exp(likelihoods.get(n, i)) * weights.get(0, i);
+        for (int k = 0; k < numComponents; k++) {
+            for (int n = 0; n < N; n++) {
+                likelihood += likelihoods.get(n, k);
             }
-
-            prob = prob/divisor;
-
-            posteriorProbs.set(n, k, prob);
-            likelihood += likelihoods.get(n, k);
         }
+
+        System.out.println(posteriorProbs);
 
         return likelihood;
     }
@@ -383,7 +353,11 @@ public class DemixerNongaussian {
             sum = 0;
 
             for (int n = 0; n < N; n++) {
-                sum += posteriorProbs.get(n, k);
+                final double prob = posteriorProbs.get(n, k);
+
+                if (!Double.isNaN(prob)) {
+                    sum += prob;
+                }
             }
 
             weights.set(0, k, sum);
@@ -469,15 +443,15 @@ public class DemixerNongaussian {
     }
 
 
-    private void normalize(TetradMatrix weights, int row) {
+    private void normalize(TetradMatrix m, int row) {
         double _sum = 0.0;
 
         for (int k = 0; k < numComponents; k++) {
-            _sum += weights.get(row, k);
+            _sum += m.get(row, k);
         }
 
         for (int k = 0; k < numComponents; k++) {
-            weights.set(0, k, weights.get(row, k) / _sum);
+            m.set(row, k, m.get(row, k) / _sum);
         }
     }
 

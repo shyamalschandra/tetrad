@@ -58,12 +58,13 @@ public class MixtureModelNongaussian {
     public int argMax(int t) {
 
         // hard classification
-        int component = 0;
+        int component = -1;
         double highest = -1;
 
         for (int k = 0; k < weights.columns(); k++) {
-            if (posteriorProbabilities.get(t, k) > highest) {
-                highest = posteriorProbabilities.get(t, k);
+            final double prob = posteriorProbabilities.get(t, k) / weights.get(0, k);
+            if (prob > highest) {
+                highest = prob;
                 component = k;
             }
         }
@@ -85,6 +86,9 @@ public class MixtureModelNongaussian {
         for (int i = 0; i < cases.length; i++) {
             int _case = cases[i];
             System.out.print(_case);
+
+            if (_case == -1) continue;
+
             indices.get(_case).add(i);
         }
 
