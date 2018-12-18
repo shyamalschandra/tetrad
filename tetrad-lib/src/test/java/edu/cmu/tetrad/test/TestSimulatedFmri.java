@@ -23,8 +23,10 @@ package edu.cmu.tetrad.test;
 
 import edu.cmu.tetrad.algcomparison.Comparison;
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithms;
+import edu.cmu.tetrad.algcomparison.algorithm.multi.FaskConcatenated;
 import edu.cmu.tetrad.algcomparison.algorithm.multi.Fask_BConcatenated;
 import edu.cmu.tetrad.algcomparison.independence.SemBicTest;
+import edu.cmu.tetrad.algcomparison.score.SemBicScore;
 import edu.cmu.tetrad.algcomparison.simulation.Simulations;
 import edu.cmu.tetrad.algcomparison.statistic.*;
 import edu.cmu.tetrad.data.ContinuousVariable;
@@ -53,12 +55,12 @@ public class TestSimulatedFmri {
 
     @Test
     public void allTests() {
-        new TestSimulatedFmri().trainingData();
+//        new TestSimulatedFmri().trainingData();
         new TestSimulatedFmri().testingData();
-        new TestSimulatedFmri().smithSim();
-        new ToyFaskBExample().toy_positiveSkews();
-        new ToyFaskBExample().toy_negativeSkews();
-        new TestSachsJoe().task();
+//        new TestSimulatedFmri().smithSim();
+//        new ToyFaskBExample().toy_positiveSkews();
+//        new ToyFaskBExample().toy_negativeSkews();
+//        new TestSachsJoe().task();
     }
 
     @Test
@@ -74,19 +76,19 @@ public class TestSimulatedFmri {
     public void simulatedFmri(boolean test) {
         Parameters parameters = new Parameters();
         parameters.set("depth", 5);
-        parameters.set("skewEdgeAlpha", 0.001);
+        parameters.set("skewEdgeAlpha", 0.05);
         parameters.set("twoCycleAlpha", 0);
-        parameters.set("faskDelta", 0);
+        parameters.set("faskDelta", -.2);
         parameters.set("useFasAdjacencies", true);
         parameters.set("useSkewAdjacencies", true);
         parameters.set("useMask", true);
-        parameters.set("maskThreshold", 2);
-        parameters.set("assumeSkewsPositive", true);
+        parameters.set("maskThreshold", .3);
+        parameters.set("assumeSkewsPositive", false);
 
         parameters.set("penaltyDiscount", 2);
 
-        parameters.set("numRuns", 5);
-        parameters.set("randomSelectionSize", 1);
+        parameters.set("numRuns", 2);
+        parameters.set("randomSelectionSize", 10);
 
         parameters.set("useFasAdjacencies", true);
         parameters.set("useCorrDiffAdjacencies", true);
@@ -244,7 +246,7 @@ public class TestSimulatedFmri {
     public void smithSim() {
         Parameters parameters = new Parameters();
         parameters.set("penaltyDiscount", 2);
-        parameters.set("twoCycleAlpha", .0000001);
+        parameters.set("twoCycleAlpha", .000000);
         parameters.set("faskDelta", -.2);
         parameters.set("depth", 5);
         parameters.set("extraEdgeThreshold", 10);
