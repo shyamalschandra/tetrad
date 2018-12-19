@@ -20,15 +20,16 @@ public class MixtureModelNongaussian {
     private double[][] dataArray;
     private TetradMatrix posteriorProbabilities;
 
-    public MixtureModelNongaussian(DataSet data, TetradMatrix posteriorProbabilities, TetradMatrix[] mixingMatrices,
-                                   TetradMatrix[] biasVectors, TetradMatrix weights) {
+    public MixtureModelNongaussian(DataSet data, TetradMatrix posteriorProbs, TetradMatrix[] mixingMatrices,
+                                   TetradMatrix[] biasVectors) {
 
         this.data = data;
         this.dataArray = data.getDoubleData().toArray();
-        this.posteriorProbabilities = posteriorProbabilities;
+        this.posteriorProbabilities = posteriorProbs;
         this.mixingMatrices = mixingMatrices;
         this.bias = biasVectors;
-        this.weights = weights;
+
+        setWeights(posteriorProbs);
 
         this.cases = new int[data.getNumRows()];
 
@@ -49,6 +50,42 @@ public class MixtureModelNongaussian {
                     break;
                 }
             }
+        }
+    }
+
+    private void setWeights(TetradMatrix posteriorProbs) {
+        this.weights = new TetradMatrix(posteriorProbs.columns(), posteriorProbs.columns());
+
+        double sum;
+        int numComponents =  posteriorProbs.columns();
+        int N = posteriorProbs.rows();
+
+        for (int k = 0; k < numComponents; k++) {
+            sum = 0;
+
+            for (int n = 0; n < N; n++) {
+                final double prob = posteriorProbs.get(n, k);
+
+                if (!Double.isNaN(prob)) {
+                    sum += prob;
+                }
+            }
+
+            weights.set(0, k, sum);
+        }
+
+        normalize(weights, 0);
+    }
+
+    private void normalize(TetradMatrix m, int row) {
+        double _sum = 0.0;
+
+        for (int k = 0; k < m.columns(); k++) {
+            _sum += m.get(row, k);
+        }
+
+        for (int k = 0; k < m.columns(); k++) {
+            m.set(row, k, m.get(row, k) / _sum);
         }
     }
 
@@ -128,7 +165,11 @@ public class MixtureModelNongaussian {
         return cases;
     }
 
-    public TetradMatrix[] getMixingMatrices() { return mixingMatrices; }
+    public TetradMatrix[] getMixingMatrices() {
+        return mixingMatrices;
+    }
 
-    public TetradMatrix[] getBias() {return bias; }
+    public TetradMatrix[] getBias() {
+        return bias;
+    }
 }
