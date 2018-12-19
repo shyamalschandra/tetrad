@@ -57,8 +57,8 @@ public class TestSimulatedFmri {
     @Test
     public void allTests() {
 //        new TestSimulatedFmri().trainingData();
-        new TestSimulatedFmri().testingData();
-//        new TestSimulatedFmri().smithSim();
+//        new TestSimulatedFmri().testingData();
+        new TestSimulatedFmri().smithSim();
 //        new ToyFaskBExample().toy_positiveSkews();
 //        new ToyFaskBExample().toy_negativeSkews();
 //        new TestSachsJoe().task();
@@ -249,18 +249,16 @@ public class TestSimulatedFmri {
     @Test
     public void smithSim() {
         Parameters parameters = new Parameters();
-        parameters.set("penaltyDiscount", 2);
+        parameters.set("penaltyDiscount", 1);
         parameters.set("twoCycleAlpha", .000000);
-        parameters.set("faskDelta", -.2);
+//        parameters.set("faskDelta", -.2);
         parameters.set("depth", 5);
         parameters.set("extraEdgeThreshold", 10);
         parameters.set("maskThreshold", 10);
-        parameters.set("skewEdgeAlpha", 0.01);
-        parameters.set("errorsPositivelySkewed", true);
-        parameters.set("assumeSkewsPositive", true);
+        parameters.set("skewEdgeAlpha", 0.05);
 
         parameters.set("numRuns", 5);
-        parameters.set("randomSelectionSize", 1);
+        parameters.set("randomSelectionSize", 2);
 
         parameters.set("Structure", "Placeholder");
 
