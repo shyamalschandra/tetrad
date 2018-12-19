@@ -916,6 +916,11 @@ public final class Fask_B implements GraphSearch {
             x = X;
             y = Y;
             z = Z;
+
+            if (z.contains(x) || z.contains(y)) {
+                throw new IllegalArgumentException("Z should not contain X or Y.");
+            }
+
             this.condition = condition;
         }
 
@@ -935,8 +940,18 @@ public final class Fask_B implements GraphSearch {
             int[] _rows = new int[rows.size()];
             for (int i = 0; i < rows.size(); i++) _rows[i] = rows.get(i);
 
-            double[] rx = conditionalResiduals(_rows, x);
-            double[] ry = conditionalResiduals(_rows, y);
+            List<Node> z1 = new ArrayList<>(z);
+            if (z1.contains(x)) {
+                z1.remove(x);
+            }
+
+            List<Node> z2 = new ArrayList<>(z);
+            if (!z2.contains(x)) {
+                z2.add(x);
+            }
+
+            double[] rx = conditionalResiduals(_rows, x, z1);
+            double[] ry = conditionalResiduals(_rows, y, z2);
 
             double[] rxy = new double[rows.size()];
 
@@ -944,23 +959,30 @@ public final class Fask_B implements GraphSearch {
                 rxy[i] = rx[i] * ry[i];
             }
 
-            double[] rxx = new double[rows.size()];
-
-            for (int i = 0; i < rows.size(); i++) {
-                rxx[i] = rx[i] * rx[i];
-            }
+//            double[] rxx = new double[rows.size()];
+//
+//            for (int i = 0; i < rows.size(); i++) {
+//                rxx[i] = rx[i] * rx[i];
+//            }
 
             rxy_over_erxx = Arrays.copyOf(rxy, rxy.length);
-            double erxx = mean(rxx);
+//            double erxx = mean(rxx);
 
-            for (int i = 0; i < rxy_over_erxx.length; i++) rxy_over_erxx[i] /= erxx;
+//            for (int i = 0; i < rxy_over_erxx.length; i++) rxy_over_erxx[i] /= erxx;
 
             return this;
         }
 
-        private double[] conditionalResiduals(int[] _rows, Node x) {
+        private double[] conditionalResiduals(int[] _rows, Node x, List<Node> z) {
             regressionDataset.setRows(_rows);
-            return regressionDataset.regress(x, z).getResiduals().toArray();
+
+            double[] _x = colData[variables.indexOf(x)];
+
+            double[][] _z = new double[z.size()][];
+
+            for (int i = 0; i < _z.length; i++) _z[i] = colData[variables.indexOf(z.get(i))];
+
+            return RegressionDataset.regress(_x, _z).getResiduals().toArray();
         }
 
     }

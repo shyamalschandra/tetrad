@@ -23,10 +23,8 @@ package edu.cmu.tetrad.test;
 
 import edu.cmu.tetrad.algcomparison.Comparison;
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithms;
-import edu.cmu.tetrad.algcomparison.algorithm.multi.FaskConcatenated;
 import edu.cmu.tetrad.algcomparison.algorithm.multi.Fask_BConcatenated;
 import edu.cmu.tetrad.algcomparison.independence.SemBicTest;
-import edu.cmu.tetrad.algcomparison.score.SemBicScore;
 import edu.cmu.tetrad.algcomparison.simulation.Simulations;
 import edu.cmu.tetrad.algcomparison.statistic.*;
 import edu.cmu.tetrad.data.ContinuousVariable;
@@ -42,7 +40,10 @@ import edu.pitt.dbmi.data.reader.tabular.MixedTabularDataFileReader;
 import org.junit.Test;
 
 import java.io.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static java.lang.Math.abs;
 
@@ -75,20 +76,23 @@ public class TestSimulatedFmri {
 
     public void simulatedFmri(boolean test) {
         Parameters parameters = new Parameters();
-        parameters.set("depth", 5);
-        parameters.set("skewEdgeAlpha", 0.05);
-        parameters.set("twoCycleAlpha", 0);
-        parameters.set("faskDelta", -.2);
-        parameters.set("useFasAdjacencies", true);
-        parameters.set("useSkewAdjacencies", true);
-        parameters.set("useMask", true);
-        parameters.set("maskThreshold", .3);
-        parameters.set("assumeSkewsPositive", false);
 
         parameters.set("penaltyDiscount", 2);
 
-        parameters.set("numRuns", 2);
-        parameters.set("randomSelectionSize", 10);
+        parameters.set("depth", 5);
+        parameters.set("skewEdgeAlpha", 0.01);
+        parameters.set("twoCycleAlpha", 0);
+        parameters.set("useFasAdjacencies", false);
+        parameters.set("useSkewAdjacencies", true);
+        parameters.set("useMask", true);
+        parameters.set("maskThreshold", .3);
+
+        parameters.set("penaltyDiscount", 2);
+
+        parameters.set("faskDelta", -.2);
+
+        parameters.set("numRuns", 5);
+        parameters.set("randomSelectionSize", 3);
 
         parameters.set("useFasAdjacencies", true);
         parameters.set("useCorrDiffAdjacencies", true);
@@ -104,16 +108,16 @@ public class TestSimulatedFmri {
         statistics.add(new ArrowheadPrecision());
         statistics.add(new ArrowheadPrecisionCommonAdjacencies());
         statistics.add(new ArrowheadRecall());
-        statistics.add(new TwoCyclePrecision());
-        statistics.add(new TwoCycleRecall());
-        statistics.add(new TwoCycleFalsePositive());
-        statistics.add(new TwoCycleFalseNegative());
-        statistics.add(new TwoCycleTruePositive());
+//        statistics.add(new TwoCyclePrecision());
+//        statistics.add(new TwoCycleRecall());
+//        statistics.add(new TwoCycleFalsePositive());
+//        statistics.add(new TwoCycleFalseNegative());
+//        statistics.add(new TwoCycleTruePositive());
         statistics.add(new ElapsedTime());
-        statistics.setWeight("AHR", 1.0);
-        statistics.setWeight("2CP", 1.0);
-        statistics.setWeight("2CR", 1.0);
-        statistics.setWeight("2CFP", 1.0);
+//        statistics.setWeight("AHR", 1.0);
+//        statistics.setWeight("2CP", 1.0);
+//        statistics.setWeight("2CR", 1.0);
+//        statistics.setWeight("2CFP", 1.0);
 
         Simulations simulations = new Simulations();
 
