@@ -93,6 +93,9 @@ public class MixtureModelNongaussian {
      * Classifies a given case into a model, based on which model has the highest gamma value for that case.
      */
     public int argMax(int t) {
+        System.out.println();
+
+//        normalize(weights, 0);
 
         // hard classification
         int component = -1;
@@ -100,6 +103,9 @@ public class MixtureModelNongaussian {
 
         for (int k = 0; k < weights.columns(); k++) {
             final double prob = posteriorProbabilities.get(t, k) / weights.get(0, k);
+
+            System.out.print("\t" + prob);
+
             if (prob > highest) {
                 highest = prob;
                 component = k;

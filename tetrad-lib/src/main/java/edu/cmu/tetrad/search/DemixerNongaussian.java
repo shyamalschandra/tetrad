@@ -86,22 +86,20 @@ public class DemixerNongaussian {
 
         for (int k = 0; k < numComponents; k++) {
             W[k] = _W;
-            W[k] = whiten(_W, 0.5);
+            W[k] = whiten(_W, 1);
         }
 
         for (int k = 0; k < numComponents; k++) {
             TetradMatrix _bias = new TetradMatrix(1, numVars);
 
             for (int i = 0; i < numVars; i++) {
-                _bias.set(0, i, RandomUtil.getInstance().nextNormal(0, 0.01));
+                _bias.set(0, i, 0.5);//RandomUtil.getInstance().nextNormal(0, 0.01));
             }
 
             bias[k] = _bias;
         }
 
-        for (int k = 0; k < numComponents; k++) {
-            adaptSourceMatrices(k);
-        }
+        adaptSourceMatrices();
 
         initializeKurtosisMatrices();
 
@@ -112,7 +110,7 @@ public class DemixerNongaussian {
 
             printLikelihood();
 
-            if (Double.isNaN(l) || l <= _l) {
+            if (Double.isNaN(l) || l - 0.01 <= _l) {
                 break;
             }
 
@@ -167,85 +165,79 @@ public class DemixerNongaussian {
         }
     }
 
-
     /*
      * Inline updating of the mixing matrix A, updated every time a new posterior is determined
      */
-    private void adaptMixingMatrices(int k) {
+    private void adaptMixingMatrices() {
+        for (int k = 0; k < numComponents; k++) {
+            TetradMatrix _tanhS = X.like(); // NxM
 
-        TetradMatrix _tanhS = X.like(); // NxM
-
-        for (int n = 0; n < N; n++) {
-            for (int i = 0; i < numVars; i++) {
-                _tanhS.set(n, i, Math.tanh(S[k].get(n, i)));
+            for (int n = 0; n < N; n++) {
+                for (int i = 0; i < numVars; i++) {
+                    _tanhS.set(n, i, Math.tanh(S[k].get(n, i)));
+                }
             }
-        }
 
-        TetradMatrix skskt = S[k].transpose().times((S[k])); // Mx1 * 1xM = MxM
-        TetradMatrix tanhSk = _tanhS.transpose().times(S[k]); // Mx1 * 1xM = MxM
-        TetradMatrix kurtosisSquare = K[k].times(tanhSk);
-        TetradMatrix smketc = TetradMatrix.identity(numVars).minus(kurtosisSquare);
-        TetradMatrix minusSquare = smketc.minus(skskt);
+            TetradMatrix skskt = S[k].transpose().times((S[k])); // Mxk * kxM = MxM
+            TetradMatrix tanhSk = _tanhS.transpose().times(S[k]); // Mxk * kxM = MxM
+            TetradMatrix kurtosisSquare = K[k].times(tanhSk);
+            TetradMatrix smketc = TetradMatrix.identity(numVars).minus(kurtosisSquare);
+            TetradMatrix minusSquare = smketc.minus(skskt);
 
-        TetradMatrix delta = new TetradMatrix(numVars, numVars);
+            TetradMatrix delta = new TetradMatrix(numVars, numVars);
 
-        for (int n = 0; n < N; n++) {
-            double p = posteriorProbs.get(n, k);
-            delta = delta.plus(minusSquare.times(W[k]).scalarMult(p * learningRate / (N * numComponents)));
-        }
+            for (int n = 0; n < N; n++) {
+                double p = posteriorProbs.get(n, k);
+                delta = delta.plus(minusSquare.times(W[k]).scalarMult(p * learningRate / (N * numComponents)));
+            }
 
-        final double det = delta.det();
+            final double det = delta.det();
 
-        if (abs(det) > 0) {
-            W[k] = W[k].plus(delta);
+            if (abs(det) > 0) {
+                W[k] = W[k].plus(delta);
+            }
         }
     }
 
-    private void adaptBiasVectors(int k) {
-        TetradMatrix _W = W[k];
-        TetradMatrix sourceVector = S[k];
-        TetradMatrix _bias = new TetradMatrix(1, numVars);
+    private void adaptBiasVectors() {
+        for (int k = 0; k < numComponents; k++) {
+            TetradMatrix _W = W[k];
+            TetradMatrix sourceVector = S[k];
+            TetradMatrix _bias = new TetradMatrix(1, numVars);
 
-        for (int n = 0; n < N; n++) {
-            double prob = posteriorProbs.get(n, k);
+            for (int n = 0; n < N; n++) {
+                double prob = posteriorProbs.get(n, k);
 
-            double sum = 0;
-            double det = Math.log(Math.abs(_W.det()));
+                double sum = 0;
+                double det = Math.log(Math.abs(_W.det()));
 
-            for (int i = 0; i < numVars; i++) {
-                TetradMatrix bMatrix = _W.row(i);
-                _bias = _bias.plus((bMatrix.scalarMult(Math.tanh(sourceVector.get(n, i)))).plus(bMatrix.scalarMult(sourceVector.get(n, i))));
+                for (int i = 0; i < numVars; i++) {
+                    TetradMatrix bMatrix = _W.row(i);
+                    _bias = _bias.plus((bMatrix.scalarMult(Math.tanh(sourceVector.get(n, i)))).plus(bMatrix.scalarMult(sourceVector.get(n, i))));
 
-                double tempSum = -.5 * Math.log(2.0 * Math.PI) - (K[k].get(i, i) * log(cosh(S[k].get(n, i))))
-                        - (pow(S[k].get(n, i), 2.0) / 2.0);
+                    double l = -.5 * Math.log(2.0 * Math.PI) - (K[k].get(i, i) * log(cosh(S[k].get(n, i))))
+                            - (pow(S[k].get(n, i), 2.0) / 2.0);
 
-                if (K[k].get(i, i) > 0) {
-                    tempSum = tempSum - Math.log(0.7413);
+                    if (K[k].get(i, i) > 0) {
+                        l = l - Math.log(0.7413);
+                    }
+
+                    sum += l;
                 }
 
-                sum += tempSum;
+                double L = (sum - det) / N;
+
+                _bias = _bias.scalarMult(exp(L));
             }
 
-            double L = (sum - det) / N;
-
-            _bias = _bias.scalarMult(prob * L);
+            bias[k] = bias[k].plus(_bias);
         }
-
-        bias[k] = bias[k].plus(_bias);
     }
 
     private void maximization() {
-        for (int k = 0; k < numComponents; k++) {
-            adaptMixingMatrices(k);
-        }
-
-//        for (int k = 0; k < numComponents; k++) {
-//            adaptBiasVectors(k);
-//        }
-
-        for (int k = 0; k < numComponents; k++) {
-            adaptSourceMatrices(k);
-        }
+        adaptMixingMatrices();
+        adaptBiasVectors();
+        adaptSourceMatrices();
     }
 
     private double calculateLikelihoods() {
@@ -259,9 +251,9 @@ public class DemixerNongaussian {
                     double l = -.5 * Math.log(2.0 * Math.PI) - (K[k].get(c, c) * log(cosh(S[k].get(n, c))))
                             - (pow(S[k].get(n, c), 2.0) / 2.0);
 
-                    if (Double.isNaN(l) || Double.isInfinite(l)) {
-                        l = 0;
-                    }
+//                    if (Double.isNaN(l) || Double.isInfinite(l)) {
+//                        l = 0;
+//                    }
 
                     if (K[k].get(c, c) > 0) {
                         l = l - Math.log(0.7413);
@@ -296,7 +288,7 @@ public class DemixerNongaussian {
                 posteriorProbs.set(n, k, prob);
             }
 
-//            normalize(posteriorProbs, n);
+            normalize(posteriorProbs, n);
         }
 
         double likelihood = 0.0;
@@ -307,15 +299,17 @@ public class DemixerNongaussian {
             }
         }
 
-        System.out.println(posteriorProbs);
+//        System.out.println(posteriorProbs);
 //
         return likelihood;
     }
 
 
     // Needs bias and W.
-    private void adaptSourceMatrices(int k) {
-        S[k] = X.minus(repmat(bias[k].getRow(0), N)).times(W[k].transpose());
+    private void adaptSourceMatrices() {
+        for (int k = 0; k < numComponents; k++) {
+            S[k] = X.minus(repmat(bias[k].getRow(0), N)).times(W[k].transpose());
+        }
     }
 
     public static void main(String... args) {
@@ -324,7 +318,7 @@ public class DemixerNongaussian {
 
         long startTime = System.currentTimeMillis();
 
-        DemixerNongaussian pedro = new DemixerNongaussian(dataSet, 2, 0.001);
+        DemixerNongaussian pedro = new DemixerNongaussian(dataSet, 2, 0.0001);
         MixtureModelNongaussian model = pedro.demix();
 
         long elapsed = System.currentTimeMillis() - startTime;
