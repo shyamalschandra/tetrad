@@ -251,10 +251,6 @@ public class DemixerNongaussian {
                     double l = -.5 * Math.log(2.0 * Math.PI) - (K[k].get(c, c) * log(cosh(S[k].get(n, c))))
                             - (pow(S[k].get(n, c), 2.0) / 2.0);
 
-//                    if (Double.isNaN(l) || Double.isInfinite(l)) {
-//                        l = 0;
-//                    }
-
                     if (K[k].get(c, c) > 0) {
                         l = l - Math.log(0.7413);
                     }
