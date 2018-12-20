@@ -107,14 +107,11 @@ public class ToyFaskBExample {
         parameters.set("depth", -1);
         parameters.set("skewEdgeAlpha", 0.0001);
         parameters.set("twoCycleAlpha", 0);
-        parameters.set("faskDelta", 0);
 
         parameters.set("useFasAdjacencies", true);
         parameters.set("useSkewAdjacencies", true);
         parameters.set("useMask", true);
         parameters.set("maskThreshold", 0.3);
-
-//        parameters.set("assumeSkewsPositive", true);
 
         // Bootstrapping
 //        parameters.add("numberResampling");

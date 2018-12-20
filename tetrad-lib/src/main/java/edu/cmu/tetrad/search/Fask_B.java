@@ -94,10 +94,6 @@ public final class Fask_B implements GraphSearch {
     // will ensue. If set to non-zero, the mask will be applied, and then ordinary conditional reasoning will enssure.
     private double maskThreshold = 0.3;
 
-    // For identifying small (negative) correlations beyond which judgment of direction should be reversed. In the
-    // range (-1, 0).
-    private double delta = -0.2;
-
     // True iff verbose output should be printed.
     private boolean verbose = false;
 
@@ -376,14 +372,6 @@ public final class Fask_B implements GraphSearch {
 
     public void setMaskThreshold(double maskThreshold) {
         this.maskThreshold = maskThreshold;
-    }
-
-    public double getDelta() {
-        return delta;
-    }
-
-    public void setDelta(double delta) {
-        this.delta = delta;
     }
 
     public boolean isVerbose() {

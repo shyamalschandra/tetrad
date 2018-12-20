@@ -89,8 +89,6 @@ public class TestSachsJoe {
         parameters.set("useMask", true, false);
         parameters.set("maskThreshold", 0.3);
 
-        parameters.set("assumeSkewsPositive", true);
-
         parameters.set("numRuns", 1);
 
         Statistics statistics = new Statistics();

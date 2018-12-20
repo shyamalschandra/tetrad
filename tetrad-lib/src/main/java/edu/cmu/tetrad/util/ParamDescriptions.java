@@ -639,17 +639,9 @@ public class ParamDescriptions {
                 "Yes if the correlation difference mask should be used",
                 true));
 
-        map.put("assumeSkewsPositive", new ParamDescription(
-                "Yes if the skewnesses of variable should be assumed to be positive",
-                false));
-
         map.put("faskDelta", new ParamDescription(
                 "Threshold for judging negative coefficient edges as X->Y (range (-1, 0))",
                 -0.2, -1.0, 1.0));
-
-        map.put("faskDelta2", new ParamDescription(
-                "Threshold for judging negative coefficient edges as X->Y",
-                0.0, Double.NaN, Double.POSITIVE_INFINITY));
 
         map.put("errorsPositivelySkewed", new ParamDescription(
                 "Yes if errors should be assumed to be positively skewed",

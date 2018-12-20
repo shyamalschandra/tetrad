@@ -89,7 +89,6 @@ public class FaskOrientation implements Algorithm, TakesInitialGraph, HasKnowled
             search.setDepth(parameters.getInt("depth"));
 //            search.setSkewEdgeAlpha(parameters.getDouble("skewEdgeAlpha"));
             search.setTwoCycleAlpha(parameters.getDouble("twoCycleAlpha"));
-            search.setDelta(parameters.getDouble("faskDelta"));
 //            search.setVerbose(parameters.getBoolean("verbose"));
             search.setUseSkewAdjacencies(false);
             search.setUseFasAdjacencies(true);
@@ -157,7 +156,6 @@ public class FaskOrientation implements Algorithm, TakesInitialGraph, HasKnowled
         parameters.add("depth");
 //        parameters.add("skewEdgeAlpha");
         parameters.add("twoCycleAlpha");
-        parameters.add("faskDelta");
 
 //        parameters.add("useFasAdjacencies");
 //        parameters.add("useSkewAdjacencies");
