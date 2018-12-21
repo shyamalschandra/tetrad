@@ -83,7 +83,7 @@ public class TestSimulatedFmri {
 
         parameters.set("depth", 5);
         parameters.set("skewEdgeAlpha", 0.001);
-        parameters.set("twoCycleAlpha", 0.0);
+        parameters.set("twoCycleAlpha", 0.0000001);
         parameters.set("useFasAdjacencies", true);
         parameters.set("useSkewAdjacencies", true);
         parameters.set("useMask", true);
@@ -95,7 +95,7 @@ public class TestSimulatedFmri {
         parameters.set("faskDelta", -.2);
 
         parameters.set("numRuns", 5);
-        parameters.set("randomSelectionSize", 1);
+        parameters.set("randomSelectionSize", 5);
 
         parameters.set("useFasAdjacencies", true);
         parameters.set("useCorrDiffAdjacencies", true);

@@ -173,18 +173,11 @@ public final class Fask_B implements GraphSearch {
 
                     if (graph.isAdjacentTo(X, Y) && !edgeForbiddenByKnowledge(X, Y)
                             && !knowledgeOrients(X, Y) && !knowledgeOrients(Y, X)
-                            && !Edges.isBidirectedEdge(graph.getEdge(X, Y))
                             && twocycle(X, Y, graph)) {
-                        final double lrxy = leftRight(X, Y);
-                        final double lryx = leftRight(Y, X);
-
-                        if (!(lrxy < 0 && lryx < 0)) {
-                            graph.removeEdges(X, Y);
-                            graph.addDirectedEdge(X, Y);
-                            graph.addDirectedEdge(Y, X);
-                        }
+                        graph.removeEdges(X, Y);
+                        graph.addDirectedEdge(X, Y);
+                        graph.addDirectedEdge(Y, X);
                     }
-
                 }
 
                 return graph;
@@ -241,13 +234,10 @@ public final class Fask_B implements GraphSearch {
 
                 if (graph.isAdjacentTo(X, Y) && !edgeForbiddenByKnowledge(X, Y)
                         && !knowledgeOrients(X, Y) && !knowledgeOrients(Y, X)
-                        && !Edges.isBidirectedEdge(graph.getEdge(X, Y))
                         && twocycle(X, Y, graph)) {
-                    if (!(leftRight(X, Y) < 0 && leftRight(Y, X) < 0)) {
-                        graph.removeEdges(X, Y);
-                        graph.addDirectedEdge(X, Y);
-                        graph.addDirectedEdge(Y, X);
-                    }
+                    graph.removeEdges(X, Y);
+                    graph.addDirectedEdge(X, Y);
+                    graph.addDirectedEdge(Y, X);
                 }
             }
         }
@@ -419,12 +409,14 @@ public final class Fask_B implements GraphSearch {
                 } else if (knowledgeOrients(Y, X)) {
                     graph.addDirectedEdge(Y, X);
                 } else {
-                    if (leftRight(X, Y) > 0) {
+                    if (leftRight(X, Y) < 0 && leftRight(Y, X) < 0) {
+                        graph.addUndirectedEdge(X, Y);
+                    } else if (leftRight(X, Y) > 0 && leftRight(Y, X) > 0) {
+                        //
+                    } else if (leftRight(X, Y) > 0) {
                         graph.addDirectedEdge(X, Y);
                     } else if (leftRight(Y, X) > 0) {
                         graph.addDirectedEdge(Y, X);
-                    } else {
-                        graph.addUndirectedEdge(Y, X);
                     }
                 }
             }
@@ -633,7 +625,6 @@ public final class Fask_B implements GraphSearch {
         return lr;
     }
 
-    // Minnesota rule. If X->Y then this number should be > 0.
     private double leftRight(Node X, Node Y) {
         double[] x = colData[variables.indexOf(X)];
         double[] y = colData[variables.indexOf(Y)];
@@ -660,35 +651,19 @@ public final class Fask_B implements GraphSearch {
     }
 
     private double[] residuals(double[] _y, double[][] _x) {
-        for (double[] d : _x) if (d.length == 0) throw new IllegalArgumentException();
+        TetradMatrix y = new TetradMatrix(new double[][]{_y}).transpose();
+        TetradMatrix x = new TetradMatrix(_x).transpose();
 
-        if (_x.length == 0) return Arrays.copyOf(_y, _y.length);
-        return residuals(_y, _x, new double[0][]);
-    }
-
-    private double[] residuals(double[] y, double[][] x, double[][] z) {
-        if (x.length == 0 && z.length == 0) return Arrays.copyOf(y, y.length);
-
-        for (double[] d : x) if (d.length == 0) throw new IllegalArgumentException();
-        for (double[] d : z) if (d.length == 0) throw new IllegalArgumentException();
-
-        double[][] allregressors = new double[x.length + z.length][];
-        for (int i = 0; i < x.length; i++) allregressors[i] = x[i];
-        for (int j = 0; j < z.length; j++) allregressors[j + x.length] = z[j];
-
-        TetradMatrix _x = new TetradMatrix(allregressors).transpose();
-        TetradMatrix _y = new TetradMatrix(new double[][]{y}).transpose();
-
-        TetradMatrix xT = _x.transpose();
-        TetradMatrix xTx = xT.times(_x);
+        TetradMatrix xT = x.transpose();
+        TetradMatrix xTx = xT.times(x);
         TetradMatrix xTxInv = xTx.inverse();
-        TetradMatrix xTy = xT.times(_y);
+        TetradMatrix xTy = xT.times(y);
         TetradMatrix b = xTxInv.times(xTy);
 
-        TetradMatrix yHat = _x.times(b);
-        if (yHat.columns() == 0) yHat = _y.copy();
+        TetradMatrix yHat = x.times(b);
+        if (yHat.columns() == 0) yHat = y.copy();
 
-        return _y.minus(yHat).getColumn(0).toArray();
+        return y.minus(yHat).getColumn(0).toArray();
     }
 
     private static double E(double[] x, double[] y, double[] condition) {
@@ -734,8 +709,6 @@ public final class Fask_B implements GraphSearch {
     }
 
     private boolean twocycle(Node X, Node Y, Graph graph) {
-        if (multiplicative) return false;
-
         double[] x = colData[variables.indexOf(X)];
         double[] y = colData[variables.indexOf(Y)];
 
@@ -801,17 +774,7 @@ public final class Fask_B implements GraphSearch {
             boolean rejectedx = abs(zvx) > twoCycleCutoff;
             boolean rejectedy = abs(zvy) > twoCycleCutoff;
 
-            boolean possibleCycle = false;
-
-            if (zvx < 0 && zvy > 0 && rejectedx) {
-                possibleCycle = true;
-            } else if (zvx > 0 && zvy < 0 && rejectedy) {
-                possibleCycle = true;
-            } else if (rejectedx && rejectedy) {
-                possibleCycle = true;
-            }
-
-            if (!possibleCycle) {
+            if (!rejectedx || !rejectedy) {
                 return false;
             }
         }
@@ -928,18 +891,9 @@ public final class Fask_B implements GraphSearch {
             int[] _rows = new int[rows.size()];
             for (int i = 0; i < rows.size(); i++) _rows[i] = rows.get(i);
 
-            List<Node> z1 = new ArrayList<>(z);
-            if (z1.contains(x)) {
-                z1.remove(x);
-            }
-
-            List<Node> z2 = new ArrayList<>(z);
-            if (!z2.contains(x)) {
-                z2.add(x);
-            }
-
-            double[] rx = conditionalResiduals(_rows, x, z1);
-            double[] ry = conditionalResiduals(_rows, y, z2);
+            regressionDataset.setRows(_rows);
+            double[] rx = regressionDataset.regress(x, z).getResiduals().toArray();
+            double[] ry = regressionDataset.regress(y, z).getResiduals().toArray();
 
             double[] rxy = new double[rows.size()];
 
@@ -947,30 +901,18 @@ public final class Fask_B implements GraphSearch {
                 rxy[i] = rx[i] * ry[i];
             }
 
-//            double[] rxx = new double[rows.size()];
-//
-//            for (int i = 0; i < rows.size(); i++) {
-//                rxx[i] = rx[i] * rx[i];
-//            }
+            double[] rxx = new double[rows.size()];
+
+            for (int i = 0; i < rows.size(); i++) {
+                rxx[i] = rx[i] * rx[i];
+            }
 
             rxy_over_erxx = Arrays.copyOf(rxy, rxy.length);
-//            double erxx = mean(rxx);
+            double erxx = mean(rxx);
 
-//            for (int i = 0; i < rxy_over_erxx.length; i++) rxy_over_erxx[i] /= erxx;
+            for (int i = 0; i < rxy_over_erxx.length; i++) rxy_over_erxx[i] /= erxx;
 
             return this;
-        }
-
-        private double[] conditionalResiduals(int[] _rows, Node x, List<Node> z) {
-            regressionDataset.setRows(_rows);
-
-            double[] _x = colData[variables.indexOf(x)];
-
-            double[][] _z = new double[z.size()][];
-
-            for (int i = 0; i < _z.length; i++) _z[i] = colData[variables.indexOf(z.get(i))];
-
-            return RegressionDataset.regress(_x, _z).getResiduals().toArray();
         }
 
     }
