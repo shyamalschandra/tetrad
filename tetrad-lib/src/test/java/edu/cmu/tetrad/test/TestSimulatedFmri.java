@@ -23,10 +23,8 @@ package edu.cmu.tetrad.test;
 
 import edu.cmu.tetrad.algcomparison.Comparison;
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithms;
-import edu.cmu.tetrad.algcomparison.algorithm.multi.FaskConcatenated;
 import edu.cmu.tetrad.algcomparison.algorithm.multi.Fask_BConcatenated;
 import edu.cmu.tetrad.algcomparison.independence.SemBicTest;
-import edu.cmu.tetrad.algcomparison.score.SemBicScore;
 import edu.cmu.tetrad.algcomparison.simulation.Simulations;
 import edu.cmu.tetrad.algcomparison.statistic.*;
 import edu.cmu.tetrad.data.ContinuousVariable;
@@ -82,12 +80,12 @@ public class TestSimulatedFmri {
         parameters.set("penaltyDiscount", 2);
 
         parameters.set("depth", 5);
-        parameters.set("skewEdgeAlpha", 0.001);
-        parameters.set("twoCycleAlpha", 0.0000001);
+        parameters.set("skewEdgeAlpha", 0.0001);
+        parameters.set("twoCycleAlpha", 0.00000001);
         parameters.set("useFasAdjacencies", true);
         parameters.set("useSkewAdjacencies", true);
         parameters.set("useMask", true);
-        parameters.set("maskThreshold", .3);
+        parameters.set("maskThreshold", .4);
 
         parameters.set("penaltyDiscount", 2);
 
@@ -95,7 +93,7 @@ public class TestSimulatedFmri {
         parameters.set("faskDelta", -.2);
 
         parameters.set("numRuns", 5);
-        parameters.set("randomSelectionSize", 5);
+        parameters.set("randomSelectionSize", 10);
 
         parameters.set("useFasAdjacencies", true);
         parameters.set("useCorrDiffAdjacencies", true);
@@ -116,7 +114,7 @@ public class TestSimulatedFmri {
         statistics.add(new TwoCycleFalsePositive());
         statistics.add(new TwoCycleFalseNegative());
         statistics.add(new TwoCycleTruePositive());
-        statistics.add(new ElapsedTime());
+//        statistics.add(new ElapsedTime());
 //        statistics.setWeight("AHR", 1.0);
 //        statistics.setWeight("2CP", 1.0);
 //        statistics.setWeight("2CR", 1.0);
@@ -229,8 +227,8 @@ public class TestSimulatedFmri {
 
         Comparison comparison = new Comparison();
 
-        comparison.setShowAlgorithmIndices(true);
-        comparison.setShowSimulationIndices(true);
+        comparison.setShowAlgorithmIndices(false);
+        comparison.setShowSimulationIndices(false);
         comparison.setSortByUtility(false);
         comparison.setShowUtilities(false);
         comparison.setParallelized(false);

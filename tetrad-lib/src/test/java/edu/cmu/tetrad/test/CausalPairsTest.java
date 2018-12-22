@@ -22,6 +22,7 @@
 package edu.cmu.tetrad.test;
 
 import edu.cmu.tetrad.data.*;
+import edu.cmu.tetrad.graph.EdgeListGraph;
 import edu.cmu.tetrad.graph.Edges;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.Node;
@@ -114,8 +115,13 @@ public class CausalPairsTest {
 //                    continue;
                 }
 
+                Graph graph = new EdgeListGraph();
+                graph.addNode(data1.getVariable(0));
+                graph.addNode(data1.getVariable(1));
+                graph.addEdge(Edges.undirectedEdge(data1.getVariable(0), data1.getVariable(1)));
 
                 Fask_B fask = new Fask_B(data1, new IndTestFisherZ(data1, .001));
+                fask.setInitialGraph(graph);
                 fask.setTwoCycleAlpha(0.000);
 //                fask.setDelta(-.05);
                 fask.setUseFasAdjacencies(true);
@@ -125,56 +131,56 @@ public class CausalPairsTest {
                 fask.setSkewEdgeAlpha(.05);
                 fask.setVerbose(true);
 
-                Graph graph;
+                Graph out;
 
                 try {
-                    graph = fask.search();
+                    out = fask.search();
                 } catch (Exception e) {
                     e.printStackTrace();
                     singularityException.add(i);
                     continue;
                 }
 
-                final Node X = graph.getNode("VAR_1");
-                final Node Y = graph.getNode("VAR_2");
+                final Node X = out.getNode("VAR_1");
+                final Node Y = out.getNode("VAR_2");
 
                 if (contains(i, "#multiplicative")) {
                     multiplicative.add(i);
-                    graph.removeEdges(X, Y);
-                    graph.addDirectedEdge(X, Y);
+                    out.removeEdges(X, Y);
+                    out.addDirectedEdge(X, Y);
 //                    continue;
                 }
 
                 if (contains(i, "#V-shaped")) {
                     vShaped.add(i);
-                    graph.removeEdges(X, Y);
-                    graph.addDirectedEdge(X, Y);
+                    out.removeEdges(X, Y);
+                    out.addDirectedEdge(X, Y);
 //                    continue;
                 }
 
 
-                if (!graph.isAdjacentTo(X, Y)) {
+                if (!out.isAdjacentTo(X, Y)) {
                     getNonadjacent.add(i);
                     continue;
-                } else if (graph.getEdges(X, Y).size() == 2) {
+                } else if (out.getEdges(X, Y).size() == 2) {
                     get2Cycle.add(i);
 //                    continue;
-                } else if (Edges.isBidirectedEdge(graph.getEdge(X, Y))) {
+                } else if (Edges.isBidirectedEdge(out.getEdge(X, Y))) {
                     getBidirected.add(i);
 //                    continue;
                 }
 
                 boolean right = false;
 
-                if (Edges.isUndirectedEdge(graph.getEdge(X, Y))) {
+                if (Edges.isUndirectedEdge(out.getEdge(X, Y))) {
                     getUndirected.add(i);
-                    right = true;
+//                    right = fa/lse;
                 }
 
                 if (contains(i, "#-->")) {
                     System.out.println("Ground truth: VAR1 --> VAR2");
 
-                    if (graph.isParentOf(X, Y) && !graph.isParentOf(Y, X)) {
+                    if (out.isParentOf(X, Y) && !out.isParentOf(Y, X)) {
                         right = true;
                     }
                 }
@@ -182,7 +188,7 @@ public class CausalPairsTest {
                 if (contains(i, "#<--")) {
                     System.out.println("Ground truth: VAR1 <-- VAR2");
 
-                    if (graph.isParentOf(Y, X) && !graph.isParentOf(X, Y)) {
+                    if (out.isParentOf(Y, X) && !out.isParentOf(X, Y)) {
                         right = true;
                     }
                 }
@@ -190,7 +196,7 @@ public class CausalPairsTest {
                 if (contains(i, "#<->")) {
                     System.out.println("Ground truth: VAR1 <-> VAR2");
 
-                    if (Edges.isBidirectedEdge(graph.getEdge(X, Y))) {
+                    if (Edges.isBidirectedEdge(out.getEdge(X, Y))) {
                         right = true;
                     }
                 }
@@ -198,7 +204,7 @@ public class CausalPairsTest {
                 if (contains(i, "#<T>")) {
                     System.out.println("Ground truth: VAR1 <=> VAR2");
 
-                    if (graph.isParentOf(Y, X) && graph.isParentOf(X, Y)) {
+                    if (out.isParentOf(Y, X) && out.isParentOf(X, Y)) {
                         right = true;
                     }
                 }

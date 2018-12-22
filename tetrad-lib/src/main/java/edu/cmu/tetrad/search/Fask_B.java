@@ -100,9 +100,6 @@ public final class Fask_B implements GraphSearch {
     // True if a mask should be use to estimate adjacencies.
     private boolean useMask = false;
 
-    // True if the data is multiplicative; in this case, the judgment is reversed.
-    private boolean multiplicative = false;
-
     /**
      * @param dataSet These datasets must all have the same variables, in the same order.
      */
@@ -212,7 +209,7 @@ public final class Fask_B implements GraphSearch {
                 double c2 = StatUtils.cov(x, y, y, 0, +1)[1];
 
                 if ((isUseFasAdjacencies() && fasGraph.isAdjacentTo(X, Y))
-                        || ((isUseSkewAdjacencies() && (isUseMask() ?
+                        || ((isUseSkewAdjacencies() && (useMask ?
                         Math.abs(c1 - c2) > getMaskThreshold() : skewAdjacent(X, Y, Collections.emptyList()))))) {
                     orientEdge(graph, X, Y);
                 }
@@ -372,10 +369,6 @@ public final class Fask_B implements GraphSearch {
         this.verbose = verbose;
     }
 
-    public boolean isUseMask() {
-        return useMask;
-    }
-
     public void setUseMask(boolean useMask) {
         this.useMask = useMask;
     }
@@ -408,16 +401,23 @@ public final class Fask_B implements GraphSearch {
                     graph.addDirectedEdge(X, Y);
                 } else if (knowledgeOrients(Y, X)) {
                     graph.addDirectedEdge(Y, X);
+                }
+//                else {
+//                    if (leftRight(X, Y) < 0 && leftRight(Y, X) < 0) {
+//                        graph.addUndirectedEdge(X, Y);
+//                    } else if (leftRight(X, Y) > 0 && leftRight(Y, X) > 0) {
+//                        //
+//                    } else if (leftRight(X, Y) > 0) {
+//                        graph.addDirectedEdge(X, Y);
+//                    } else if (leftRight(Y, X) > 0) {
+//                        graph.addDirectedEdge(Y, X);
+//                    }
+//                }
+
+                else if (leftRight(X, Y) > leftRight(Y, X)) {
+                    graph.addDirectedEdge(X, Y);
                 } else {
-                    if (leftRight(X, Y) < 0 && leftRight(Y, X) < 0) {
-                        graph.addUndirectedEdge(X, Y);
-                    } else if (leftRight(X, Y) > 0 && leftRight(Y, X) > 0) {
-                        //
-                    } else if (leftRight(X, Y) > 0) {
-                        graph.addDirectedEdge(X, Y);
-                    } else if (leftRight(Y, X) > 0) {
-                        graph.addDirectedEdge(Y, X);
-                    }
+                    graph.addDirectedEdge(Y, X);
                 }
             }
         }
@@ -508,13 +508,13 @@ public final class Fask_B implements GraphSearch {
                 continue;
             }
 
-            if (!directedPathsFromTo(graph, tail, p1, 3).isEmpty() && !knowledge.isForbidden(p1.getName(), head.getName())) {
+            if (!directedPathsFromTo(graph, tail, p1).isEmpty() && !knowledge.isForbidden(p1.getName(), head.getName())) {
                 if (!c.contains(p1)) {
                     c.add(p1);
                 }
             }
 
-            if (!directedPathsFromTo(graph, head, p1, 3).isEmpty() && !knowledge.isForbidden(p1.getName(), tail.getName())) {
+            if (!directedPathsFromTo(graph, head, p1).isEmpty() && !knowledge.isForbidden(p1.getName(), tail.getName())) {
                 if (!c.contains(p1)) {
                     c.add(p1);
                 }
@@ -580,51 +580,52 @@ public final class Fask_B implements GraphSearch {
     }
 
 
-    private double leftRight1(Node X, Node Y) {
-        double[] x = colData[variables.indexOf(X)];
-        double[] y = colData[variables.indexOf(Y)];
+//    private double leftRight1(Node X, Node Y) {
+//        double[] x = colData[variables.indexOf(X)];
+//        double[] y = colData[variables.indexOf(Y)];
+//
+//        double lr = E(x, y, y, -1) / E(x, x, y, -1) - E(x, y, y, +1) / E(x, x, y, +1);
+//
+//        if (isVerbose()) {
+//            TetradLogger.getInstance().forceLogMessage(
+//                    Edges.directedEdge(X, Y)
+//                            + " X = " + X.getName()
+//                            + " Y = " + Y.getName()
+//                            + " LR = " + lr
+//                            + " sx = " + StatUtils.skewness(x)
+//                            + " sy = " + StatUtils.skewness(y)
+//                            + " corr = " + correlation(x, y)
+//            );
+//        }
+//
+//        return lr;
+//    }
 
-        double lr = E(x, y, y, -1) / E(x, x, y, -1) - E(x, y, y, +1) / E(x, x, y, +1);
+//    private double leftRight2(Node X, Node Y) {
+//        double[] x = colData[variables.indexOf(X)];
+//        double[] y = colData[variables.indexOf(Y)];
+//
+//        double left = E(x, y, x) / sqrt(E(x, x, x) * E(y, y, x));
+//        double right = E(x, y, y) / sqrt(E(x, x, y) * E(y, y, y));
+//
+//        double lr = left - right;
+//
+//        if (isVerbose()) {
+//            TetradLogger.getInstance().forceLogMessage(
+//                    Edges.directedEdge(X, Y)
+//                            + " X = " + X.getName()
+//                            + " Y = " + Y.getName()
+//                            + " LR = " + lr
+//                            + " sx = " + StatUtils.skewness(x)
+//                            + " sy = " + StatUtils.skewness(y)
+//                            + " corr = " + correlation(x, y)
+//            );
+//        }
+//
+//        return lr;
+//    }
 
-        if (isVerbose()) {
-            TetradLogger.getInstance().forceLogMessage(
-                    Edges.directedEdge(X, Y)
-                            + " X = " + X.getName()
-                            + " Y = " + Y.getName()
-                            + " LR = " + lr
-                            + " sx = " + StatUtils.skewness(x)
-                            + " sy = " + StatUtils.skewness(y)
-                            + " corr = " + correlation(x, y)
-            );
-        }
-
-        return lr;
-    }
-
-    private double leftRight2(Node X, Node Y) {
-        double[] x = colData[variables.indexOf(X)];
-        double[] y = colData[variables.indexOf(Y)];
-
-        double left = E(x, y, x) / sqrt(E(x, x, x) * E(y, y, x));
-        double right = E(x, y, y) / sqrt(E(x, x, y) * E(y, y, y));
-
-        double lr = left - right;
-
-        if (isVerbose()) {
-            TetradLogger.getInstance().forceLogMessage(
-                    Edges.directedEdge(X, Y)
-                            + " X = " + X.getName()
-                            + " Y = " + Y.getName()
-                            + " LR = " + lr
-                            + " sx = " + StatUtils.skewness(x)
-                            + " sy = " + StatUtils.skewness(y)
-                            + " corr = " + correlation(x, y)
-            );
-        }
-
-        return lr;
-    }
-
+    // Minnesota rule. If X->Y then this number should be > 0.
     private double leftRight(Node X, Node Y) {
         double[] x = colData[variables.indexOf(X)];
         double[] y = colData[variables.indexOf(Y)];
@@ -644,11 +645,11 @@ public final class Fask_B implements GraphSearch {
         return lr;
     }
 
-    private double[] times(double[] data, double r) {
-        double[] data2 = new double[data.length];
-        for (int i = 0; i < data.length; i++) data2[i] = data[i] * r;
-        return data2;
-    }
+//    private double[] times(double[] data, double r) {
+//        double[] data2 = new double[data.length];
+//        for (int i = 0; i < data.length; i++) data2[i] = data[i] * r;
+//        return data2;
+//    }
 
     private double[] residuals(double[] _y, double[][] _x) {
         TetradMatrix y = new TetradMatrix(new double[][]{_y}).transpose();
@@ -681,32 +682,32 @@ public final class Fask_B implements GraphSearch {
         return exy / n;
     }
 
-    private double E(double[] x, double[] y, double[] condition, double dir) {
-        double exy = 0.0;
+//    private double E(double[] x, double[] y, double[] condition, double dir) {
+//        double exy = 0.0;
+//
+//        int n = 0;
+//
+//        for (int k = 0; k < x.length; k++) {
+//            if (dir * condition[k] > 0) {
+//                exy += x[k] * y[k];
+//                n++;
+//            }
+//        }
+//
+//        return exy / n;
+//    }
 
-        int n = 0;
-
-        for (int k = 0; k < x.length; k++) {
-            if (dir * condition[k] > 0) {
-                exy += x[k] * y[k];
-                n++;
-            }
-        }
-
-        return exy / n;
-    }
-
-    private static int N(double[] condition) {
-        int n = 0;
-
-        for (int k = 0; k < condition.length; k++) {
-            if (condition[k] > 0) {
-                n++;
-            }
-        }
-
-        return n;
-    }
+//    private static int N(double[] condition) {
+//        int n = 0;
+//
+//        for (int k = 0; k < condition.length; k++) {
+//            if (condition[k] > 0) {
+//                n++;
+//            }
+//        }
+//
+//        return n;
+//    }
 
     private boolean twocycle(Node X, Node Y, Graph graph) {
         double[] x = colData[variables.indexOf(X)];
@@ -863,7 +864,7 @@ public final class Fask_B implements GraphSearch {
         private List<Integer> rows;
         private double[] rxy_over_erxx;
 
-        public E(Node X, Node Y, List<Node> Z, Node condition) {
+        E(Node X, Node Y, List<Node> Z, Node condition) {
             x = X;
             y = Y;
             z = Z;
@@ -917,9 +918,9 @@ public final class Fask_B implements GraphSearch {
 
     }
 
-    private static List<List<Node>> directedPathsFromTo(Graph graph, Node node1, Node node2, int maxLength) {
+    private static List<List<Node>> directedPathsFromTo(Graph graph, Node node1, Node node2) {
         List<List<Node>> paths = new LinkedList<>();
-        directedPathsFromToVisit(graph, node1, node2, new LinkedList<Node>(), paths, maxLength);
+        directedPathsFromToVisit(graph, node1, node2, new LinkedList<>(), paths, 3);
         return paths;
     }
 
