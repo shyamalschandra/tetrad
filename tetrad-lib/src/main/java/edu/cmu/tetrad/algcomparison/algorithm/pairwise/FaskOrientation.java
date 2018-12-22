@@ -146,13 +146,8 @@ public class FaskOrientation implements Algorithm, TakesInitialGraph, HasKnowled
             parameters.addAll(algorithm.getParameters());
         }
 
-        parameters.add("depth");
         parameters.add("twoCycleAlpha");
         parameters.add("faskDelta");
-
-        parameters.add("useFasAdjacencies");
-        parameters.add("useSkewAdjacencies");
-        parameters.add("maskThreshold");
 
         parameters.add("verbose");
 

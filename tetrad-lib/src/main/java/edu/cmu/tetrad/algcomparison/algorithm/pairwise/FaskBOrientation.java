@@ -85,14 +85,7 @@ public class FaskBOrientation implements Algorithm, TakesInitialGraph, HasKnowle
             edu.cmu.tetrad.search.Fask_B search
                     = new edu.cmu.tetrad.search.Fask_B((DataSet) dataSet, new IndTestScore(score));
             search.setInitialGraph(initialGraph);
-            search.setDepth(parameters.getInt("depth"));
-//            search.setSkewEdgeAlpha(parameters.getDouble("skewEdgeAlpha"));
             search.setTwoCycleAlpha(parameters.getDouble("twoCycleAlpha"));
-//            search.setVerbose(parameters.getBoolean("verbose"));
-            search.setUseSkewAdjacencies(false);
-            search.setUseFasAdjacencies(true);
-            search.setUseMask(false);
-//            search.setMaskThreshold(parameters.getDouble("maskThreshold"));
 
             search.setVerbose(parameters.getBoolean("verbose"));
             search.setKnowledge(knowledge);
@@ -152,14 +145,7 @@ public class FaskBOrientation implements Algorithm, TakesInitialGraph, HasKnowle
             parameters.addAll(algorithm.getParameters());
         }
 
-        parameters.add("depth");
-//        parameters.add("skewEdgeAlpha");
         parameters.add("twoCycleAlpha");
-
-//        parameters.add("useFasAdjacencies");
-//        parameters.add("useSkewAdjacencies");
-//        parameters.add("useMask");
-//        parameters.add("maskThreshold");
 
         parameters.add("verbose");
 
