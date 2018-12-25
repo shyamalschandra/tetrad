@@ -206,84 +206,35 @@ public final class Misclassifications implements SessionModel, DoNotAddOldModel 
             throw new IllegalArgumentException("Must specify a reference graph.");
         }
 
+//        String referenceName = params.getString("referenceGraphName", null);
+
         if (referenceName.equals(model1.getName())) {
-            if (model1 instanceof Simulation && model2 instanceof GeneralAlgorithmRunner) {
-                this.referenceGraphs = ((GeneralAlgorithmRunner) model2).getCompareGraphs(((Simulation) model1).getGraphs());
-            } else if (model1 instanceof MultipleGraphSource) {
-                this.referenceGraphs = ((MultipleGraphSource) model1).getGraphs();
-            }
-
-            if (model2 instanceof MultipleGraphSource) {
-                this.targetGraphs = ((MultipleGraphSource) model2).getGraphs();
-            }
-
-            if (referenceGraphs.size() == 1 && targetGraphs.size() > 1) {
-                Graph graph = referenceGraphs.get(0);
-                referenceGraphs = new ArrayList<>();
-                for (Graph _graph : targetGraphs) {
-                    referenceGraphs.add(_graph);
-                }
-            }
-
-            if (targetGraphs.size() == 1 && referenceGraphs.size() > 1) {
-                Graph graph = targetGraphs.get(0);
-                targetGraphs = new ArrayList<>();
-                for (Graph _graph : referenceGraphs) {
-                    targetGraphs.add(graph);
-                }
-            }
-
-            if (referenceGraphs == null) {
-                this.referenceGraphs = Collections.singletonList(((GraphSource) model1).getGraph());
-            }
-
-            if (targetGraphs == null) {
-                this.targetGraphs = Collections.singletonList(((GraphSource) model2).getGraph());
-            }
+            this.referenceGraphs = model1.getGraphs();
+            this.targetGraphs = model2.getGraphs();
         } else if (referenceName.equals(model2.getName())) {
-            if (model2 instanceof Simulation && model1 instanceof GeneralAlgorithmRunner) {
-                this.referenceGraphs = ((GeneralAlgorithmRunner) model1).getCompareGraphs(((Simulation) model2).getGraphs());
-            } else if (model1 instanceof MultipleGraphSource) {
-                this.referenceGraphs = ((MultipleGraphSource) model2).getGraphs();
-            }
-
-            if (model1 instanceof MultipleGraphSource) {
-                this.targetGraphs = ((MultipleGraphSource) model1).getGraphs();
-            }
-
-            if (referenceGraphs.size() == 1 && targetGraphs.size() > 1) {
-                Graph graph = referenceGraphs.get(0);
-                referenceGraphs = new ArrayList<>();
-                for (Graph _graph : targetGraphs) {
-                    referenceGraphs.add(_graph);
-                }
-            }
-
-            if (targetGraphs.size() == 1 && referenceGraphs.size() > 1) {
-                Graph graph = targetGraphs.get(0);
-                targetGraphs = new ArrayList<>();
-                for (Graph _graph : referenceGraphs) {
-                    targetGraphs.add(graph);
-                }
-            }
-
-            if (referenceGraphs == null) {
-                this.referenceGraphs = Collections.singletonList(((GraphSource) model2).getGraph());
-            }
-
-            if (targetGraphs == null) {
-                this.targetGraphs = Collections.singletonList(((GraphSource) model1).getGraph());
-            }
+            this.referenceGraphs = model2.getGraphs();
+            this.targetGraphs = model1.getGraphs();
         } else {
             throw new IllegalArgumentException(
                     "Neither of the supplied session models is named '" +
                             referenceName + "'.");
         }
 
+        if (referenceGraphs.size() == 1 && targetGraphs.size() > 1) {
+            List<Graph> _referenceGraphs = new ArrayList<>();
+            _referenceGraphs.add(referenceGraphs.get(0));
+            referenceGraphs = _referenceGraphs;
+        }
+
+        if (targetGraphs.size() == 1 && referenceGraphs.size() > 1) {
+            List<Graph> _targetGraphs = new ArrayList<>();
+            _targetGraphs.add(targetGraphs.get(0));
+            targetGraphs = _targetGraphs;
+        }
+
         for (int i = 0; i < targetGraphs.size(); i++) {
             targetGraphs.set(i, GraphUtils.replaceNodes(targetGraphs.get(i), referenceGraphs.get(i).getNodes()));
         }
-
 //        if (model1 instanceof GeneralAlgorithmRunner && model2 instanceof GeneralAlgorithmRunner) {
 //            throw new IllegalArgumentException("Both parents can't be general algorithm runners.");
 //        }

@@ -52,12 +52,10 @@ import java.util.*;
 public final class TabularComparison implements SessionModel, SimulationParamsSource,
         DoNotAddOldModel {
     static final long serialVersionUID = 23L;
-//    private Algorithm algorithm;
 
     private String name;
     private List<Graph> targetGraphs;
     private List<Graph> referenceGraphs;
-    private Graph trueGraph;
     private Map<String, String> allParamSettings;
     private DataSet dataSet;
     private ArrayList<Statistic> statistics;
@@ -85,90 +83,34 @@ public final class TabularComparison implements SessionModel, SimulationParamsSo
             throw new IllegalArgumentException("Both parents can't be general algorithm runners.");
         }
 
-//        if (model1 instanceof GeneralAlgorithmRunner && model2 instanceof Simulation) {
-//            GeneralAlgorithmRunner generalAlgorithmRunner = (GeneralAlgorithmRunner) model1;
-////            this.algorithm = generalAlgorithmRunner.getAlgorithm();
-//        } else if (model2 instanceof GeneralAlgorithmRunner && model1 instanceof Simulation) {
-//            GeneralAlgorithmRunner generalAlgorithmRunner = (GeneralAlgorithmRunner) model2;
-////            this.algorithm = generalAlgorithmRunner.getAlgorithm();
-//        }
-
         String referenceName = params.getString("referenceGraphName", null);
 
         if (referenceName.equals(model1.getName())) {
-//            if (model1 instanceof Simulation && model2 instanceof GeneralAlgorithmRunner) {
-//                this.referenceGraphs = ((GeneralAlgorithmRunner) model2).getCompareGraphs(((Simulation) model1).getGraphs());
-//            } else
-            if (model1 instanceof MultipleGraphSource) {
-                this.referenceGraphs = ((MultipleGraphSource) model1).getGraphs();
-            }
-
-            if (model2 instanceof MultipleGraphSource) {
-                this.targetGraphs = ((MultipleGraphSource) model2).getGraphs();
-            }
-
-            if (referenceGraphs.size() == 1 && targetGraphs.size() > 1) {
-                Graph graph = referenceGraphs.get(0);
-                referenceGraphs = new ArrayList<>();
-                for (Graph _graph : targetGraphs) {
-                    referenceGraphs.add(graph);
-                }
-            }
-
-            if (targetGraphs.size() == 1 && referenceGraphs.size() > 1) {
-                Graph graph = targetGraphs.get(0);
-                targetGraphs = new ArrayList<>();
-                for (Graph _graph : referenceGraphs) {
-                    targetGraphs.add(graph);
-                }
-            }
-
-            if (referenceGraphs == null) {
-                this.referenceGraphs = Collections.singletonList(((GraphSource) model1).getGraph());
-            }
-
-            if (targetGraphs == null) {
-                this.targetGraphs = Collections.singletonList(((GraphSource) model2).getGraph());
-            }
+            this.referenceGraphs = model1.getGraphs();
+            this.targetGraphs = model2.getGraphs();
         } else if (referenceName.equals(model2.getName())) {
-//            if (model2 instanceof Simulation && model1 instanceof GeneralAlgorithmRunner) {
-//                this.referenceGraphs = ((GeneralAlgorithmRunner) model1).getCompareGraphs(((Simulation) model2).getGraphs());
-//            } else
-            if (model1 instanceof MultipleGraphSource) {
-                this.referenceGraphs = ((MultipleGraphSource) model2).getGraphs();
-            }
-
-            if (model1 instanceof MultipleGraphSource) {
-                this.targetGraphs = ((MultipleGraphSource) model1).getGraphs();
-            }
-
-            if (referenceGraphs.size() == 1 && targetGraphs.size() > 1) {
-                Graph graph = referenceGraphs.get(0);
-                referenceGraphs = new ArrayList<>();
-                for (Graph _graph : targetGraphs) {
-                    referenceGraphs.add(graph);
-                }
-            }
-
-            if (targetGraphs.size() == 1 && referenceGraphs.size() > 1) {
-                Graph graph = targetGraphs.get(0);
-                targetGraphs = new ArrayList<>();
-                for (Graph _graph : referenceGraphs) {
-                    targetGraphs.add(graph);
-                }
-            }
-
-            if (referenceGraphs == null) {
-                this.referenceGraphs = Collections.singletonList(((GraphSource) model2).getGraph());
-            }
-
-            if (targetGraphs == null) {
-                this.targetGraphs = Collections.singletonList(((GraphSource) model1).getGraph());
-            }
+            this.referenceGraphs = model2.getGraphs();
+            this.targetGraphs = model1.getGraphs();
         } else {
             throw new IllegalArgumentException(
                     "Neither of the supplied session models is named '" +
                             referenceName + "'.");
+        }
+
+        if (referenceGraphs.size() == 1 && targetGraphs.size() > 1) {
+            List<Graph> _referenceGraphs = new ArrayList<>();
+            _referenceGraphs.add(referenceGraphs.get(0));
+            referenceGraphs = _referenceGraphs;
+        }
+
+        if (targetGraphs.size() == 1 && referenceGraphs.size() > 1) {
+            List<Graph> _targetGraphs = new ArrayList<>();
+            _targetGraphs.add(targetGraphs.get(0));
+            targetGraphs = _targetGraphs;
+        }
+
+        for (int i = 0; i < targetGraphs.size(); i++) {
+            targetGraphs.set(i, GraphUtils.replaceNodes(targetGraphs.get(i), referenceGraphs.get(i).getNodes()));
         }
 
         for (int i = 0; i < targetGraphs.size(); i++) {
@@ -178,13 +120,6 @@ public final class TabularComparison implements SessionModel, SimulationParamsSo
         if (referenceGraphs.size() != targetGraphs.size()) {
             throw new IllegalArgumentException("I was expecting the same number of graphs in each parent.");
         }
-//        if (algorithm != null) {
-//            for (int i = 0; i < referenceGraphs.size(); i++) {
-//                Graph comparisonGraph = algorithm.getComparisonGraph(referenceGraphs.get(i));
-//                comparisonGraph = GraphUtils.replaceNodes(comparisonGraph, getTrueGraph().getNodes());
-//                referenceGraphs.set(i, comparisonGraph);
-//            }
-//        }
 
         for (int i = 0; i < targetGraphs.size(); i++) {
             targetGraphs.set(i, GraphUtils.replaceNodes(targetGraphs.get(i), referenceGraphs.get(i).getNodes()));
@@ -263,17 +198,6 @@ public final class TabularComparison implements SessionModel, SimulationParamsSo
         }
     }
 
-    /**
-     * Generates a simple exemplar of this class to test serialization.
-     *
-     * @see TetradSerializableUtils
-     */
-//    public static TabularComparison serializableInstance() {
-//        return new TabularComparison(DagWrapper.serializableInstance(),
-//                DagWrapper.serializableInstance(),
-//                new Parameters());
-//    }
-
     //==============================PUBLIC METHODS========================//
     public DataSet getDataSet() {
         return this.dataSet;
@@ -306,14 +230,6 @@ public final class TabularComparison implements SessionModel, SimulationParamsSo
             throws IOException, ClassNotFoundException {
         s.defaultReadObject();
     }
-
-//    public Graph getTrueGraph() {
-//        return trueGraph;
-//    }
-//
-//    public void setTrueGraph(Graph trueGraph) {
-//        this.trueGraph = trueGraph;
-//    }
 
     @Override
     public Map<String, String> getParamSettings() {
@@ -348,10 +264,6 @@ public final class TabularComparison implements SessionModel, SimulationParamsSo
 
     public String getReferenceName() {
         return referenceName;
-    }
-
-    public void setReferenceName(String referenceName) {
-        this.referenceName = referenceName;
     }
 }
 

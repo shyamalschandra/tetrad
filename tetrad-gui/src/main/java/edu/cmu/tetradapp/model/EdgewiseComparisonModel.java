@@ -73,21 +73,6 @@ public final class EdgewiseComparisonModel implements SessionModel, DoNotAddOldM
             throw new NullPointerException("Parameters must not be null");
         }
 
-        // Need to be able to construct this object even if the models are
-        // null. Otherwise the interface is annoying.
-//        if (model2 == null) {
-//            model2 = new DagWrapper(new Dag());
-//        }
-//
-//        if (model1 == null) {
-//            model1 = new DagWrapper(new Dag());
-//        }
-
-//        if (!(model1 instanceof MultipleGraphSource) ||
-//                !(model2 instanceof MultipleGraphSource)) {
-//            throw new IllegalArgumentException("Must be graph sources.");
-//        }
-
         if (model1 instanceof GeneralAlgorithmRunner && model2 instanceof GeneralAlgorithmRunner) {
             throw new IllegalArgumentException("Both parents can't be general algorithm runners.");
         }
@@ -105,26 +90,19 @@ public final class EdgewiseComparisonModel implements SessionModel, DoNotAddOldM
         String referenceName = this.params.getString("referenceGraphName", null);
 
         if (referenceName.equals(model1.getName())) {
-//            if (model1 instanceof Simulation && model2 instanceof GeneralAlgorithmRunner) {
-//                this.referenceGraphs = ((GeneralAlgorithmRunner) model2).getCompareGraphs(((Simulation) model1).getGraphs());
-//            }
-//            else
-            if (model1 instanceof MultipleGraphSource) {
-                this.referenceGraphs = ((MultipleGraphSource) model1).getGraphs();
-            }
+            this.referenceGraphs = model1.getGraphs();
 
-            if (model2 instanceof MultipleGraphSource) {
-                this.targetGraphs = ((MultipleGraphSource) model2).getGraphs();
+            if (model2 != null) {
+                this.targetGraphs = model2.getGraphs();
             }
 
             if (referenceGraphs.size() == 1 && targetGraphs.size() > 1) {
                 Graph graph = referenceGraphs.get(0);
                 referenceGraphs = new ArrayList<>();
-                for (Graph _graph : targetGraphs) {
-                    referenceGraphs.add(_graph);
-                }
+                referenceGraphs.addAll(targetGraphs);
             }
 
+            assert targetGraphs != null;
             if (targetGraphs.size() == 1 && referenceGraphs.size() > 1) {
                 Graph graph = targetGraphs.get(0);
                 targetGraphs = new ArrayList<>();
@@ -133,48 +111,24 @@ public final class EdgewiseComparisonModel implements SessionModel, DoNotAddOldM
                 }
             }
 
-            if (referenceGraphs == null) {
-                this.referenceGraphs = Collections.singletonList(((GraphSource) model1).getGraph());
-            }
-
-            if (targetGraphs == null) {
-                this.targetGraphs = Collections.singletonList(((GraphSource) model2).getGraph());
-            }
         } else if (referenceName.equals(model2.getName())) {
-//            if (model2 instanceof Simulation && model1 instanceof GeneralAlgorithmRunner) {
-//                this.referenceGraphs = ((GeneralAlgorithmRunner) model1).getCompareGraphs(((Simulation) model2).getGraphs());
-//            } else
-            if (model1 instanceof MultipleGraphSource) {
-                this.referenceGraphs = ((MultipleGraphSource) model2).getGraphs();
-            }
+            this.referenceGraphs = model2.getGraphs();
 
-            if (model1 instanceof MultipleGraphSource) {
-                this.targetGraphs = ((MultipleGraphSource) model1).getGraphs();
-            }
+            this.targetGraphs = model1.getGraphs();
 
             if (referenceGraphs.size() == 1 && targetGraphs.size() > 1) {
-                Graph graph = referenceGraphs.get(0);
                 referenceGraphs = new ArrayList<>();
-                for (Graph _graph : targetGraphs) {
-                    referenceGraphs.add(_graph);
-                }
+                referenceGraphs.addAll(targetGraphs);
             }
 
             if (targetGraphs.size() == 1 && referenceGraphs.size() > 1) {
                 Graph graph = targetGraphs.get(0);
                 targetGraphs = new ArrayList<>();
-                for (Graph _graph : referenceGraphs) {
+                for (Graph ignored : referenceGraphs) {
                     targetGraphs.add(graph);
                 }
             }
 
-            if (referenceGraphs == null) {
-                this.referenceGraphs = Collections.singletonList(((GraphSource) model2).getGraph());
-            }
-
-            if (targetGraphs == null) {
-                this.targetGraphs = Collections.singletonList(((GraphSource) model1).getGraph());
-            }
         } else {
             throw new IllegalArgumentException(
                     "Neither of the supplied session models is named '" +
@@ -202,32 +156,6 @@ public final class EdgewiseComparisonModel implements SessionModel, DoNotAddOldM
             TetradLogger.getInstance().log("comparison", getComparisonString(i));
         }
     }
-
-//    public EdgewiseComparisonModel(GraphWrapper referenceGraph,
-//                                   AbstractAlgorithmRunner algorithmRunner,
-//                                   Parameters params) {
-//        this(referenceGraph, (SessionModel) algorithmRunner,
-//                params);
-//    }
-//
-//    public EdgewiseComparisonModel(GraphWrapper referenceWrapper,
-//                                   GraphWrapper targetWrapper, Parameters params) {
-//        this(referenceWrapper, (SessionModel) targetWrapper,
-//                params);
-//    }
-//
-//    public EdgewiseComparisonModel(DagWrapper referenceGraph,
-//                                   AbstractAlgorithmRunner algorithmRunner,
-//                                   Parameters params) {
-//        this(referenceGraph, (SessionModel) algorithmRunner,
-//                params);
-//    }
-
-//    public EdgewiseComparisonModel(DagWrapper referenceWrapper,
-//                                   GraphWrapper targetWrapper, Parameters params) {
-//        this(referenceWrapper, (SessionModel) targetWrapper,
-//                params);
-//    }
 
     //==============================PUBLIC METHODS========================//
 

@@ -254,6 +254,7 @@ public final class Fask_B implements GraphSearch {
 
                 if (!graph.isAdjacentTo(X, Y) && graph2.isAdjacentTo(X, Y)) {
                     if (Edges.isBidirectedEdge(graph2.getEdge(X, Y))) continue;
+//                    if (graph.getEdges(X, Y).size() == 2)) continue;
 
                     if ((isUseFasAdjacencies() && fasGraph.isAdjacentTo(X, Y))
                             || (isUseSkewAdjacencies() && getMaskThreshold() != 0 ?
@@ -425,6 +426,7 @@ public final class Fask_B implements GraphSearch {
 
     private void removeExtraEdges(Graph graph) {
         final int depth2 = this.depth == -1 ? 1000 : this.depth;
+
         boolean existsAnother = true;
 
         for (int d = 0; d < depth2; d++) {
@@ -441,6 +443,7 @@ public final class Fask_B implements GraphSearch {
                     Node tail = Edges.getDirectedEdgeTail(edge3);
 
                     if (!graph.isAdjacentTo(tail, head)) continue;
+                    if (graph.getEdges(tail, head).size() == 2) continue;
 
                     List<Node> c = getRelevantParents(graph, tail, head);
 
