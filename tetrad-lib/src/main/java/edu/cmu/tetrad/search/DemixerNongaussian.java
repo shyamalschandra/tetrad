@@ -1,10 +1,8 @@
 package edu.cmu.tetrad.search;
 
 import edu.cmu.tetrad.data.DataSet;
-import edu.cmu.tetrad.util.DataConvertUtils;
-import edu.cmu.tetrad.util.RandomUtil;
-import edu.cmu.tetrad.util.TetradMatrix;
-import edu.cmu.tetrad.util.TetradVector;
+import edu.cmu.tetrad.data.DataUtils;
+import edu.cmu.tetrad.util.*;
 import edu.pitt.dbmi.data.Delimiter;
 import edu.pitt.dbmi.data.reader.tabular.ContinuousTabularDataFileReader;
 
@@ -85,8 +83,8 @@ public class DemixerNongaussian {
         TetradMatrix _W = result.getW();
 
         for (int k = 0; k < numComponents; k++) {
-            W[k] = _W;
-            W[k] = whiten(_W, 1);
+//            W[k] = _W;
+            W[k] = whiten(_W, .5);
         }
 
         for (int k = 0; k < numComponents; k++) {
@@ -170,32 +168,20 @@ public class DemixerNongaussian {
      */
     private void adaptMixingMatrices() {
         for (int k = 0; k < numComponents; k++) {
-            TetradMatrix _tanhS = X.like(); // NxM
-
-            for (int n = 0; n < N; n++) {
-                for (int i = 0; i < numVars; i++) {
-                    _tanhS.set(n, i, Math.tanh(S[k].get(n, i)));
-                }
-            }
-
-            TetradMatrix skskt = S[k].transpose().times((S[k])); // Mxk * kxM = MxM
-            TetradMatrix tanhSk = _tanhS.transpose().times(S[k]); // Mxk * kxM = MxM
-            TetradMatrix kurtosisSquare = K[k].times(tanhSk);
-            TetradMatrix smketc = TetradMatrix.identity(numVars).minus(kurtosisSquare);
-            TetradMatrix minusSquare = smketc.minus(skskt);
-
+            TetradMatrix M = TetradMatrix.identity(numVars).minus(K[k].times(MatrixUtils.tanh(S[k]).transpose().times(S[k])))
+                    .minus(S[k].transpose().times((S[k])));
             TetradMatrix delta = new TetradMatrix(numVars, numVars);
 
             for (int n = 0; n < N; n++) {
                 double p = posteriorProbs.get(n, k);
-                delta = delta.plus(minusSquare.times(W[k]).scalarMult(p * learningRate / (N * numComponents)));
+                delta = delta.plus(M.times(W[k]).scalarMult(p * learningRate / (N * numComponents)));
             }
 
-            final double det = delta.det();
+//            final double det = delta.det();
 
-            if (abs(det) > 0) {
-                W[k] = W[k].plus(delta);
-            }
+//            if (abs(det) > 0) {
+            W[k] = W[k].plus(delta);
+//            }
         }
     }
 
@@ -208,26 +194,27 @@ public class DemixerNongaussian {
             for (int n = 0; n < N; n++) {
                 double prob = posteriorProbs.get(n, k);
 
-                double sum = 0;
-                double det = Math.log(Math.abs(_W.det()));
+//                double sum = 0;
+//                double det = Math.log(Math.abs(_W.det()));
 
                 for (int i = 0; i < numVars; i++) {
                     TetradMatrix bMatrix = _W.row(i);
-                    _bias = _bias.plus((bMatrix.scalarMult(Math.tanh(sourceVector.get(n, i)))).plus(bMatrix.scalarMult(sourceVector.get(n, i))));
+                    _bias = _bias.plus((bMatrix.scalarMult(exp(Math.tanh(sourceVector.get(n, i)))).plus(bMatrix.scalarMult(sourceVector.get(n, i)))));
 
-                    double l = -.5 * Math.log(2.0 * Math.PI) - (K[k].get(i, i) * log(cosh(S[k].get(n, i))))
-                            - (pow(S[k].get(n, i), 2.0) / 2.0);
-
-                    if (K[k].get(i, i) > 0) {
-                        l = l - Math.log(0.7413);
-                    }
-
-                    sum += l;
+//                    double l = -.5 * Math.log(2.0 * Math.PI) - (K[k].get(i, i) * log(cosh(S[k].get(n, i))))
+//                            - (pow(S[k].get(n, i), 2.0) / 2.0);
+//
+//                    if (K[k].get(i, i) > 0) {
+//                        l = l - Math.log(0.7413);
+//                    }
+//
+//                    sum += l;
                 }
 
-                double L = (sum - det) / N;
+//                double L = (sum - det) / N;
+                double L = likelihoods.get(n, k);
 
-                _bias = _bias.scalarMult(exp(L));
+                _bias = _bias.scalarMult(exp(L) * prob);
             }
 
             bias[k] = bias[k].plus(_bias);

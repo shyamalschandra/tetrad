@@ -1050,4 +1050,16 @@ public final class MatrixUtils {
             }
         };
     }
+
+    public static TetradMatrix tanh(TetradMatrix m) {
+        TetradMatrix tanh = m.like(); // NxM
+
+        for (int n = 0; n < m.rows(); n++) {
+            for (int i = 0; i < m.columns(); i++) {
+                tanh.set(n, i, Math.tanh(m.get(n, i)));
+            }
+        }
+
+        return tanh;
+    }
 }
