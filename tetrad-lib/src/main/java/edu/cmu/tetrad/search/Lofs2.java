@@ -93,14 +93,21 @@ public class Lofs2 {
         }
 
         this.pattern = pattern;
-        this.variables = dataSets.get(0).getVariables();
-        this.varnames = dataSets.get(0).getVariableNames();
+        this.variables = pattern.getNodes();
+        this.varnames = pattern.getNodeNames();
 
         List<DataSet> dataSets2 = new ArrayList<>();
 
+        List<Node> vars = new ArrayList<>();
+        final DataSet dataSet = dataSets.get(0);
+
+        for (Node node : pattern.getNodes()) {
+            vars.add(dataSet.getVariable(node.getName()));
+        }
+
         for (int i = 0; i < dataSets.size(); i++) {
-            DataSet dataSet = ColtDataSet.makeContinuousData(variables, dataSets.get(i).getDoubleData());
-            dataSets2.add(dataSet);
+            DataSet dataSet2 = dataSet.subsetColumns(vars);
+            dataSets2.add(dataSet2);
         }
 
         this.dataSets = dataSets2;
@@ -162,13 +169,13 @@ public class Lofs2 {
             return tanhGraph(graph);
         } else if (this.rule == Rule.Skew) {
             graph = GraphUtils.undirectedGraph(skeleton);
-            return skewGraph(graph, true);
+            return skewGraph(graph, false);
         } else if (this.rule == Rule.SkewE) {
             graph = GraphUtils.undirectedGraph(skeleton);
             return skewGraph(graph, true);
         } else if (this.rule == Rule.RSkew) {
             graph = GraphUtils.undirectedGraph(skeleton);
-            return robustSkewGraph(graph, true);
+            return robustSkewGraph(graph, false);
         } else if (this.rule == Rule.RSkewE) {
             graph = GraphUtils.undirectedGraph(skeleton);
             return robustSkewGraph(graph, true);

@@ -57,7 +57,12 @@ public class Skew implements Algorithm, TakesInitialGraph {
             dataSets.add(DataUtils.getContinuousDataSet(dataSet));
 
             Lofs2 lofs = new Lofs2(initialGraph, dataSets);
-            lofs.setRule(Lofs2.Rule.Skew);
+
+            if (parameters.getBoolean("empirical")) {
+                lofs.setRule(Lofs2.Rule.SkewE);
+            } else {
+                lofs.setRule(Lofs2.Rule.Skew);
+            }
 
             return lofs.orient();
         } else {
@@ -113,6 +118,8 @@ public class Skew implements Algorithm, TakesInitialGraph {
         if (algorithm != null && !algorithm.getParameters().isEmpty()) {
             parameters.addAll(algorithm.getParameters());
         }
+
+        parameters.add("empirical");
 
         // Resampling
         parameters.add("numberResampling");

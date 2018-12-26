@@ -57,7 +57,12 @@ public class RSkew implements Algorithm, TakesInitialGraph {
             dataSets.add(DataUtils.getContinuousDataSet(dataSet));
 
             Lofs2 lofs = new Lofs2(initialGraph, dataSets);
-            lofs.setRule(Lofs2.Rule.RSkew);
+
+            if (parameters.getBoolean("empirical")) {
+                lofs.setRule(Lofs2.Rule.RSkewE);
+            } else {
+                lofs.setRule(Lofs2.Rule.RSkew);
+            }
 
             return lofs.orient();
         } else {
@@ -113,6 +118,8 @@ public class RSkew implements Algorithm, TakesInitialGraph {
         if (algorithm != null && !algorithm.getParameters().isEmpty()) {
             parameters.addAll(algorithm.getParameters());
         }
+
+        parameters.add("empirical");
 
         // Resampling
         parameters.add("numberResampling");

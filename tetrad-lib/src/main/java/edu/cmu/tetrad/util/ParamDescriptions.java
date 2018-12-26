@@ -745,6 +745,8 @@ public class ParamDescriptions {
         map.put("stableFASFDR", new ParamDescription(
                 "Yes if the 'stable' FAS should be done with the StableFDR adjustment", false));
 
+        map.put("empirical", new ParamDescription(
+                "Yes if skew corrections should be done", true));
     }
 
     public static ParamDescriptions getInstance() {
