@@ -56,7 +56,7 @@ public class ToyFaskBExample {
         testToyExample(true);
     }
 
-    public void testToyExample(boolean positiveSkews) {
+    public void testToyExample(boolean positiveCoefs) {
         RandomGraph graph = new RandomForward();
 
         Simulations simulations = new Simulations();
@@ -86,8 +86,8 @@ public class ToyFaskBExample {
 //        parameters.add("varLow");
 //        parameters.add("varHigh");
         parameters.set("verbose", true);
-        parameters.set("includePositiveCoefs", true);
-        parameters.set("includeNegativeCoefs", true);
+        parameters.set("includePositiveCoefs", positiveCoefs);
+        parameters.set("includeNegativeCoefs", !positiveCoefs);
         parameters.set("errorsNormal", false);
         parameters.set("betaLeftValue", 6);
         parameters.set("betaRightValue", 10);
@@ -98,8 +98,8 @@ public class ToyFaskBExample {
         parameters.set("sampleSize", 1000);
         parameters.set("intervalBetweenShocks", 20);
         parameters.set("intervalBetweenRecordings", 20);
-        parameters.set("selfLoopCoef", 0);
-        parameters.set("fisherEpsilon", 0.001);
+        parameters.set("selfLoopCoef", 0.0);
+        parameters.set("fisherEpsilon", 0.0001);
 //        parameters.add("randomizeColumns");
 //        parameters.add("measurementVariance");
 //        parameters.add("saveLatentVars");
@@ -112,6 +112,7 @@ public class ToyFaskBExample {
         parameters.set("useSkewAdjacencies", true);
         parameters.set("useMask", true);
         parameters.set("maskThreshold", 0.3);
+        parameters.set("empirical", true);
 
         // Bootstrapping
 //        parameters.add("numberResampling");
@@ -122,10 +123,10 @@ public class ToyFaskBExample {
 
         String type;
 
-        if (positiveSkews) {
-            type = "_positive_skews";
+        if (positiveCoefs) {
+            type = "_positive_coefs";
         } else {
-            type = "_negative_skews";
+            type = "_negative_coefs";
         }
 
         new Comparison().compareFromSimulations("/Users/user/tetrad/aatoyexample" + type, simulations, algorithms, statistics, parameters);

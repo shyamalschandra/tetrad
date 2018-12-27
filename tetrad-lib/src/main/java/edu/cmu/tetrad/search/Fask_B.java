@@ -84,6 +84,9 @@ public final class Fask_B implements GraphSearch {
     // Cutoff for orienting 2-cycles, calculated from twoCycleAlpha,
     private double twoCycleCutoff;
 
+    // Adjust calculation for negative skews.
+    private boolean empirical = true;
+
     // Regression procedure (linear) for conditioning.
     private RegressionDataset regressionDataset;
 
@@ -634,7 +637,18 @@ public final class Fask_B implements GraphSearch {
         double[] y = colData[variables.indexOf(Y)];
 
         double[] ry = residuals(y, new double[][]{x});
-        double lr = E(x, ry, x) - E(x, ry, y);
+
+        double lr;
+
+        if (correlation(x, y) > 0) {
+            lr = EPos(x, ry, x) - EPos(x, ry, y);
+        } else {
+            lr = ENeg(x, ry, x) - EPos(x, ry, y);
+        }
+
+        if (isEmpirical()) {
+            lr *= signum(StatUtils.skewness(x) * StatUtils.skewness(y));
+        }
 
         if (isVerbose()) {
             TetradLogger.getInstance().forceLogMessage(
@@ -642,11 +656,23 @@ public final class Fask_B implements GraphSearch {
                             + " X = " + X.getName()
                             + " Y = " + Y.getName()
                             + " LR = " + lr
-                            + " sey = " + StatUtils.skewness(ry));
+                            + " corr = " + correlation(x, y)
+                            + " sx = " + StatUtils.skewness(x)
+                            + " sry = " + StatUtils.skewness(ry));
         }
 
         return lr;
     }
+
+//    private double[] times(double[] x, double r) {
+//        x = Arrays.copyOf(x, x.length);
+//
+//        for (int i = 0; i < x.length; i++) {
+//            x[i] *= r;
+//        }
+//
+//        return x;
+//    }
 
 //    private double[] times(double[] data, double r) {
 //        double[] data2 = new double[data.length];
@@ -670,7 +696,7 @@ public final class Fask_B implements GraphSearch {
         return y.minus(yHat).getColumn(0).toArray();
     }
 
-    private static double E(double[] x, double[] y, double[] condition) {
+    private static double EPos(double[] x, double[] y, double[] condition) {
         double exy = 0.0;
 
         int n = 0;
@@ -685,20 +711,20 @@ public final class Fask_B implements GraphSearch {
         return exy / n;
     }
 
-//    private double E(double[] x, double[] y, double[] condition, double dir) {
-//        double exy = 0.0;
-//
-//        int n = 0;
-//
-//        for (int k = 0; k < x.length; k++) {
-//            if (dir * condition[k] > 0) {
-//                exy += x[k] * y[k];
-//                n++;
-//            }
-//        }
-//
-//        return exy / n;
-//    }
+    private static double ENeg(double[] x, double[] y, double[] condition) {
+        double exy = 0.0;
+
+        int n = 0;
+
+        for (int k = 0; k < x.length; k++) {
+            if (condition[k] < 0) {
+                exy += x[k] * y[k];
+                n++;
+            }
+        }
+
+        return exy / n;
+    }
 
 //    private static int N(double[] condition) {
 //        int n = 0;
@@ -857,6 +883,14 @@ public final class Fask_B implements GraphSearch {
         }
 
         return rows;
+    }
+
+    public boolean isEmpirical() {
+        return empirical;
+    }
+
+    public void setEmpirical(boolean empirical) {
+        this.empirical = empirical;
     }
 
     private class E {
