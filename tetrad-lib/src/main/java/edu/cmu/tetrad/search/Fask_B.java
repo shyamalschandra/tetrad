@@ -85,7 +85,7 @@ public final class Fask_B implements GraphSearch {
     private double twoCycleCutoff;
 
     // Cutoff for judging direction for negative coefficients.
-    private double delta = -0.2;
+    private double delta = -0.7;
 
     // Regression procedure (linear) for conditioning.
     private RegressionDataset regressionDataset;
