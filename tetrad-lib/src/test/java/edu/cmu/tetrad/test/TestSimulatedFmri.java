@@ -56,11 +56,11 @@ public class TestSimulatedFmri {
 
     @Test
     public void allTests() {
+        new ToyFaskBExample().toy_positiveSkews();
+        new ToyFaskBExample().toy_negativeSkews();
         new TestSimulatedFmri().trainingData();
         new TestSimulatedFmri().testingData();
         new TestSimulatedFmri().smithSim();
-        new ToyFaskBExample().toy_positiveSkews();
-        new ToyFaskBExample().toy_negativeSkews();
         new TestSachsJoe().task();
     }
 
@@ -86,13 +86,11 @@ public class TestSimulatedFmri {
         parameters.set("useSkewAdjacencies", true);
         parameters.set("useMask", true);
         parameters.set("maskThreshold", .4);
-        parameters.set("empirical", false);
+        parameters.set("faskDelta", -0.7);
 
         parameters.set("penaltyDiscount", 2);
 
         // for FASK.
-        parameters.set("faskDelta", -.2);
-
         parameters.set("numRuns", 5);
         parameters.set("randomSelectionSize", 10);
 
@@ -258,7 +256,7 @@ public class TestSimulatedFmri {
         parameters.set("extraEdgeThreshold", 10);
         parameters.set("maskThreshold", 10);
         parameters.set("skewEdgeAlpha", 0.05);
-        parameters.set("empirical", false);
+        parameters.set("faskDelta", -0.7);
 
         parameters.set("numRuns", 5);
         parameters.set("randomSelectionSize", 5);

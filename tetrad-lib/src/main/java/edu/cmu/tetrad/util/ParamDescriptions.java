@@ -747,6 +747,11 @@ public class ParamDescriptions {
 
         map.put("empirical", new ParamDescription(
                 "Yes if skew corrections should be done (\"empirical\")", true));
+
+        map.put("faskbDelta", new ParamDescription(
+                "Threshold for judging negative coefficient edges as X->Y (range (-1, 0))",
+                -0.7, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY));
+
     }
 
     public static ParamDescriptions getInstance() {

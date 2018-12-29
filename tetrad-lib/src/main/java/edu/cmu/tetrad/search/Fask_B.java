@@ -84,8 +84,8 @@ public final class Fask_B implements GraphSearch {
     // Cutoff for orienting 2-cycles, calculated from twoCycleAlpha,
     private double twoCycleCutoff;
 
-    // Adjust calculation for negative skews.
-    private boolean empirical = true;
+    // Cutoff for judging direction for negative coefficients.
+    private double delta = -0.2;
 
     // Regression procedure (linear) for conditioning.
     private RegressionDataset regressionDataset;
@@ -406,23 +406,23 @@ public final class Fask_B implements GraphSearch {
                 } else if (knowledgeOrients(Y, X)) {
                     graph.addDirectedEdge(Y, X);
                 }
-//                else {
-//                    if (leftRight(X, Y) < 0 && leftRight(Y, X) < 0) {
-//                        graph.addUndirectedEdge(X, Y);
-//                    } else if (leftRight(X, Y) > 0 && leftRight(Y, X) > 0) {
-//                        //
-//                    } else if (leftRight(X, Y) > 0) {
-//                        graph.addDirectedEdge(X, Y);
-//                    } else if (leftRight(Y, X) > 0) {
-//                        graph.addDirectedEdge(Y, X);
-//                    }
-//                }
-
-                else if (leftRight(X, Y) > leftRight(Y, X)) {
-                    graph.addDirectedEdge(X, Y);
-                } else {
-                    graph.addDirectedEdge(Y, X);
+                else {
+                    if (leftRight(X, Y) < 0 && leftRight(Y, X) < 0) {
+                        graph.addUndirectedEdge(X, Y);
+                    } else if (leftRight(X, Y) > 0 && leftRight(Y, X) > 0) {
+                        //
+                    } else if (leftRight(X, Y) > 0) {
+                        graph.addDirectedEdge(X, Y);
+                    } else if (leftRight(Y, X) > 0) {
+                        graph.addDirectedEdge(Y, X);
+                    }
                 }
+
+//                else if (leftRight(X, Y) > leftRight(Y, X)) {
+//                    graph.addDirectedEdge(X, Y);
+//                } else {
+//                    graph.addDirectedEdge(Y, X);
+//                }
             }
         }
     }
@@ -638,17 +638,10 @@ public final class Fask_B implements GraphSearch {
 
         double[] ry = residuals(y, new double[][]{x});
 
-        double lr;
+        double lr = E(x, ry, x) - E(x, ry, y);
 
-        if (correlation(x, y) > 0) {
-            lr = EPos(x, ry, x) - EPos(x, ry, y);
-        } else {
-            lr = ENeg(x, ry, x) - EPos(x, ry, y);
-        }
-
-        if (isEmpirical()) {
-            lr *= signum(StatUtils.skewness(x) * StatUtils.skewness(y));
-        }
+        final double q = covariance(x, y) * signum(StatUtils.skewness(x) * StatUtils.skewness(y));
+        if (q < delta) lr *= -1;
 
         if (isVerbose()) {
             TetradLogger.getInstance().forceLogMessage(
@@ -656,9 +649,11 @@ public final class Fask_B implements GraphSearch {
                             + " X = " + X.getName()
                             + " Y = " + Y.getName()
                             + " LR = " + lr
+                            + " q = " + q
                             + " corr = " + correlation(x, y)
                             + " sx = " + StatUtils.skewness(x)
                             + " sry = " + StatUtils.skewness(ry));
+
         }
 
         return lr;
@@ -696,7 +691,7 @@ public final class Fask_B implements GraphSearch {
         return y.minus(yHat).getColumn(0).toArray();
     }
 
-    private static double EPos(double[] x, double[] y, double[] condition) {
+    private static double E(double[] x, double[] y, double[] condition) {
         double exy = 0.0;
 
         int n = 0;
@@ -885,12 +880,12 @@ public final class Fask_B implements GraphSearch {
         return rows;
     }
 
-    public boolean isEmpirical() {
-        return empirical;
+    public double getDelta() {
+        return delta;
     }
 
-    public void setEmpirical(boolean empirical) {
-        this.empirical = empirical;
+    public void setDelta(double delta) {
+        this.delta = delta;
     }
 
     private class E {

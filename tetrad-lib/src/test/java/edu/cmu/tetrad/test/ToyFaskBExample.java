@@ -89,8 +89,8 @@ public class ToyFaskBExample {
         parameters.set("includePositiveCoefs", positiveCoefs);
         parameters.set("includeNegativeCoefs", !positiveCoefs);
         parameters.set("errorsNormal", false);
-        parameters.set("betaLeftValue", 6);
-        parameters.set("betaRightValue", 10);
+        parameters.set("betaLeftValue", 3);
+        parameters.set("betaRightValue", 6);
         parameters.set("numRuns", 10);
 //        parameters.add("percentDiscrete");
 //        parameters.add("numCategories");
@@ -112,7 +112,7 @@ public class ToyFaskBExample {
         parameters.set("useSkewAdjacencies", true);
         parameters.set("useMask", true);
         parameters.set("maskThreshold", 0.3);
-        parameters.set("empirical", true);
+        parameters.set("faskDelta", -0.7);
 
         // Bootstrapping
 //        parameters.add("numberResampling");
