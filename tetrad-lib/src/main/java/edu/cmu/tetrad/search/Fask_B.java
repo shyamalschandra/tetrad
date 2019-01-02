@@ -141,6 +141,25 @@ public final class Fask_B implements GraphSearch {
 
         setCutoff();
 
+        TetradLogger.getInstance().forceLogMessage("\nSmoothly skewed:");
+
+        for (Node node : dataSet.getVariables()) {
+            if (smoothlySkewed(node)) {
+                TetradLogger.getInstance().forceLogMessage(node.getName());
+            }
+        }
+
+        TetradLogger.getInstance().forceLogMessage("\nNot smoothly skewed:");
+
+        for (Node node : dataSet.getVariables()) {
+            if (!smoothlySkewed(node)) {
+                TetradLogger.getInstance().forceLogMessage(node.getName());
+            }
+        }
+
+        TetradLogger.getInstance().forceLogMessage("");
+
+
         Graph fasGraph = new EdgeListGraph(dataSet.getVariables());
 
         if (isUseFasAdjacencies()) {
@@ -405,10 +424,11 @@ public final class Fask_B implements GraphSearch {
                     graph.addDirectedEdge(X, Y);
                 } else if (knowledgeOrients(Y, X)) {
                     graph.addDirectedEdge(Y, X);
-                } else if (!(smoothlySkewed(X) && smoothlySkewed(Y))) {
-                    graph.addUndirectedEdge(X, Y);
-                    graph.getEdge(X, Y).setLineColor(Color.MAGENTA);
                 }
+//                else if (!(smoothlySkewed(X) && smoothlySkewed(Y))) {
+//                    graph.addUndirectedEdge(X, Y);
+//                    graph.getEdge(X, Y).setLineColor(Color.MAGENTA);
+//                }
 //                else {
 //                    if (leftRight(X, Y) < 0 && leftRight(Y, X) < 0) {
 //                        graph.addNondirectedEdge(X, Y);
@@ -423,10 +443,18 @@ public final class Fask_B implements GraphSearch {
 //                }
 //
                 else {
-                    if (leftRight(X, Y) > leftRight(Y, X)) {
-                        graph.addDirectedEdge(X, Y);
+                    final double lr1 = leftRight(X, Y);
+                    final double lr2 = leftRight(Y, X);
+
+                    if (lr1 == 0 || lr2 == 0) {
+                        graph.addUndirectedEdge(X, Y);
+                        graph.getEdge(X, Y).setLineColor(Color.MAGENTA);
                     } else {
-                        graph.addDirectedEdge(Y, X);
+                        if (lr1 > lr2) {
+                            graph.addDirectedEdge(X, Y);
+                        } else {
+                            graph.addDirectedEdge(Y, X);
+                        }
                     }
                 }
 
@@ -445,7 +473,10 @@ public final class Fask_B implements GraphSearch {
 
     private boolean smoothlySkewed(Node X) {
         double[] x = colData[variables.indexOf(X)];
+        return smoothlySkewed(x);
+    }
 
+    private boolean smoothlySkewed(double[] x) {
         List<Double> low = new ArrayList<>();
         List<Double> high = new ArrayList<>();
 
@@ -659,6 +690,11 @@ public final class Fask_B implements GraphSearch {
         double[] y = (colData[variables.indexOf(Y)]);
 
         double[] ry = residuals(y, new double[][]{x});
+
+        if (!smoothlySkewed(ry)) {
+            TetradLogger.getInstance().forceLogMessage("ry not smoothly skewed for " + Y + " | " + X);
+        }
+
         double a = covariance(x, y) / variance(x);
         double lr = E(a, x, ry, y, -1) - E(a, x, ry, y, +1);
 
@@ -673,6 +709,11 @@ public final class Fask_B implements GraphSearch {
                             + " sry = " + StatUtils.skewness(ry));
 
         }
+
+//        if (!smoothlySkewed(ry)) {
+//            TetradLogger.getInstance().forceLogMessage("ry not smoothly skewed for " + Y + " | " + X);
+//            return lr * -1;
+//        }
 
         return lr;
     }
@@ -701,21 +742,6 @@ public final class Fask_B implements GraphSearch {
         if (yHat.columns() == 0) yHat = y.copy();
 
         return y.minus(yHat).getColumn(0).toArray();
-    }
-
-    private static double E(double[] x, double[] y, double[] condition) {
-        double exy = 0.0;
-
-        int n = 0;
-
-        for (int k = 0; k < x.length; k++) {
-            if (condition[k] > 0) {
-                exy += x[k] * y[k];
-                n++;
-            }
-        }
-
-        return exy / n;
     }
 
     private static double E(double a, double[] x, double[] ry, double[] y, double dir) {
