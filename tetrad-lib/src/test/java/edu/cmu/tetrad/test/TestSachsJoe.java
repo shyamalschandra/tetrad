@@ -54,7 +54,6 @@ public class TestSachsJoe {
         parameters.set("structurePrior", 1);
         parameters.set("discretize", false);
         parameters.set("penaltyDiscount", 1);
-        parameters.set("faskDelta", -1);
         parameters.set("alpha", 0.1);
         parameters.set("depth", 3);
         parameters.set("maxDistinctValuesDiscrete", 2);
@@ -87,7 +86,7 @@ public class TestSachsJoe {
         parameters.set("useSkewAdjacencies", true);
         parameters.set("useMask", true);
         parameters.set("maskThreshold", 0.3);
-        parameters.set("faskDelta", -0.7);
+        parameters.set("faskbDelta", -0.8);
 
         parameters.set("numRuns", 1);
 

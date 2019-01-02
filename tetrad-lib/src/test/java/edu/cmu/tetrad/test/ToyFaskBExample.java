@@ -112,7 +112,7 @@ public class ToyFaskBExample {
         parameters.set("useSkewAdjacencies", true);
         parameters.set("useMask", true);
         parameters.set("maskThreshold", 0.3);
-        parameters.set("faskDelta", -0.7);
+        parameters.set("faskbDelta", -0.2);
 
         // Bootstrapping
 //        parameters.add("numberResampling");
