@@ -294,6 +294,13 @@ public class IndTestProbabilistic implements IndependenceTest {
     public void setVerbose(boolean verbose) {
         this.verbose = verbose;
     }
+
+	/**
+	 * @param randomizedGeneratingConstraints
+	 */
+	public void setThreshold(boolean randomizedGeneratingConstraints) {
+		this.threshold = randomizedGeneratingConstraints;
+	}
 }
 
 
