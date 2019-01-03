@@ -443,18 +443,10 @@ public final class Fask_B implements GraphSearch {
 //                }
 //
                 else {
-                    final double lr1 = leftRight(X, Y);
-                    final double lr2 = leftRight(Y, X);
-
-                    if (lr1 == 0 || lr2 == 0) {
-                        graph.addUndirectedEdge(X, Y);
-                        graph.getEdge(X, Y).setLineColor(Color.MAGENTA);
+                    if (leftRight(X, Y) > leftRight(Y, X)) {
+                        graph.addDirectedEdge(X, Y);
                     } else {
-                        if (lr1 > lr2) {
-                            graph.addDirectedEdge(X, Y);
-                        } else {
-                            graph.addDirectedEdge(Y, X);
-                        }
+                        graph.addDirectedEdge(Y, X);
                     }
                 }
 
