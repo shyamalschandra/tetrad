@@ -743,7 +743,7 @@ public final class Fask_B implements GraphSearch {
         for (int k = 0; k < x.length; k++) {
             final double _x = x[k];
             final double _ry = ry[k];
-            final double _y = -abs(a) * _x + _ry;
+            final double _y = abs(a) * _x + _ry;
 
             if (_x * dir < 0 && _y * dir > 0) {
                 exy += _x * _ry;

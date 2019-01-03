@@ -88,7 +88,7 @@ public class TestSimulatedFmri {
         parameters.set("maskThreshold", .4);
         parameters.set("faskbDelta", -0.8);
 
-        parameters.set("penaltyDiscount", 2);
+        parameters.set("penaltyDiscount", 3);
 
         // for FASK.
         parameters.set("numRuns", 5);
