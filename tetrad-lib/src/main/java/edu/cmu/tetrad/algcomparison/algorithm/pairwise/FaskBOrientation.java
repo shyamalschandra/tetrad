@@ -86,7 +86,6 @@ public class FaskBOrientation implements Algorithm, TakesInitialGraph, HasKnowle
                     = new edu.cmu.tetrad.search.Fask_B((DataSet) dataSet, new IndTestScore(score));
             search.setInitialGraph(initialGraph);
             search.setTwoCycleAlpha(parameters.getDouble("twoCycleAlpha"));
-            search.setDelta(parameters.getDouble("faskbDelta"));
 
             search.setVerbose(parameters.getBoolean("verbose"));
             search.setKnowledge(knowledge);
@@ -147,7 +146,6 @@ public class FaskBOrientation implements Algorithm, TakesInitialGraph, HasKnowle
         }
 
         parameters.add("twoCycleAlpha");
-        parameters.add("faskbDelta");
 
         parameters.add("verbose");
 

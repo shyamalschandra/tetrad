@@ -84,9 +84,6 @@ public final class Fask_B implements GraphSearch {
     // Cutoff for orienting 2-cycles, calculated from twoCycleAlpha,
     private double twoCycleCutoff;
 
-    // Cutoff for judging direction for negative coefficients.
-    private double delta = -0.7;
-
     // Regression procedure (linear) for conditioning.
     private RegressionDataset regressionDataset;
 
@@ -428,26 +425,26 @@ public final class Fask_B implements GraphSearch {
                     graph.addUndirectedEdge(X, Y);
                     graph.getEdge(X, Y).setLineColor(Color.MAGENTA);
                 }
-//                else {
-//                    if (leftRight(X, Y) < 0 && leftRight(Y, X) < 0) {
-//                        graph.addNondirectedEdge(X, Y);
-//                    } else if (leftRight(X, Y) > 0 && leftRight(Y, X) > 0) {
-//                        graph.addNondirectedEdge(X, Y);
-//                        // We're assuming no selection bias.
-//                    } else if (leftRight(Y, X) < 0) {
-//                        graph.addDirectedEdge(X, Y);
-//                    } else if (leftRight(X, Y) < 0) {
-//                        graph.addDirectedEdge(Y, X);
-//                    }
-//                }
-//
                 else {
-                    if (leftRight(X, Y) > leftRight(Y, X)) {
+                    if (leftRight(X, Y) < 0 && leftRight(Y, X) < 0) {
+                        graph.addNondirectedEdge(X, Y);
+                    } else if (leftRight(X, Y) > 0 && leftRight(Y, X) > 0) {
+                        graph.addNondirectedEdge(X, Y);
+                        // We're assuming no selection bias.
+                    } else if (leftRight(Y, X) < 0) {
                         graph.addDirectedEdge(X, Y);
-                    } else {
+                    } else if (leftRight(X, Y) < 0) {
                         graph.addDirectedEdge(Y, X);
                     }
                 }
+//
+//                else {
+//                    if (leftRight(X, Y) > leftRight(Y, X)) {
+//                        graph.addDirectedEdge(X, Y);
+//                    } else {
+//                        graph.addDirectedEdge(Y, X);
+//                    }
+//                }
 
 //                else {
 //                    if (leftRight(X, Y) > 0 && leftRight(Y, X) > 0) {
@@ -899,14 +896,6 @@ public final class Fask_B implements GraphSearch {
         }
 
         return rows;
-    }
-
-    public double getDelta() {
-        return delta;
-    }
-
-    public void setDelta(double delta) {
-        this.delta = delta;
     }
 
     private class E {
