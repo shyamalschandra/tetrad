@@ -425,26 +425,26 @@ public final class Fask_B implements GraphSearch {
                     graph.addUndirectedEdge(X, Y);
                     graph.getEdge(X, Y).setLineColor(Color.MAGENTA);
                 }
-                else {
-                    if (leftRight(X, Y) < 0 && leftRight(Y, X) < 0) {
-                        graph.addNondirectedEdge(X, Y);
-                    } else if (leftRight(X, Y) > 0 && leftRight(Y, X) > 0) {
-                        graph.addNondirectedEdge(X, Y);
-                        // We're assuming no selection bias.
-                    } else if (leftRight(Y, X) < 0) {
-                        graph.addDirectedEdge(X, Y);
-                    } else if (leftRight(X, Y) < 0) {
-                        graph.addDirectedEdge(Y, X);
-                    }
-                }
-//
 //                else {
-//                    if (leftRight(X, Y) > leftRight(Y, X)) {
+//                    if (leftRight(X, Y) < 0 && leftRight(Y, X) < 0) {
+//                        graph.addNondirectedEdge(X, Y);
+//                    } else if (leftRight(X, Y) > 0 && leftRight(Y, X) > 0) {
+//                        graph.addNondirectedEdge(X, Y);
+//                        // We're assuming no selection bias.
+//                    } else if (leftRight(Y, X) < 0) {
 //                        graph.addDirectedEdge(X, Y);
-//                    } else {
+//                    } else if (leftRight(X, Y) < 0) {
 //                        graph.addDirectedEdge(Y, X);
 //                    }
 //                }
+//
+                else {
+                    if (leftRight(X, Y) > leftRight(Y, X)) {
+                        graph.addDirectedEdge(X, Y);
+                    } else {
+                        graph.addDirectedEdge(Y, X);
+                    }
+                }
 
 //                else {
 //                    if (leftRight(X, Y) > 0 && leftRight(Y, X) > 0) {
