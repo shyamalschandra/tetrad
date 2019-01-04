@@ -569,7 +569,7 @@ public final class Fask_B implements GraphSearch {
         parents1.addAll(graph.getParents(tail));
         parents1.remove(head);
         parents1.remove(tail);
-        List<Node> c = new ArrayList<>();
+        Set<Node> c = new HashSet<>();
 
         for (Node p1 : new ArrayList<>(parents1)) {
 
@@ -601,20 +601,47 @@ public final class Fask_B implements GraphSearch {
                 continue;
             }
 
-            if (!directedPathsFromTo(graph, tail, p1).isEmpty() && !knowledge.isForbidden(p1.getName(), head.getName())) {
-                if (!c.contains(p1)) {
-                    c.add(p1);
-                }
+//            if (existsPath(graph, tail, p1, head)) {
+//                c.add(p1);
+//            }
+//
+//            if (existsPath(graph, head, p1, tail)) {
+//                c.add(p1);
+//            }
+
+            // indirect path
+            if (existsPath(graph, tail, p1, head) && existsPath(graph, p1, head, tail)) {
+                c.add(p1);
             }
 
-            if (!directedPathsFromTo(graph, head, p1).isEmpty() && !knowledge.isForbidden(p1.getName(), tail.getName())) {
-                if (!c.contains(p1)) {
-                    c.add(p1);
-                }
+            // cycle back to tail
+            if (existsPath(graph, head, p1, head) && existsPath(graph, p1, tail, tail)) {
+                c.add(p1);
+            }
+     
+            // head
+            if (existsPath(graph, p1, tail, head) && existsPath(graph, p1, head, tail)) {
+                c.add(p1);
             }
         }
 
-        return c;
+        return new ArrayList<>(c);
+    }
+
+    private boolean existsPath(Graph graph, Node X, Node Y, Node Z) {
+        final List<List<Node>> paths = directedPathsFromTo(graph, X, Y);
+        boolean found = false;
+
+        for (List<Node> path : paths) {
+            if (path.contains(Z)) continue;
+            if (path.isEmpty()) continue;
+            ;
+            found = true;
+            break;
+
+        }
+
+        return found && !knowledge.isForbidden(X.getName(), Y.getName());
     }
 
     private double skewness(Node X) {
