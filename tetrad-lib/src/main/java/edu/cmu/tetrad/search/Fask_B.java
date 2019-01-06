@@ -615,9 +615,10 @@ public final class Fask_B implements GraphSearch {
             }
 
             // cycle back to tail
-            if (existsPath(graph, head, p1, head) && existsPath(graph, p1, tail, tail)) {
+            if (existsPath(graph, head, p1, tail) && existsPath(graph, p1, tail, head)) {
                 c.add(p1);
             }
+
 
             // head
             if (existsPath(graph, p1, tail, head) && existsPath(graph, p1, head, tail)) {
@@ -669,7 +670,7 @@ public final class Fask_B implements GraphSearch {
 
             double p = new TDistribution(df).cumulativeProbability(t);
             b1 = p < skewEdgeAlpha;
-        } catch (Exception e) { 
+        } catch (Exception e) {
             //
         }
 
