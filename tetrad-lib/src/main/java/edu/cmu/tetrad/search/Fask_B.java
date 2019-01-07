@@ -21,10 +21,7 @@
 
 package edu.cmu.tetrad.search;
 
-import edu.cmu.tetrad.data.DataSet;
-import edu.cmu.tetrad.data.DataUtils;
-import edu.cmu.tetrad.data.IKnowledge;
-import edu.cmu.tetrad.data.Knowledge2;
+import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.regression.RegressionDataset;
 import edu.cmu.tetrad.util.*;
@@ -104,6 +101,10 @@ public final class Fask_B implements GraphSearch {
      * @param dataSet These datasets must all have the same variables, in the same order.
      */
     public Fask_B(DataSet dataSet, IndependenceTest test) {
+        final SemBicScore score = new SemBicScore(new CovarianceMatrixOnTheFly(dataSet));
+        score.setPenaltyDiscount(1);
+        test = new IndTestScore(score);
+
         this.dataSet = dataSet;
         this.test = test;
 
@@ -525,7 +526,7 @@ public final class Fask_B implements GraphSearch {
 
         boolean existsAnother = true;
 
-        for (int d = 0; d < depth2; d++) {
+        for (int d = 1; d < depth2; d++) {
             if (!existsAnother) break;
             existsAnother = false;
 

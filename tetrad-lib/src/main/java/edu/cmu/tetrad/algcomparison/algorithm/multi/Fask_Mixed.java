@@ -25,7 +25,7 @@ import java.util.List;
         command = "fask_mixed",
         algoType = AlgType.forbid_latent_common_causes
 )
-@Experimental
+//@Experimental
 public class Fask_Mixed implements Algorithm, HasKnowledge, TakesIndependenceWrapper {
     static final long serialVersionUID = 23L;
     private IndependenceWrapper test;
