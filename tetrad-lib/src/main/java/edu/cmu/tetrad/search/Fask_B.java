@@ -170,6 +170,8 @@ public final class Fask_B implements GraphSearch {
                     Node X = edge.getNode1();
                     Node Y = edge.getNode2();
 
+                    if (edgeForbiddenByKnowledge(X, Y)) continue;
+
                     if (!g1.isAdjacentTo(X, Y)) g1.addBidirectedEdge(X, Y);
                 }
 
@@ -248,7 +250,9 @@ public final class Fask_B implements GraphSearch {
                 Node X = variables.get(i);
                 Node Y = variables.get(j);
 
-                if (graph.isAdjacentTo(X, Y) && !edgeForbiddenByKnowledge(X, Y)
+                if (edgeForbiddenByKnowledge(X, Y)) continue;
+
+                if (graph.isAdjacentTo(X, Y)
                         && !knowledgeOrients(X, Y) && !knowledgeOrients(Y, X)
                         && twocycle(X, Y, graph)) {
                     graph.removeEdges(X, Y);
@@ -265,6 +269,8 @@ public final class Fask_B implements GraphSearch {
                 Node X = variables.get(i);
                 Node Y = variables.get(j);
 
+                if (edgeForbiddenByKnowledge(X, Y)) continue;
+
                 final double[] x = colData[i];
                 final double[] y = colData[j];
 
@@ -273,7 +279,7 @@ public final class Fask_B implements GraphSearch {
 
                 if (!graph.isAdjacentTo(X, Y) && graph2.isAdjacentTo(X, Y)) {
                     if (Edges.isBidirectedEdge(graph2.getEdge(X, Y))) continue;
-//                    if (graph.getEdges(X, Y).size() == 2)) continue;
+                    if (graph.getEdges(X, Y).size() == 2) continue;
 
                     if ((isUseFasAdjacencies() && fasGraph.isAdjacentTo(X, Y))
                             || (isUseSkewAdjacencies() && getMaskThreshold() != 0 ?
@@ -619,7 +625,6 @@ public final class Fask_B implements GraphSearch {
                 c.add(p1);
             }
 
-
             // head
             if (existsPath(graph, p1, tail, head) && existsPath(graph, p1, head, tail)) {
                 c.add(p1);
@@ -662,7 +667,7 @@ public final class Fask_B implements GraphSearch {
             int nx = hx.getRows().size();
             int ny = hy.getRows().size();
 
-            // Unequal variances, unequal sample sizes, T test, 2-sided
+            // Welch's Test
             double exyy = variance(dy) / ((double) ny);
             double exyx = variance(dx) / ((double) nx);
             double t = (mean(dy) - mean(dx)) / sqrt(exyy + exyx);
@@ -684,7 +689,7 @@ public final class Fask_B implements GraphSearch {
             int nx = hx.getRows().size();
             int ny = hy.getRows().size();
 
-            // Unequal variances, unequal sample sizes, T test, 2-sided
+            // Welch's Test
             double exyy = variance(dy) / ((double) ny);
             double exyx = variance(dx) / ((double) nx);
             double t = (mean(dx) - mean(dy)) / sqrt(exyy + exyx);
