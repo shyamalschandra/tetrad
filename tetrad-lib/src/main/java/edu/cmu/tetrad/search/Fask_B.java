@@ -238,6 +238,26 @@ public final class Fask_B implements GraphSearch {
             }
         }
 
+//        List<Node> tier1 = new ArrayList<>();
+//
+//        for (String var : knowledge.getTier(0)) {
+//            tier1.add(dataSet.getVariable(var));
+//        }
+
+//        for (Edge edge : graph.getEdges()) {
+//            if (tier1.contains(edge.getNode1()) || tier1.contains(edge.getNode2())) {
+//                graph.removeEdge(edge);
+//            }
+//        }
+
+//        System.out.println(dataSet.getVariableNames());
+//
+//        graph.addDirectedEdge(dataSet.getVariable("g0076"), dataSet.getVariable("pkc"));
+//        graph.addDirectedEdge(dataSet.getVariable("pma"), dataSet.getVariable("pkc"));
+//        graph.addDirectedEdge(dataSet.getVariable("psitect"), dataSet.getVariable("pip2"));
+//        graph.addDirectedEdge(dataSet.getVariable("u0126"), dataSet.getVariable("mek"));
+//        graph.addDirectedEdge(dataSet.getVariable("aktinhib"), dataSet.getVariable("akt"));
+
         System.out.println(graph);
 
         Graph graph2 = new EdgeListGraph(graph);
