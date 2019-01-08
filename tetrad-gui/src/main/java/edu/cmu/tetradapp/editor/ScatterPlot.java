@@ -267,15 +267,6 @@ public class ScatterPlot {
     }
 
     /**
-     * For a continuous target, returns the number of values histogrammed. This may be
-     * less than the sample size of the data set because of conditioning.
-     */
-    public int getN(String target) {
-        List<Double> conditionedDataContinuous = getConditionedDataContinuous(target);
-        return conditionedDataContinuous.size();
-    }
-
-    /**
      * A convenience method to return the data for a particular named continuous
      * variable.
      *

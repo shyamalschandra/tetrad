@@ -448,10 +448,11 @@ public final class Fask_B implements GraphSearch {
                     graph.addDirectedEdge(X, Y);
                 } else if (knowledgeOrients(Y, X)) {
                     graph.addDirectedEdge(Y, X);
-                } else if (!(smoothlySkewed(X) && smoothlySkewed(Y))) {
-                    graph.addUndirectedEdge(X, Y);
-                    graph.getEdge(X, Y).setLineColor(Color.MAGENTA);
                 }
+//                else if (!(smoothlySkewed(X) && smoothlySkewed(Y))) {
+//                    graph.addUndirectedEdge(X, Y);
+//                    graph.getEdge(X, Y).setLineColor(Color.MAGENTA);
+//                }
 //                else {
 //                    if (leftRight(X, Y) < 0 && leftRight(Y, X) < 0) {
 //                        graph.addNondirectedEdge(X, Y);
