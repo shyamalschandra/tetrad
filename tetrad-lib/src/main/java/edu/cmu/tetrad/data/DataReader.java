@@ -880,7 +880,17 @@ public final class DataReader implements IDataReader {
                         continue SECTIONS;
                     }
 
-                    if (line.startsWith("requiredirect")) {
+                    if (line.startsWith("forbiddirect")) {
+                        firstLine = line;
+                        continue SECTIONS;
+                    }
+
+                    if (line.startsWith("forbiddengroup")) {
+                        firstLine = line;
+                        continue SECTIONS;
+                    }
+
+                    if (line.startsWith("requiredgroup")) {
                         firstLine = line;
                         continue SECTIONS;
                     }
