@@ -2,12 +2,15 @@ package edu.cmu.tetrad.search;
 
 import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.data.DataUtils;
+import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.util.*;
 import edu.pitt.dbmi.data.Delimiter;
 import edu.pitt.dbmi.data.reader.tabular.ContinuousTabularDataFileReader;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import static java.lang.Math.*;
 
@@ -212,9 +215,9 @@ public class DemixerNongaussian {
                 }
 
 //                double L = (sum - det) / N;
-                double L = likelihoods.get(n, k);
+//                double L = likelihoods.get(n, k);
 
-                _bias = _bias.scalarMult(exp(L) * prob);
+                _bias = _bias.scalarMult(prob);
             }
 
             bias[k] = bias[k].plus(_bias);
@@ -274,6 +277,15 @@ public class DemixerNongaussian {
             normalize(posteriorProbs, n);
         }
 
+        for (int n = 0; n < N; n++) {
+            for (int k = 0; k < numComponents; k++) {
+                double prob = log(posteriorProbs.get(n, k));
+                posteriorProbs.set(n, k, prob);
+            }
+
+            normalize(posteriorProbs, n);
+        }
+
         double likelihood = 0.0;
 
         for (int k = 0; k < numComponents; k++) {
@@ -297,11 +309,18 @@ public class DemixerNongaussian {
 
     public static void main(String... args) {
 
-        DataSet dataSet = loadData("/Users/user/Downloads/mixfile1.csv");
+//        DataSet dataSet = loadData("/Users/user/Downloads/mixfile1.csv");
+        DataSet dataSet = loadData("/Users/user/Box Sync/data/Sachs/data.with.discrete.latents.individually.logxplus10.jittered.txt");
+
+        System.out.println(dataSet.getVariableNames());
+        List<Node> vars = new ArrayList<>();
+        vars.add(dataSet.getVariable("erk"));
+        vars.add(dataSet.getVariable("akt"));
+        dataSet =  dataSet.subsetColumns(vars);
 
         long startTime = System.currentTimeMillis();
 
-        DemixerNongaussian pedro = new DemixerNongaussian(dataSet, 2, 0.0001);
+        DemixerNongaussian pedro = new DemixerNongaussian(dataSet, 5, 0.001);
         MixtureModelNongaussian model = pedro.demix();
 
         long elapsed = System.currentTimeMillis() - startTime;
@@ -380,7 +399,7 @@ public class DemixerNongaussian {
     private static DataSet loadData(String path) {
         try {
             ContinuousTabularDataFileReader dataReader = new ContinuousTabularDataFileReader(
-                    new File(path), Delimiter.COMMA);
+                    new File(path), Delimiter.WHITESPACE);
             dataReader.setHasHeader(true);
             return (DataSet) DataConvertUtils.toDataModel(dataReader.readInData());
         } catch (IOException e) {
