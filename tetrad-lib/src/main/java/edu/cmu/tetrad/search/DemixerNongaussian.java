@@ -2,12 +2,14 @@ package edu.cmu.tetrad.search;
 
 import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.data.DataUtils;
+import edu.cmu.tetrad.data.DataWriter;
 import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.util.*;
 import edu.pitt.dbmi.data.Delimiter;
 import edu.pitt.dbmi.data.reader.tabular.ContinuousTabularDataFileReader;
 
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -310,17 +312,17 @@ public class DemixerNongaussian {
     public static void main(String... args) {
 
 //        DataSet dataSet = loadData("/Users/user/Downloads/mixfile1.csv");
-        DataSet dataSet = loadData("/Users/user/Box Sync/data/Sachs/data.with.discrete.latents.individually.logxplus10.jittered.txt");
+        DataSet dataSet = loadData("/Users/user/Box Sync/data/Sachs/data.nonparanormal.txt");
 
         System.out.println(dataSet.getVariableNames());
         List<Node> vars = new ArrayList<>();
-        vars.add(dataSet.getVariable("erk"));
-        vars.add(dataSet.getVariable("akt"));
+        vars.add(dataSet.getVariable("raf"));
+        vars.add(dataSet.getVariable("mek"));
         dataSet =  dataSet.subsetColumns(vars);
 
         long startTime = System.currentTimeMillis();
 
-        DemixerNongaussian pedro = new DemixerNongaussian(dataSet, 5, 0.001);
+        DemixerNongaussian pedro = new DemixerNongaussian(dataSet, 3, 0.001);
         MixtureModelNongaussian model = pedro.demix();
 
         long elapsed = System.currentTimeMillis() - startTime;
@@ -343,7 +345,15 @@ public class DemixerNongaussian {
 
         System.out.println();
 
+        System.out.println(model.getLabeledData());
+
         System.out.println("Elapsed: " + (elapsed / 1000));
+
+        try {
+            DataWriter.writeRectangularData(model.getLabeledData(), new FileWriter(new File("/Users/user/Downloads/labeled.txt")), '\t');
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
 

@@ -1,7 +1,9 @@
 package edu.cmu.tetrad.search;
 
 import edu.cmu.tetrad.data.*;
+import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.util.TetradMatrix;
+import edu.pitt.dbmi.data.Dataset;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -157,6 +159,25 @@ public class MixtureModelNongaussian {
         }
 
         return dataSets;
+    }
+
+    public DataSet getLabeledData() {
+        Node label = new ContinuousVariable("lab");
+
+        List<Node> vars = data.getVariables();
+        vars.add(0, label);
+
+        VerticalDoubleDataBox box = new VerticalDoubleDataBox(data.getNumRows(), data.getNumColumns() + 1);
+
+        for (int i = 0; i < data.getNumRows(); i++) {
+            box.set(i, 0, cases[i] + 1);
+
+            for (int j = 0; j < data.getNumColumns(); j++) {
+                box.set(i, j + 1, data.getDouble(i, j));
+            }
+        }
+
+        return new BoxDataSet(box, vars);
     }
 
     public double[][] getData() {
