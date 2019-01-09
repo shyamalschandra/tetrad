@@ -180,7 +180,7 @@ public class ParamDescriptions {
         //~Resampling
 
         map.put("fasRule", new ParamDescription(
-                "Adjacency search: 1 = PC, 2 = PC-Stable, 3 = Concurrent PC-Stable",
+                "Adjacency search: 1 = PC, 2 = PC-Stable, 3 =f Concurrent PC-Stable",
                 1, 1, 3));
 
         map.put("colliderDiscoveryRule", new ParamDescription(

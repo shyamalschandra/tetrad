@@ -177,7 +177,7 @@ public class PcAll implements Algorithm, TakesInitialGraph, HasKnowledge, TakesI
         List<String> parameters = test.getParameters();
         parameters.add("StableFDR");
         parameters.add("stableFAS");
-        parameters.add("fasType");
+//        parameters.add("fasType");
         parameters.add("concurrentFAS");
         parameters.add("colliderDiscoveryRule");
         parameters.add("conflictRule");
