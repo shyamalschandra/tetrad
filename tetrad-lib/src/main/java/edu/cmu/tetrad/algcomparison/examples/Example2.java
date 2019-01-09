@@ -49,7 +49,6 @@ public class Example2 {
         parameters.set("numLatents", 0);
         parameters.set("differentGraphs", true);
         parameters.set("sampleSize", 500);
-        parameters.set("fastFDR", true);
         parameters.set("verbose", true);
         parameters.set("alpha", 0.01);
         parameters.set("kciAlpha", 0.005);

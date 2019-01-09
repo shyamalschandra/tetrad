@@ -42,7 +42,6 @@ public class CciScore implements ScoreWrapper {
         }
         cci.setNumFunctions(parameters.getInt("numBasisFunctions"));
         cci.setKernelMultiplier(parameters.getDouble("kernelMultiplier"));
-        cci.setFdrAdjustment(parameters.getBoolean("fastFDR"));
         cci.setKernelRegressionSampleSize(parameters.getInt("kernelRegressionSampleSize"));
         cci.setEarlyReturn(false);
 
@@ -75,7 +74,6 @@ public class CciScore implements ScoreWrapper {
         parameters.add("kernelType");
         parameters.add("kernelMultiplier");
         parameters.add("basisType");
-        parameters.add("fastFDR");
         parameters.add("kernelRegressionSampleSize");
         return parameters;
     }

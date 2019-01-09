@@ -34,11 +34,9 @@ public class FisherZ implements IndependenceWrapper {
 
         if (dataSet instanceof ICovarianceMatrix) {
             final IndTestFisherZ test = new IndTestFisherZ((ICovarianceMatrix) dataSet, alpha);
-            test.setFastFDR(parameters.getBoolean("fastFDR"));
             return test;
         } else if (dataSet instanceof DataSet) {
             final IndTestFisherZ test = new IndTestFisherZ((DataSet) dataSet, alpha);
-            test.setFastFDR(parameters.getBoolean("fastFDR"));
             return test;
         }
 
@@ -59,7 +57,6 @@ public class FisherZ implements IndependenceWrapper {
     public List<String> getParameters() {
         List<String> params = new ArrayList<>();
         params.add("alpha");
-        params.add("fastFDR");
         return params;
     }
 }

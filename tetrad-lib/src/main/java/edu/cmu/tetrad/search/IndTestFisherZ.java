@@ -75,7 +75,6 @@ public final class IndTestFisherZ implements IndependenceTest {
     private double fisherZ = Double.NaN;
     private double cutoff = Double.NaN;
     private NormalDistribution normal = new NormalDistribution(0, 1);
-    private boolean fastFDR = false;
 
     //==========================CONSTRUCTORS=============================//
 
@@ -188,15 +187,6 @@ public final class IndTestFisherZ implements IndependenceTest {
 
         double fisherZ = Math.sqrt(n - 3 - z.size()) * 0.5 * (Math.log(1.0 + r) - Math.log(1.0 - r));
         this.fisherZ = fisherZ;
-
-        if(fastFDR) {
-            final int d1 = 0; // reference
-            final int d2 = z.size();
-            final int v = variables.size() - 2;
-
-            double alpha2 = (exp(log(alpha) + logChoose(v, d1) - logChoose(v, d2)));
-            cutoff = getZForAlpha(alpha2);
-        }
 
         final boolean independent = Math.abs(fisherZ) < cutoff;
 
@@ -405,10 +395,6 @@ public final class IndTestFisherZ implements IndependenceTest {
 
     public void setVerbose(boolean verbose) {
         this.verbose = verbose;
-    }
-
-    public void setFastFDR(boolean fastFDR) {
-        this.fastFDR = fastFDR;
     }
 }
 

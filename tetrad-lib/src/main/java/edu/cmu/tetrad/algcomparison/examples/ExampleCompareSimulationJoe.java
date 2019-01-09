@@ -49,7 +49,6 @@ public class ExampleCompareSimulationJoe {
             parameters.set("numLatents", 0);
             parameters.set("differentGraphs", true);
             parameters.set("sampleSize", 500);
-            parameters.set("fastFDR", false);
             parameters.set("verbose", true);
             parameters.set("maxDegree", 4);
             parameters.set("colliderDiscoveryRule", 1);
@@ -88,7 +87,6 @@ public class ExampleCompareSimulationJoe {
             parameters.set("numLatents", 0);
             parameters.set("differentGraphs", true);
             parameters.set("sampleSize", 500);
-            parameters.set("fastFDR", false);
             parameters.set("verbose", true);
             parameters.set("alpha", 0.01, 0.001, 0.0001);
             parameters.set("kciAlpha", 0.05);
@@ -119,7 +117,6 @@ public class ExampleCompareSimulationJoe {
             parameters.set("numLatents", 0);
             parameters.set("differentGraphs", true);
             parameters.set("sampleSize", 500);
-            parameters.set("fastFDR", false);
             parameters.set("verbose", false);
             parameters.set("maxDegree", 4);
             parameters.set("colliderDiscoveryRule", 1);
@@ -158,7 +155,6 @@ public class ExampleCompareSimulationJoe {
             parameters.set("numLatents", 0);
             parameters.set("differentGraphs", true);
             parameters.set("sampleSize", 500);
-            parameters.set("fastFDR", false);
             parameters.set("verbose", true);
             parameters.set("alpha", 0.05);
             parameters.set("kciAlpha", 0.05);

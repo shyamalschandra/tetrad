@@ -601,9 +601,6 @@ public class ParamDescriptions {
                 "                \"ICA threshold\",\n" +
                 "                1.0, 0, Double.POSITIVE_INFINITY));\n" +
                 "\n" +
-                "        map.put(\"fastFDR\", new ParamDescription(\n" +
-                "                \"Yes if the  possible fastFDR adjustment to alpha levels should be done\", false));\n" +
-                "\n" +
                 "        map.put(\"kernelRegressionSampleSize\", new ParamDescription(\n" +
                 "                \"Minimum sample size to use per conditioning for kernel regression\",\n" +
                 "                100, 1, Double.POSITIVE_INFINITY));\n" +
@@ -720,9 +717,6 @@ public class ParamDescriptions {
         map.put("tssigma", new ParamDescription(
                 "ICA threshold",
                 1.0, 0, Double.POSITIVE_INFINITY));
-
-        map.put("fastFDR", new ParamDescription(
-                "Yes if the  possible fastFDR adjustment to alpha levels should be done", false));
 
         map.put("kernelRegressionSampleSize", new ParamDescription(
                 "Minimum sample size to use per conditioning for kernel regression",

@@ -31,7 +31,6 @@ public class FcitJRI implements IndependenceWrapper {
     public IndependenceTest getTest(DataModel dataSet, Parameters parameters) {
         final IndTestFcitJRI test = new IndTestFcitJRI(DataUtils.getContinuousDataSet(dataSet),
                 parameters.getDouble("alpha"));
-        test.setFastFDR(parameters.getBoolean("fastFDR"));
         return test;
     }
 
@@ -49,7 +48,6 @@ public class FcitJRI implements IndependenceWrapper {
     public List<String> getParameters() {
         List<String> params = new ArrayList<>();
         params.add("alpha");
-        params.add("fastFDR");
         return params;
     }
 }

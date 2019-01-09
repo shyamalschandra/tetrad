@@ -76,7 +76,6 @@ public final class IndTestKciMatlab implements IndependenceTest, ScoreForFact {
     private Map<Node, Integer> nodeMap;
     private int numTests;
     private boolean verbose = false;
-    private boolean fastFDR = false;
 
     //==========================CONSTRUCTORS=============================//
 
@@ -426,10 +425,6 @@ public final class IndTestKciMatlab implements IndependenceTest, ScoreForFact {
 
     public void setVerbose(boolean verbose) {
         this.verbose = verbose;
-    }
-
-    public void setFastFDR(boolean fastFDR) {
-        this.fastFDR = fastFDR;
     }
 }
 

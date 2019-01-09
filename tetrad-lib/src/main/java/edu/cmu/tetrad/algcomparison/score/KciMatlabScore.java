@@ -34,7 +34,6 @@ public class KciMatlabScore implements ScoreWrapper {
     public Score getScore(DataModel dataSet, Parameters parameters) {
         final IndTestKciMatlab kci = new IndTestKciMatlab(DataUtils.getContinuousDataSet(dataSet),
                 parameters.getDouble("kciAlpha"));
-        kci.setFastFDR(parameters.getBoolean("fastFDR"));
         return new ScoredIndTest(kci);
     }
 
@@ -52,7 +51,6 @@ public class KciMatlabScore implements ScoreWrapper {
     public List<String> getParameters() {
         List<String> parameters = new ArrayList<>();
         parameters.add("kciScoreAlpha");
-        parameters.add("fastFDR");
         return parameters;
     }
 

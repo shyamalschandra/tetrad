@@ -47,7 +47,6 @@ public class Example3 {
         parameters.set("numLatents", 0);
         parameters.set("differentGraphs", true);
         parameters.set("sampleSize", 500);
-        parameters.set("fastFDR", true);
         parameters.set("verbose", false);
         parameters.set("maxDegree", 4);
         parameters.set("colliderDiscoveryRule", 1);

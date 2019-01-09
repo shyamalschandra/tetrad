@@ -31,7 +31,6 @@ public class GcmJRI implements IndependenceWrapper {
     public IndependenceTest getTest(DataModel dataSet, Parameters parameters) {
         final IndTestGcmJRI test = new IndTestGcmJRI(DataUtils.getContinuousDataSet(dataSet),
                 parameters.getDouble("alpha"));
-        test.setFastFDR(parameters.getBoolean("fastFDR"));
         return test;
     }
 
@@ -48,7 +47,6 @@ public class GcmJRI implements IndependenceWrapper {
     @Override
     public List<String> getParameters() {
         List<String> params = new ArrayList<>();
-        params.add("alpha");
         return params;
     }
 }

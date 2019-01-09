@@ -55,7 +55,6 @@ public class IndTestConditionalGaussianLRT implements IndependenceTest {
     private int numCategoriesToDiscretize = 3;
 
     private boolean verbose = false;
-    private boolean fastFDR = false;
 
     public IndTestConditionalGaussianLRT(DataSet data, double alpha, boolean discretize) {
         this.data = data;
@@ -140,16 +139,7 @@ public class IndTestConditionalGaussianLRT implements IndependenceTest {
 
 //        return this.pValue > alpha;
 
-        if(fastFDR) {
-            final int d1 = 0; // reference
-            final int d2 = z.size();
-            final int v = data.getNumColumns() - 2;
-
-            double alpha2 = (exp(log(alpha) + logChoose(v, d1) - logChoose(v, d2)));
-            return this.pValue > alpha2;
-        } else {
-            return this.pValue > alpha;
-        }
+        return this.pValue > alpha;
     }
 
     public boolean isIndependent(Node x, Node y, Node... z) {
@@ -282,9 +272,5 @@ public class IndTestConditionalGaussianLRT implements IndependenceTest {
     @Override
     public void setVerbose(boolean verbose) {
         this.verbose = verbose;
-    }
-
-    public void setFastFDR(boolean fastFDR) {
-        this.fastFDR = fastFDR;
     }
 }

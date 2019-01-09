@@ -31,7 +31,6 @@ public class ResidualCITMatlab implements IndependenceWrapper {
     public IndependenceTest getTest(DataModel dataSet, Parameters parameters) {
         final IndTestResidualCITMatlab kci = new IndTestResidualCITMatlab(DataUtils.getContinuousDataSet(dataSet),
                 parameters.getDouble("alpha"));
-        kci.setFastFDR(parameters.getBoolean("fastFDR"));
         return kci;
     }
 
@@ -49,7 +48,6 @@ public class ResidualCITMatlab implements IndependenceWrapper {
     public List<String> getParameters() {
         List<String> params = new ArrayList<>();
         params.add("alpha");
-        params.add("fastFDR");
         return params;
     }
 }
