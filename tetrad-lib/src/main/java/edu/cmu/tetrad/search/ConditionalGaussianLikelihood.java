@@ -295,7 +295,7 @@ public class ConditionalGaussianLikelihood {
         }
 
         final double lnL = c1 + c2;
-        final int dof = f(A) * h(X) + f(A);
+        final int bo = f(A) * h(X) + f(A);
         return new Ret(lnL, dof);
     }
 

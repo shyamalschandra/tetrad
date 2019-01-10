@@ -120,27 +120,37 @@ public class MNLRLikelihood {
 
         int n = X.rows();
         TetradVector r;
-
-        try {
-            TetradMatrix Xt = X.transpose();
-            TetradMatrix XtX = Xt.times(X);
-            r = X.times(XtX.inverse().times(Xt.times(Y))).minus(Y);
-        } catch (Exception e) {
+        if (X.columns() >= n) {
             TetradVector ones = new TetradVector(n);
-            for (int i = 0; i < n; i++) ones.set(i,1);
-            r = ones.scalarMult(ones.dotProduct(Y)/(double)n).minus(Y);
+            for (int i = 0; i < n; i++) ones.set(i, 1);
+            r = ones.scalarMult(ones.dotProduct(Y) / (double) n).minus(Y);
+        } else {
+            try {
+                TetradMatrix Xt = X.transpose();
+                TetradMatrix XtX = Xt.times(X);
+                r = X.times(XtX.inverse().times(Xt.times(Y))).minus(Y);
+            } catch (Exception e) {
+                TetradVector ones = new TetradVector(n);
+                for (int i = 0; i < n; i++) ones.set(i, 1);
+                r = ones.scalarMult(ones.dotProduct(Y) / (double) n).minus(Y);
+            }
         }
 
         double sigma2 = r.dotProduct(r) / n;
+        double lik;
 
-        if(sigma2 <= 0) {
+        if(sigma2 < 0) {
             TetradVector ones = new TetradVector(n);
             for (int i = 0; i < n; i++) ones.set(i,1);
             r = ones.scalarMult(ones.dotProduct(Y)/(double)Math.max(n,2)).minus(Y);
             sigma2 = r.dotProduct(r) / n;
+            lik = -(n / 2) * (Math.log(2 * Math.PI) + Math.log(sigma2) + 1);
+        } else if (sigma2 == 0) {
+            lik = 0;
+        } else {
+            lik = -(n / 2) * (Math.log(2 * Math.PI) + Math.log(sigma2) + 1);
         }
 
-        double lik = -(n / 2) * (Math.log(2 * Math.PI) + Math.log(sigma2) + 1);
 
         if(Double.isInfinite(lik) || Double.isNaN(lik)) {
             System.out.println(lik);

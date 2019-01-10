@@ -30,7 +30,7 @@ public class ConditionalGaussianExactBicScore implements ScoreWrapper, Experimen
 
     @Override
     public String getDescription() {
-        return "Conditional Gaussian Other BIC Score";
+        return "Conditional Gaussian Exact BIC Score";
     }
 
     @Override

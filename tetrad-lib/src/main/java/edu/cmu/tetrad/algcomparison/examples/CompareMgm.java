@@ -24,15 +24,17 @@ package edu.cmu.tetrad.algcomparison.examples;
 import edu.cmu.tetrad.algcomparison.Comparison;
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithms;
 import edu.cmu.tetrad.algcomparison.algorithm.mixed.Mgm;
-import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.*;
-import edu.cmu.tetrad.algcomparison.independence.ConditionalGaussianLRT;
-import edu.cmu.tetrad.algcomparison.independence.FisherZ;
-//import edu.cmu.tetrad.algcomparison.independence.MNLRLRT;
+import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.Cpc;
+import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.Fges;
 import edu.cmu.tetrad.algcomparison.independence.MNLRLRT;
-import edu.cmu.tetrad.algcomparison.independence.MVPLRT;
-import edu.cmu.tetrad.algcomparison.score.*;
+import edu.cmu.tetrad.algcomparison.score.ConditionalGaussianBicScore;
+import edu.cmu.tetrad.algcomparison.score.DiscreteMixedBicScore;
+import edu.cmu.tetrad.algcomparison.score.MNLRBicScore;
+import edu.cmu.tetrad.algcomparison.score.MVPBicScore;
 import edu.cmu.tetrad.algcomparison.statistic.*;
 import edu.cmu.tetrad.util.Parameters;
+
+//import edu.cmu.tetrad.algcomparison.independence.MNLRLRT;
 
 /**
  * An example script to load in data sets and graphs from files and analyze them. The
@@ -45,7 +47,7 @@ import edu.cmu.tetrad.util.Parameters;
  *
  * @author jdramsey
  */
-public class CompareFromFiles {
+public class CompareMgm {
     public static void main(String... args) {
         Parameters parameters = new Parameters();
 
@@ -58,7 +60,7 @@ public class CompareFromFiles {
 
         parameters.set("structurePrior", 1);
         parameters.set("fDegree", 1, -1);
-        parameters.set("discretize", 0);
+        parameters.set("discretize", 0, 1);
 
 
         parameters.set("alpha", 1e-2, 1e-4);
@@ -87,12 +89,12 @@ public class CompareFromFiles {
 
 //        algorithms.add(new Fges(new ConditionalGaussianBicScore()));
 //        algorithms.add(new Fges(new ConditionalGaussianExactBicScore()));
-        algorithms.add(new Fges(new MVPBicScore()));
-        algorithms.add(new Fges(new MNLRBicScore()));
+//        algorithms.add(new Fges(new MVPBicScore()));
+//        algorithms.add(new Fges(new MNLRBicScore()));
 //        algorithms.add(new Fges(new DiscreteMixedBicScore()));
 //        algorithms.add(new Cpc(new ConditionalGaussianLRT()));
 //        algorithms.add(new Cpc(new MVPLRT()));
-//        algorithms.add(new Cpc(new MNLRLRT(), new Mgm()));
+        algorithms.add(new Cpc(new MNLRLRT(), new Mgm()));
 
         Comparison comparison = new Comparison();
         comparison.setShowAlgorithmIndices(true);
@@ -101,7 +103,7 @@ public class CompareFromFiles {
         comparison.setShowUtilities(false);
         comparison.setParallelized(false);
 
-        comparison.compareFromFiles("comparison", "comparison", algorithms, statistics, parameters);
+        comparison.compareFromFiles("comparison", "mgm_comp", algorithms, statistics, parameters);
     }
 }
 

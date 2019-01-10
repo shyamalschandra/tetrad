@@ -28,7 +28,7 @@ public class MVPLRT implements IndependenceWrapper, Experimental {
 
     @Override
     public String getDescription() {
-        return "Multinomial Logistic Regression Likelihood Ratio Test";
+        return "Mixed Variable Polynomial Likelihood Ratio Test";
     }
 
     @Override

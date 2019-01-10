@@ -23,6 +23,7 @@ package edu.cmu.tetrad.algcomparison.examples;
 
 import edu.cmu.tetrad.algcomparison.Comparison;
 import edu.cmu.tetrad.algcomparison.graph.RandomForward;
+import edu.cmu.tetrad.algcomparison.simulation.ConditionalGaussianSimulation;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.algcomparison.simulation.SemSimulation;
 import edu.cmu.tetrad.algcomparison.simulation.Simulation;
@@ -37,11 +38,22 @@ public class ExampleSave {
         Parameters parameters = new Parameters();
 
         parameters.set("numRuns", 10);
-        parameters.set("numMeasures", 100);
+        parameters.set("numMeasures", 500);
         parameters.set("avgDegree", 4);
-        parameters.set("sampleSize", 100, 500, 1000);
+        parameters.set("sampleSize", 200, 1000);
 
-        Simulation simulation = new SemSimulation(new RandomForward());
+        parameters.set("minCategories", 2);
+        parameters.set("maxCategories", 5);
+
+        parameters.set("percentDiscrete", 50);
+
+        parameters.set("maxDegree", 5);
+        parameters.set("maxIndegree", 5);
+        parameters.set("maxOutdegree", 5);
+
+        parameters.set("differentGraphs", true);
+
+        Simulation simulation = new ConditionalGaussianSimulation(new RandomForward());
         Comparison comparison = new Comparison();
         comparison.setShowAlgorithmIndices(true);
         comparison.saveToFiles("comparison", simulation, parameters);
