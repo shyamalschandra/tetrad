@@ -175,7 +175,7 @@ public class PcAll implements Algorithm, TakesInitialGraph, HasKnowledge, TakesI
     @Override
     public List<String> getParameters() {
         List<String> parameters = test.getParameters();
-        parameters.add("StableFDR");
+//        parameters.add("StableFDR");
         parameters.add("stableFAS");
 //        parameters.add("fasType");
         parameters.add("concurrentFAS");
