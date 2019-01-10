@@ -311,27 +311,27 @@ public class DemixerNongaussian {
 
     public static void main(String... args) {
 
-//        DataSet dataSet = loadData("/Users/user/Downloads/mixfile1.csv");
-        DataSet dataSet = loadData("/Users/user/Box Sync/data/Sachs/data.logged.txt");
+        DataSet dataSet = loadData("/Users/user/Downloads/mixfile1.csv");
+//        DataSet dataSet = loadData("/Users/user/Box Sync/data/Sachs/data.logged.txt");
 
         System.out.println(dataSet.getVariableNames());
         List<Node> vars = new ArrayList<>();
-        vars.add(dataSet.getVariable("p38"));
-        vars.add(dataSet.getVariable("jnk"));
+        vars.add(dataSet.getVariable(0));
+        vars.add(dataSet.getVariable(1));
         dataSet =  dataSet.subsetColumns(vars);
 
         long startTime = System.currentTimeMillis();
 
-        DemixerNongaussian pedro = new DemixerNongaussian(dataSet, 3, 0.001);
+        DemixerNongaussian pedro = new DemixerNongaussian(dataSet, 2, 0.001);
         MixtureModelNongaussian model = pedro.demix();
 
         long elapsed = System.currentTimeMillis() - startTime;
 
         System.out.println("\n================ WHAT I LEARNED ===================");
 
-        for (int k = 0; k < model.getMixingMatrices().length; k++) {
-            System.out.println("W = " + model.getMixingMatrices()[0]);
-        }
+//        for (int k = 0; k < model.getMixingMatrices().length; k++) {
+//            System.out.println("W = " + model.getMixingMatrices()[0]);
+//        }
 
         DataSet[] datasets = model.getDemixedData();
 
@@ -409,8 +409,8 @@ public class DemixerNongaussian {
     private static DataSet loadData(String path) {
         try {
             ContinuousTabularDataFileReader dataReader = new ContinuousTabularDataFileReader(
-                    new File(path), Delimiter.WHITESPACE);
-            dataReader.setHasHeader(true);
+                    new File(path), Delimiter.COMMA);
+            dataReader.setHasHeader(false);
             return (DataSet) DataConvertUtils.toDataModel(dataReader.readInData());
         } catch (IOException e) {
             throw new RuntimeException(e);
