@@ -312,12 +312,12 @@ public class DemixerNongaussian {
     public static void main(String... args) {
 
 //        DataSet dataSet = loadData("/Users/user/Downloads/mixfile1.csv");
-        DataSet dataSet = loadData("/Users/user/Box Sync/data/Sachs/data.nonparanormal.txt");
+        DataSet dataSet = loadData("/Users/user/Box Sync/data/Sachs/data.logged.txt");
 
         System.out.println(dataSet.getVariableNames());
         List<Node> vars = new ArrayList<>();
-        vars.add(dataSet.getVariable("raf"));
-        vars.add(dataSet.getVariable("mek"));
+        vars.add(dataSet.getVariable("p38"));
+        vars.add(dataSet.getVariable("jnk"));
         dataSet =  dataSet.subsetColumns(vars);
 
         long startTime = System.currentTimeMillis();
