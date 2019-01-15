@@ -452,12 +452,12 @@ public final class Fask_B implements GraphSearch {
         double min = min(x);
         double max = max(x);
 
-        double _max = min(abs(min), abs(max));
+        double _max = max(abs(min), abs(max));
 
         boolean smoothPositive = true;
         boolean smoothNegative = true;
 
-        int numIntervals = 4;
+        int numIntervals = 5;
 
         for (int i = 0; i < numIntervals; i++) {
             double t = (i * _max) / numIntervals;
@@ -465,31 +465,8 @@ public final class Fask_B implements GraphSearch {
             int l = 0;
             int h = 0;
 
-            double a1 = Integrator.getArea(new Function() {
-                @Override
-                public double valueAt(double x) {
-                    return 0;
-                }
-            }, -t, 0, 5);
-
-            double a2 = Integrator.getArea(new Function() {
-                @Override
-                public double valueAt(double x) {
-                    return 0;
-                }
-            }, 0, t, 5);
-//
-//            for (int j = low.size() - 1; j >= 0; j--) {
-//
-//
-//                if (j < -t) break;
-//                l++;
-//            }
-//
-//            for (int j = 0; j < high.size(); j++) {
-//                if (j > t) break;
-//                h++;
-//            }
+            double a1 = Integrator.getArea(x1 -> 0, -t, 0, 5);
+            double a2 = Integrator.getArea(x12 -> 0, 0, t, 5);
 
             if (a1 < a2) {
                 smoothPositive = false;
@@ -608,10 +585,10 @@ public final class Fask_B implements GraphSearch {
                 c.add(p1);
             }
 
-//            // head
-//            if (existsPath(graph, p1, tail, head) && existsPath(graph, p1, head, tail)) {
-//                c.add(p1);
-//            }
+            // head
+            if (existsPath(graph, p1, tail, head) && existsPath(graph, p1, head, tail)) {
+                c.add(p1);
+            }
         }
 
         return new ArrayList<>(c);
@@ -669,7 +646,7 @@ public final class Fask_B implements GraphSearch {
             double t = (mean(dy) - mean(dx)) / sqrt(exyy + exyx);
             double df = ((exyy + exyx) * (exyy + exyx)) / ((exyy * exyy) / (ny - 1)) + ((exyx * exyx) / (nx - 1));
 
-            double p = new TDistribution(df).cumulativeProbability(-abs(t));
+            double p = 2 * (new TDistribution(df).cumulativeProbability(-abs(t)));
             b1 = p < skewEdgeAlpha;
         } catch (Exception e) {
             //
@@ -691,7 +668,7 @@ public final class Fask_B implements GraphSearch {
             double t = (mean(dx) - mean(dy)) / sqrt(exyy + exyx);
             double df = ((exyy + exyx) * (exyy + exyx)) / ((exyy * exyy) / (ny - 1)) + ((exyx * exyx) / (nx - 1));
 
-            double p = new TDistribution(df).cumulativeProbability(-abs(t));
+            double p = 2 * (new TDistribution(df).cumulativeProbability(-abs(t)));
             b2 = p < skewEdgeAlpha;
         } catch (Exception e) {
             //
