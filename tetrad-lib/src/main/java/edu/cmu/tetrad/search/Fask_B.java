@@ -78,10 +78,10 @@ public final class Fask_B implements GraphSearch {
     // Alpha for orienting 2-cycles.
     private double twoCycleAlpha = 0.05;
 
+    // Regression procedure (linear) for conditioning.
     // Cutoff for orienting 2-cycles, calculated from twoCycleAlpha,
     private double twoCycleCutoff;
 
-    // Regression procedure (linear) for conditioning.
     private RegressionDataset regressionDataset;
 
     // The list of variables.
