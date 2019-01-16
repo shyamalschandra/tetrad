@@ -26,7 +26,6 @@ import edu.cmu.tetrad.graph.*;
 import edu.cmu.tetrad.regression.RegressionDataset;
 import edu.cmu.tetrad.util.*;
 import org.apache.commons.math3.distribution.TDistribution;
-import org.apache.commons.math3.linear.SingularMatrixException;
 
 import java.awt.*;
 import java.util.*;
@@ -49,9 +48,6 @@ public final class Fask_B implements GraphSearch {
 
     // An initial graph to orient, skipping the adjacency step.
     private Graph initialGraph = null;
-
-    // Elapsed time of the search, in milliseconds.
-    private long elapsed = 0;
 
     // The colData sets being analyzed. They must all have the same variables and the same
     // number of records.
@@ -78,23 +74,13 @@ public final class Fask_B implements GraphSearch {
     // Alpha for orienting 2-cycles.
     private double twoCycleAlpha = 0.05;
 
-//    // Cutoff for orienting 2-cycles, calculated from twoCycleAlpha,
-//    private double twoCycleCutoff;
-
     private RegressionDataset regressionDataset;
 
     // The list of variables.
     private final List<Node> variables;
 
-//    // The mask threshold, if used. If this is set to zero, it will not be used and ordinary conditional reasoning
-//    // will ensue. If set to non-zero, the mask will be applied, and then ordinary conditional reasoning will enssure.
-//    private double maskThreshold = 0.3;
-
     // True iff verbose output should be printed.
     private boolean verbose = false;
-
-//    // True if a mask should be use to estimate adjacencies.
-//    private boolean useMask = false;
 
     /**
      * @param dataSet These datasets must all have the same variables, in the same order.
@@ -132,11 +118,7 @@ public final class Fask_B implements GraphSearch {
      * and some of the adjacencies may be two-cycles.
      */
     public Graph search() {
-        long start = System.currentTimeMillis();
-
         TetradLogger.getInstance().forceLogMessage("\nStarting FASK-B Algorithm");
-
-//        setCutoff();
 
         TetradLogger.getInstance().forceLogMessage("\nSmoothly skewed:");
 
@@ -302,7 +284,6 @@ public final class Fask_B implements GraphSearch {
 
     public void setTwoCycleAlpha(double twoCycleAlpha) {
         this.twoCycleAlpha = twoCycleAlpha;
-//        setCutoff();
     }
 
     /**
@@ -325,7 +306,7 @@ public final class Fask_B implements GraphSearch {
      * @return The elapsed time in milliseconds.
      */
     public long getElapsedTime() {
-        return elapsed;
+        return (long) 0;
     }
 
     /**
@@ -342,10 +323,6 @@ public final class Fask_B implements GraphSearch {
         this.knowledge = knowledge;
     }
 
-//    public void setMaskThreshold(double maskThreshold) {
-//        this.maskThreshold = maskThreshold;
-//    }
-
     public boolean isVerbose() {
         return verbose;
     }
@@ -354,24 +331,12 @@ public final class Fask_B implements GraphSearch {
         this.verbose = verbose;
     }
 
-//    public void setUseMask(boolean useMask) {
-//        this.useMask = useMask;
-//    }
-
     /////////////////////////////////////// PRIVATE METHODS ////////////////////////////////////
 
     /**
      * Sets the significance level at which independence judgments should be made.  Affects the cutoff for partial
      * correlations to be considered statistically equal to zero.
      */
-//    private void setCutoff() {
-//        this.twoCycleCutoff = StatUtils.getZForAlpha(twoCycleAlpha);
-//    }
-
-//    private double getMaskThreshold() {
-//        return maskThreshold;
-//    }
-
     private void orientEdge(Graph graph, Node X, Node Y) {
         if (graph.getEdges(X, Y).size() == 2) return;
         graph.removeEdges(X, Y);
@@ -386,41 +351,13 @@ public final class Fask_B implements GraphSearch {
                     graph.addDirectedEdge(X, Y);
                 } else if (knowledgeOrients(Y, X)) {
                     graph.addDirectedEdge(Y, X);
-                }
-//                else if (!(smoothlySkewed(X) && smoothlySkewed(Y))) {
-//                    graph.addUndirectedEdge(X, Y);
-//                    graph.getEdge(X, Y).setLineColor(Color.MAGENTA);
-//                }
-//                else {
-//                    if (leftRight(X, Y) < 0 && leftRight(Y, X) < 0) {
-//                        graph.addNondirectedEdge(X, Y);
-//                    } else if (leftRight(X, Y) > 0 && leftRight(Y, X) > 0) {
-//                        graph.addNondirectedEdge(X, Y);
-//                        // We're assuming no selection bias.
-//                    } else if (leftRight(Y, X) < 0) {
-//                        graph.addDirectedEdge(X, Y);
-//                    } else if (leftRight(X, Y) < 0) {
-//                        graph.addDirectedEdge(Y, X);
-//                    }
-//                }
-
-                else {
+                } else {
                     if (leftRight(X, Y) > leftRight(Y, X)) {
                         graph.addDirectedEdge(X, Y);
                     } else {
                         graph.addDirectedEdge(Y, X);
                     }
                 }
-
-//                else {
-//                    if (leftRight(X, Y) > 0 && leftRight(Y, X) > 0) {
-//                        graph.addNondirectedEdge(X, Y);
-//                    } else if (leftRight(Y, X) < 0) {
-//                        graph.addDirectedEdge(X, Y);
-//                    } else if (leftRight(X, Y) < 0) {
-//                        graph.addDirectedEdge(Y, X);
-//                    }
-//                }
             }
         }
     }
@@ -431,22 +368,8 @@ public final class Fask_B implements GraphSearch {
     }
 
     private boolean smoothlySkewed(double[] x) {
-        List<Double> low = new ArrayList<>();
-        List<Double> high = new ArrayList<>();
-
-        int highStart = 0;
-
-        for (int i = 0; i < x.length; i++) {
-            if (x[i] >= 0) {
-                highStart = i;
-                break;
-            }
-        }
-
-        for (double d : x) {
-            if (d >= 0) high.add(d);
-            else if (d <= 0) low.add(d);
-        }
+        x = Arrays.copyOf(x, x.length);
+        Arrays.sort(x);
 
         double min = min(x);
         double max = max(x);
@@ -461,11 +384,8 @@ public final class Fask_B implements GraphSearch {
         for (int i = 0; i < numIntervals; i++) {
             double t = (i * _max) / numIntervals;
 
-            int l = 0;
-            int h = 0;
-
             double a1 = Integrator.getArea(x1 -> 0, -t, 0, 5);
-            double a2 = Integrator.getArea(x12 -> 0, 0, t, 5);
+            double a2 = Integrator.getArea(x2 -> 0, 0, t, 5);
 
             if (a1 < a2) {
                 smoothPositive = false;
@@ -566,14 +486,6 @@ public final class Fask_B implements GraphSearch {
                 continue;
             }
 
-//            if (existsPath(graph, tail, p1, head)) {
-//                c.add(p1);
-//            }
-//
-//            if (existsPath(graph, head, p1, tail)) {
-//                c.add(p1);
-//            }
-
             // indirect path
             if (existsPath(graph, tail, p1, head) && existsPath(graph, p1, head, tail)) {
                 c.add(p1);
@@ -614,19 +526,6 @@ public final class Fask_B implements GraphSearch {
     }
 
     private boolean skewAdjacent(Node X, Node Y, List<Node> Z) {
-//        final double[] x = colData[variables.indexOf(X)];
-//        final double[] y = colData[variables.indexOf(Y)];
-//
-//        double[][] z = new double[Z.size()][];
-//        for (int i = 0; i < z.length; i++) {
-//            z[i] = colData[variables.indexOf(Z.get(i))];
-//        }
-//
-//        double c1 = partialCorrelation(x, y, z, x, 0, +1);
-//        double c2 = partialCorrelation(x, y, z, y, 0, +1);
-//
-//        return Math.abs(c1 - c2) > maskThreshold;
-
         boolean b1 = false, b2 = false;
 
         try {
@@ -834,62 +733,6 @@ public final class Fask_B implements GraphSearch {
         }
 
         return true;
-
-
-//        DepthChoiceGenerator gen = new DepthChoiceGenerator(Z.size(), Math.min(depth, Z.size()));
-//        int[] choice;
-//
-//        while ((choice = gen.next()) != null) {
-//            List<Node> _adj = GraphUtils.asList(choice, Z);
-//            double[][] _Z = new double[_adj.size()][];
-//
-//            for (int f = 0; f < _adj.size(); f++) {
-//                Node _z = _adj.get(f);
-//                int column = dataSet.getColumn(_z);
-//                _Z[f] = colData[column];
-//            }
-//
-//            double r;
-//            double rx;
-//            double ry;
-//
-//            try {
-//                r = partialCorrelation(x, y, _Z, x, Double.NEGATIVE_INFINITY, +1);
-//                rx = partialCorrelation(x, y, _Z, x, 0, +1);
-//                ry = partialCorrelation(x, y, _Z, y, 0, +1);
-//            } catch (SingularMatrixException e) {
-//                System.out.println("Singularity X = " + X + " Y = " + Y + " Z = " + Z);
-//                TetradLogger.getInstance().log("info", "Singularity X = " + X + " Y = " + Y + " Z = " + Z);
-//                continue;
-//            }
-//
-//            int n = StatUtils.getRows(x, Double.NEGATIVE_INFINITY, +1).size();
-//            int nx = StatUtils.getRows(x, 0, +1).size();
-//            int ny = StatUtils.getRows(y, 0, +1).size();
-//
-//            double z = 0.5 * (log(1.0 + r) - log(1.0 - r));
-//            double zx = 0.5 * (log(1.0 + rx) - log(1.0 - rx));
-//            double zy = 0.5 * (log(1.0 + ry) - log(1.0 - ry));
-//
-//            double zvx = (z - zx) / sqrt((1.0 / ((double) n - 3) + 1.0 / ((double) nx - 3)));
-//            double zvy = (z - zy) / sqrt((1.0 / ((double) n - 3) + 1.0 / ((double) ny - 3)));
-//
-//            boolean rejectedx = abs(zvx) > twoCycleCutoff;
-//            boolean rejectedy = abs(zvy) > twoCycleCutoff;
-//
-//            if (!rejectedx || !rejectedy) {
-//                return false;
-//            }
-//        }
-//
-//        return true;
-    }
-
-    private double partialCorrelation(double[] x, double[] y, double[][] z, double[] condition,
-                                      double threshold, double direction) throws SingularMatrixException {
-        double[][] cv = covMatrix(x, y, z, condition, threshold, direction);
-        TetradMatrix m = new TetradMatrix(cv).transpose();
-        return StatUtils.partialCorrelation(m);
     }
 
     private boolean knowledgeOrients(Node left, Node right) {
