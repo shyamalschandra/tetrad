@@ -126,8 +126,8 @@ public class CausalPairsTest {
 //                fask.setDelta(-.05);
                 fask.setUseFasAdjacencies(true);
                 fask.setUseSkewAdjacencies(true);
-                fask.setUseMask(false);
-                fask.setMaskThreshold(0.001);
+//                fask.setUseMask(false);
+//                fask.setMaskThreshold(0.001);
                 fask.setSkewEdgeAlpha(.05);
                 fask.setVerbose(true);
 

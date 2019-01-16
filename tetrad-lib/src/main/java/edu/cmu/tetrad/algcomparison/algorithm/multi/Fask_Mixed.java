@@ -59,8 +59,8 @@ public class Fask_Mixed implements Algorithm, HasKnowledge, TakesIndependenceWra
             search.setVerbose(parameters.getBoolean("verbose"));
             search.setUseSkewAdjacencies(parameters.getBoolean("useSkewAdjacencies"));
             search.setUseFasAdjacencies(parameters.getBoolean("useFasAdjacencies"));
-            search.setUseMask(parameters.getBoolean("useMask"));
-            search.setMaskThreshold(parameters.getDouble("maskThreshold"));
+//            search.setUseMask(parameters.getBoolean("useMask"));
+//            search.setMaskThreshold(parameters.getDouble("maskThreshold"));
             search.setKnowledge(this.knowledge);
 
             return GMS.removeExogenous(getGraph(search));

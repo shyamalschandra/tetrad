@@ -78,24 +78,23 @@ public final class Fask_B implements GraphSearch {
     // Alpha for orienting 2-cycles.
     private double twoCycleAlpha = 0.05;
 
-    // Regression procedure (linear) for conditioning.
-    // Cutoff for orienting 2-cycles, calculated from twoCycleAlpha,
-    private double twoCycleCutoff;
+//    // Cutoff for orienting 2-cycles, calculated from twoCycleAlpha,
+//    private double twoCycleCutoff;
 
     private RegressionDataset regressionDataset;
 
     // The list of variables.
     private final List<Node> variables;
 
-    // The mask threshold, if used. If this is set to zero, it will not be used and ordinary conditional reasoning
-    // will ensue. If set to non-zero, the mask will be applied, and then ordinary conditional reasoning will enssure.
-    private double maskThreshold = 0.3;
+//    // The mask threshold, if used. If this is set to zero, it will not be used and ordinary conditional reasoning
+//    // will ensue. If set to non-zero, the mask will be applied, and then ordinary conditional reasoning will enssure.
+//    private double maskThreshold = 0.3;
 
     // True iff verbose output should be printed.
     private boolean verbose = false;
 
-    // True if a mask should be use to estimate adjacencies.
-    private boolean useMask = false;
+//    // True if a mask should be use to estimate adjacencies.
+//    private boolean useMask = false;
 
     /**
      * @param dataSet These datasets must all have the same variables, in the same order.
@@ -137,7 +136,7 @@ public final class Fask_B implements GraphSearch {
 
         TetradLogger.getInstance().forceLogMessage("\nStarting FASK-B Algorithm");
 
-        setCutoff();
+//        setCutoff();
 
         TetradLogger.getInstance().forceLogMessage("\nSmoothly skewed:");
 
@@ -303,7 +302,7 @@ public final class Fask_B implements GraphSearch {
 
     public void setTwoCycleAlpha(double twoCycleAlpha) {
         this.twoCycleAlpha = twoCycleAlpha;
-        setCutoff();
+//        setCutoff();
     }
 
     /**
@@ -343,9 +342,9 @@ public final class Fask_B implements GraphSearch {
         this.knowledge = knowledge;
     }
 
-    public void setMaskThreshold(double maskThreshold) {
-        this.maskThreshold = maskThreshold;
-    }
+//    public void setMaskThreshold(double maskThreshold) {
+//        this.maskThreshold = maskThreshold;
+//    }
 
     public boolean isVerbose() {
         return verbose;
@@ -355,9 +354,9 @@ public final class Fask_B implements GraphSearch {
         this.verbose = verbose;
     }
 
-    public void setUseMask(boolean useMask) {
-        this.useMask = useMask;
-    }
+//    public void setUseMask(boolean useMask) {
+//        this.useMask = useMask;
+//    }
 
     /////////////////////////////////////// PRIVATE METHODS ////////////////////////////////////
 
@@ -365,13 +364,13 @@ public final class Fask_B implements GraphSearch {
      * Sets the significance level at which independence judgments should be made.  Affects the cutoff for partial
      * correlations to be considered statistically equal to zero.
      */
-    private void setCutoff() {
-        this.twoCycleCutoff = StatUtils.getZForAlpha(twoCycleAlpha);
-    }
+//    private void setCutoff() {
+//        this.twoCycleCutoff = StatUtils.getZForAlpha(twoCycleAlpha);
+//    }
 
-    private double getMaskThreshold() {
-        return maskThreshold;
-    }
+//    private double getMaskThreshold() {
+//        return maskThreshold;
+//    }
 
     private void orientEdge(Graph graph, Node X, Node Y) {
         if (graph.getEdges(X, Y).size() == 2) return;
@@ -703,11 +702,6 @@ public final class Fask_B implements GraphSearch {
                             + " sry = " + StatUtils.skewness(ry));
 
         }
-
-//        if (!smoothlySkewed(ry)) {
-//            TetradLogger.getInstance().forceLogMessage("ry not smoothly skewed for " + Y + " | " + X);
-//            return lr * -1;
-//        }
 
         return lr;
     }

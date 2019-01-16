@@ -55,8 +55,8 @@ public class Fask_B implements Algorithm, HasKnowledge, TakesIndependenceWrapper
             search.setVerbose(parameters.getBoolean("verbose"));
             search.setUseSkewAdjacencies(parameters.getBoolean("useSkewAdjacencies"));
             search.setUseFasAdjacencies(parameters.getBoolean("useFasAdjacencies"));
-            search.setUseMask(parameters.getBoolean("useMask"));
-            search.setMaskThreshold(parameters.getDouble("maskThreshold"));
+//            search.setUseMask(parameters.getBoolean("useMask"));
+//            search.setMaskThreshold(parameters.getDouble("maskThreshold"));
 
             search.setKnowledge(knowledge);
             return getGraph(search);
@@ -112,8 +112,8 @@ public class Fask_B implements Algorithm, HasKnowledge, TakesIndependenceWrapper
 
         parameters.add("useFasAdjacencies");
         parameters.add("useSkewAdjacencies");
-        parameters.add("useMask");
-        parameters.add("maskThreshold");
+//        parameters.add("useMask");
+//        parameters.add("maskThreshold");
 
         // Bootstrapping
         parameters.add("numberResampling");

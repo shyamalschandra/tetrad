@@ -58,8 +58,8 @@ public class Fask_BSachs implements Algorithm, HasKnowledge, TakesIndependenceWr
             search.setVerbose(parameters.getBoolean("verbose"));
             search.setUseSkewAdjacencies(parameters.getBoolean("useSkewAdjacencies"));
             search.setUseFasAdjacencies(parameters.getBoolean("useFasAdjacencies"));
-            search.setUseMask(parameters.getBoolean("useMask"));
-            search.setMaskThreshold(parameters.getDouble("maskThreshold"));
+//            search.setUseMask(parameters.getBoolean("useMask"));
+//            search.setMaskThreshold(parameters.getDouble("maskThreshold"));
 
             SachsUtils su = new SachsUtils();
             knowledge = su.getKnowledge();
@@ -122,8 +122,8 @@ public class Fask_BSachs implements Algorithm, HasKnowledge, TakesIndependenceWr
 
         parameters.add("useFasAdjacencies");
         parameters.add("useSkewAdjacencies");
-        parameters.add("useMask");
-        parameters.add("maskThreshold");
+//        parameters.add("useMask");
+//        parameters.add("maskThreshold");
 
         // Bootstrapping
         parameters.add("numberResampling");
