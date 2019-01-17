@@ -81,7 +81,7 @@ public class CausalPairsTest {
                 System.out.println("Pair # " + i);
 
                 DataSet data1 = loadData2("pair" + nf.format(i) + ".txt");
-                data1 = DataUtils.center(data1);
+                data1 = DataUtils.getNonparanormalTransformed(data1);
 
                 double[][] _data = data1.getDoubleData().transpose().toArray();
 
@@ -254,7 +254,7 @@ public class CausalPairsTest {
         try {
             NumberFormat nf = new DecimalFormat("0000");
 
-            BufferedReader in = new BufferedReader(new FileReader(new File("/Users/user/Box Sync/data/pairs/"
+            BufferedReader in = new BufferedReader(new FileReader(new File("/Users/user/Box/data/pairs/"
                     + "pair" + nf.format(i) + "_des.txt")));
 
             String line;
@@ -273,7 +273,7 @@ public class CausalPairsTest {
 
     private DataSet loadData2(String name) throws IOException {
         DataReader dataReader = new ContinuousTabularDataFileReader(
-                new File("/Users/user/Box Sync/data/pairs/" + name), Delimiter.WHITESPACE);
+                new File("/Users/user/Box/data/pairs/" + name), Delimiter.WHITESPACE);
         ((ContinuousTabularDataFileReader) dataReader).setHasHeader(false);
 
         return (DataSet) DataConvertUtils.toDataModel(dataReader.readInData());

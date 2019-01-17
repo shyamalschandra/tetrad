@@ -848,6 +848,9 @@ public final class Fask_B implements GraphSearch {
             double[] rx = regressionDataset.regress(x, z).getResiduals().toArray();
             double[] ry = regressionDataset.regress(y, z).getResiduals().toArray();
 
+//            rx = DataUtils.getNonparanormalTransformed(rx);
+//            ry = DataUtils.getNonparanormalTransformed(ry);
+
             double[] rxy = new double[rows.size()];
 
             for (int i = 0; i < rows.size(); i++) {

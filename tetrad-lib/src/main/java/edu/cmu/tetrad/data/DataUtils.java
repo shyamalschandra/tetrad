@@ -1443,27 +1443,27 @@ public final class DataUtils {
      * given dataset.
      */
     public static DataSet getResamplingDataset(DataSet data, int sampleSize) {
-    	int actualSampleSize = data.getNumRows();
-    	int _size = sampleSize;
-    	if(actualSampleSize < _size) {
-    		_size = actualSampleSize;
-    	}
-    	
-    	List<Integer> availRows = new ArrayList<>();
-    	for (int i = 0; i < actualSampleSize; i++) {
-    		availRows.add(i);
-    	}
-    	
-    	Collections.shuffle(availRows);
-    	
-    	List<Integer> addedRows = new ArrayList<>();
+        int actualSampleSize = data.getNumRows();
+        int _size = sampleSize;
+        if (actualSampleSize < _size) {
+            _size = actualSampleSize;
+        }
+
+        List<Integer> availRows = new ArrayList<>();
+        for (int i = 0; i < actualSampleSize; i++) {
+            availRows.add(i);
+        }
+
+        Collections.shuffle(availRows);
+
+        List<Integer> addedRows = new ArrayList<>();
         int[] rows = new int[_size];
-    	for (int i = 0; i < _size; i++) {
+        for (int i = 0; i < _size; i++) {
             int row = -1;
             int index = -1;
-            while(row == -1 || addedRows.contains(row)) {
-            	index = RandomUtil.getInstance().nextInt(availRows.size());
-            	row = availRows.get(index);
+            while (row == -1 || addedRows.contains(row)) {
+                index = RandomUtil.getInstance().nextInt(availRows.size());
+                row = availRows.get(index);
             }
             rows[i] = row;
             addedRows.add(row);
@@ -1798,41 +1798,46 @@ public final class DataUtils {
         dataSet = DataUtils.center(dataSet);
         final TetradMatrix data = dataSet.getDoubleData();
         final TetradMatrix X = data.like();
-        final double n = dataSet.getNumRows();
-        final double delta = 0.0001;//1.0 / (4.0 * Math.pow(n, 0.25) * Math.sqrt(Math.PI * Math.log(n)));
-
-        final NormalDistribution normalDistribution = new NormalDistribution();
-
-        double std = Double.NaN;
 
         for (int j = 0; j < data.columns(); j++) {
             final double[] x1 = data.getColumn(j).copy().toArray();
-//            double std = StatUtils.sd(x1);
-            double mu = StatUtils.mean(x1);
-            double[] x = ranks(data, x1);
-
-            for (int i = 0; i < x.length; i++) {
-                x[i] /= n;
-                if (x[i] < delta) x[i] = delta;
-                if (x[i] > (1. - delta)) x[i] = 1. - delta;
-                x[i] = normalDistribution.inverseCumulativeProbability(x[i]);
-
-//                System.out.println();
-            }
-
-            if (Double.isNaN(std)) {
-                std = StatUtils.sd(x);
-            }
-
-            for (int i = 0; i < x.length; i++) {
-                x[i] /= std;
-                x[i] *= std;
-                x[i] += mu;
-            }
-
-            X.assignColumn(j, new TetradVector(x));
+            X.assignColumn(j, new TetradVector(getNonparanormalTransformed(x1)));
         }
+
         return ColtDataSet.makeContinuousData(dataSet.getVariables(), X);
+    }
+
+    private static final NormalDistribution normalDistribution = new NormalDistribution();
+
+    public static double[] getNonparanormalTransformed(double[] x) {
+        x = Arrays.copyOf(x, x.length);
+        x = DataUtils.center(x);
+        final double n = x.length;
+        final double delta = 0.0001;//1.0 / (4.0 * Math.pow(n, 0.25) * Math.sqrt(Math.PI * Math.log(n)));
+
+        double std = Double.NaN;
+
+        double mu = StatUtils.mean(x);
+        x = ranks(x);
+
+        for (int i = 0; i < x.length; i++) {
+            x[i] /= n;
+            if (x[i] < delta) x[i] = delta;
+            if (x[i] > (1. - delta)) x[i] = 1. - delta;
+            x[i] = normalDistribution.inverseCumulativeProbability(x[i]);
+        }
+
+        if (Double.isNaN(std)) {
+            std = StatUtils.sd(x);
+        }
+
+        for (int i = 0; i < x.length; i++) {
+            x[i] /= std;
+            x[i] *= std;
+            x[i] += mu;
+        }
+
+        return x;
     }
 
     public static DataSet logData(DataSet dataSet, double offset) {
@@ -1847,14 +1852,14 @@ public final class DataUtils {
         return dataSet;
     }
 
-    private static double[] ranks(TetradMatrix data, double[] x) {
+    private static double[] ranks(double[] x) {
         double[] ranks = new double[x.length];
 
-        for (int i = 0; i < data.rows(); i++) {
+        for (int i = 0; i < x.length; i++) {
             double d = x[i];
             int count = 0;
 
-            for (int k = 0; k < data.rows(); k++) {
+            for (int k = 0; k < x.length; k++) {
                 if (x[k] <= d) {
                     count++;
                 }
