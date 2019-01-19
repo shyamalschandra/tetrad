@@ -82,22 +82,23 @@ public final class FruchtermanReingoldLayout {
     //============================PUBLIC METHODS==========================//
 
     public void doLayout() {
+//        Graph graph = GraphUtils.undirectedGraph(this.graph);
         GraphUtils.circleLayout(graph, 300, 300, 200);
 
-        List<List<Node>> components =
-                GraphUtils.connectedComponents(this.graph());
+//        List<List<Node>> components =
+//                GraphUtils.connectedComponents(this.graph());
+//
+//        Collections.sort(components, new Comparator<List<Node>>() {
+//            public int compare(List<Node> o1, List<Node> o2) {
+//                int i1 = o1.size();
+//                int i2 = o2.size();
+//                return i2 < i1 ? -1 : i2 == i1 ? 0 : 1;
+//            }
+//        });
 
-        Collections.sort(components, new Comparator<List<Node>>() {
-            public int compare(List<Node> o1, List<Node> o2) {
-                int i1 = o1.size();
-                int i2 = o2.size();
-                return i2 < i1 ? -1 : i2 == i1 ? 0 : 1;
-            }
-        });
-
-        for (List<Node> component1 : components) {
-            layoutComponent(component1);
-        }
+//        for (List<Node> component1 : components) {
+        layoutComponent(graph.getNodes());
+//        }
     }
 
     private void layoutComponent(List<Node> nodes) {

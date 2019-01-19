@@ -743,41 +743,41 @@ public final class Fask_B implements GraphSearch {
         return knowledge.isForbidden(right.getName(), left.getName()) && knowledge.isForbidden(left.getName(), right.getName());
     }
 
-    private static double[][] covMatrix(double[] x, double[] y, double[][] z, double[] condition,
-                                        double threshold, double direction) {
-        List<Integer> rows = getRows(x, condition, threshold, direction);
-
-        double[][] allData = new double[z.length + 2][];
-
-        allData[0] = x;
-        allData[1] = y;
-
-        System.arraycopy(z, 0, allData, 2, z.length);
-
-        double[][] subdata = new double[allData.length][rows.size()];
-
-        for (int c = 0; c < allData.length; c++) {
-            for (int i = 0; i < rows.size(); i++) {
-                try {
-                    subdata[c][i] = allData[c][rows.get(i)];
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-
-        double[][] cov = new double[z.length + 2][z.length + 2];
-
-        for (int i = 0; i < z.length + 2; i++) {
-            for (int j = i; j < z.length + 2; j++) {
-                double c = StatUtils.covariance(subdata[i], subdata[j]);
-                cov[i][j] = c;
-                cov[j][i] = c;
-            }
-        }
-
-        return cov;
-    }
+//    private static double[][] covMatrix(double[] x, double[] y, double[][] z, double[] condition,
+//                                        double threshold, double direction) {
+//        List<Integer> rows = getRows(x, condition, threshold, direction);
+//
+//        double[][] allData = new double[z.length + 2][];
+//
+//        allData[0] = x;
+//        allData[1] = y;
+//
+//        System.arraycopy(z, 0, allData, 2, z.length);
+//
+//        double[][] subdata = new double[allData.length][rows.size()];
+//
+//        for (int c = 0; c < allData.length; c++) {
+//            for (int i = 0; i < rows.size(); i++) {
+//                try {
+//                    subdata[c][i] = allData[c][rows.get(i)];
+//                } catch (Exception e) {
+//                    e.printStackTrace();
+//                }
+//            }
+//        }
+//
+//        double[][] cov = new double[z.length + 2][z.length + 2];
+//
+//        for (int i = 0; i < z.length + 2; i++) {
+//            for (int j = i; j < z.length + 2; j++) {
+//                double c = StatUtils.covariance(subdata[i], subdata[j]);
+//                cov[i][j] = c;
+//                cov[j][i] = c;
+//            }
+//        }
+//
+//        return cov;
+//    }
 
     private static List<Integer> getRows(double[] x, double[] condition, double threshold, double direction) {
         List<Integer> rows = new ArrayList<>();
@@ -847,9 +847,6 @@ public final class Fask_B implements GraphSearch {
 
             double[] rx = regressionDataset.regress(x, z).getResiduals().toArray();
             double[] ry = regressionDataset.regress(y, z).getResiduals().toArray();
-
-//            rx = DataUtils.getNonparanormalTransformed(rx);
-//            ry = DataUtils.getNonparanormalTransformed(ry);
 
             double[] rxy = new double[rows.size()];
 
