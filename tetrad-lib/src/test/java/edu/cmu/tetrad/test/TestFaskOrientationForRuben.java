@@ -79,7 +79,7 @@ public final class TestFaskOrientationForRuben {
 
                 Fask fask = new Fask(dataSet, score);
                 fask.setAlpha(0.10);
-                fask.setDelta(-0.2);
+//                fask.setDelta(-0.2);
                 fask.setInitialGraph(skeleton);
                 Graph positives = fask.search();
 //

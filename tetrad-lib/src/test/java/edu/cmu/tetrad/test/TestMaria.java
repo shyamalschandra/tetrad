@@ -114,7 +114,7 @@ public class TestMaria {
             score.setPenaltyDiscount(3);
             Fask pc = new Fask(dataSet, score);
             pc.setDepth(4);
-            pc.setDelta(.5);
+//            pc.setDelta(.5);
             pc.setAlpha(1e-5);
             pc.setKnowledge(knowledge);
 //            Fges pc = new Fges(score);

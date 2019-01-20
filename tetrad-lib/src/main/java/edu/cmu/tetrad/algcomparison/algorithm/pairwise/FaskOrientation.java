@@ -87,7 +87,7 @@ public class FaskOrientation implements Algorithm, TakesInitialGraph, HasKnowled
             search.setInitialGraph(initialGraph);
 
             search.setAlpha(parameters.getDouble("twoCycleAlpha"));
-            search.setDelta(parameters.getDouble("faskDelta"));
+//            search.setDelta(parameters.getDouble("faskDelta"));
 
             search.setKnowledge(knowledge);
 
@@ -147,7 +147,7 @@ public class FaskOrientation implements Algorithm, TakesInitialGraph, HasKnowled
         }
 
         parameters.add("twoCycleAlpha");
-        parameters.add("faskDelta");
+//        parameters.add("faskDelta");
 
         parameters.add("verbose");
 

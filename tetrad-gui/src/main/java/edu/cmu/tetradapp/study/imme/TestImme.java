@@ -82,7 +82,7 @@ public class TestImme {
             fask.setPenaltyDiscount(20);
             fask.setDepth(3);
             fask.setAlpha(.001);
-            fask.setDelta(-1);
+//            fask.setDelta(-1);
             fask.setExtraEdgeThreshold(9.0);
             Graph graph = fask.search();
 

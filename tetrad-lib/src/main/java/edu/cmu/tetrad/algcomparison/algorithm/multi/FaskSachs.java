@@ -57,7 +57,7 @@ public class FaskSachs implements Algorithm, HasKnowledge, UsesScoreWrapper {
             search.setExtraEdgeThreshold(parameters.getDouble("maskThreshold"));
             search.setUseFasAdjacencies(parameters.getBoolean("useFasAdjacencies"));
              search.setAlpha(parameters.getDouble("twoCycleAlpha"));
-            search.setDelta(parameters.getDouble("faskDelta"));
+//            search.setDelta(parameters.getDouble("faskDelta"));
 
             SachsUtils su = new SachsUtils();
             knowledge = su.getKnowledge();
@@ -123,7 +123,7 @@ public class FaskSachs implements Algorithm, HasKnowledge, UsesScoreWrapper {
         List<String> parameters = score.getParameters();
         parameters.add("depth");
         parameters.add("twoCycleAlpha");
-        parameters.add("faskDelta");
+//        parameters.add("faskDelta");
 
         parameters.add("useFasAdjacencies");
         parameters.add("useSkewAdjacencies");
