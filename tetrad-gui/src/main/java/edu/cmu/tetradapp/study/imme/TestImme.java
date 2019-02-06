@@ -80,7 +80,7 @@ public class TestImme {
             fask.setDepth(3);
             fask.setAlpha(.001);
 //            fask.setDelta(-1);
-            fask.setSkewEdgeThreshold(9.0);
+//            fask.setSkewEdgeThreshold(9.0);
             Graph graph = fask.search();
 
 //            final EdgeListGraph graph = new EdgeListGraph();

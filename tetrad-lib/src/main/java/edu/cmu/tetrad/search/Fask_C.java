@@ -190,29 +190,38 @@ public final class Fask_C implements GraphSearch {
                 Node X = edge.getNode1();
                 Node Y = edge.getNode2();
 
+                if (edgeForbiddenByKnowledge(X, Y)) {
+                    // Don't add an edge.
+                } else if (knowledgeOrients(X, Y)) {
+                    graph.addDirectedEdge(X, Y);
+                } else if (knowledgeOrients(Y, X)) {
+                    graph.addDirectedEdge(Y, X);
+                } else {
+
 //                    if (graph.isAdjacentTo(X, Y)) continue;
 
-                int i = variables.indexOf(X);
-                int j = variables.indexOf(Y);
+                    int i = variables.indexOf(X);
+                    int j = variables.indexOf(Y);
 
-                double[] x = data[i];
-                double[] y = data[j];
+                    double[] x = data[i];
+                    double[] y = data[j];
 
-                System.out.println("X = " + X + " Y = " + Y + " | Z = empty");
+                    System.out.println("X = " + X + " Y = " + Y + " | Z = empty");
 
-                final boolean cxy = consistent(x, y, new double[0][]);
-                final boolean cyx = consistent(y, x, new double[0][]);
+                    final boolean cxy = consistent(x, y, new double[0][]);
+                    final boolean cyx = consistent(y, x, new double[0][]);
 
-                if (cxy && cyx) {
-                    graph.removeEdges(X, Y);
-                    graph.addDirectedEdge(X, Y);
-                    graph.addDirectedEdge(Y, X);
-                } else if (cxy) {
-                    graph.removeEdges(X, Y);
-                    graph.addDirectedEdge(X, Y);
-                } else if (cyx) {
-                    graph.removeEdges(Y, X);
-                    graph.addDirectedEdge(Y, X);
+                    if (cxy && cyx) {
+                        graph.removeEdges(X, Y);
+                        graph.addDirectedEdge(X, Y);
+                        graph.addDirectedEdge(Y, X);
+                    } else if (cxy) {
+                        graph.removeEdges(X, Y);
+                        graph.addDirectedEdge(X, Y);
+                    } else if (cyx) {
+                        graph.removeEdges(Y, X);
+                        graph.addDirectedEdge(Y, X);
+                    }
                 }
             }
 
@@ -226,45 +235,56 @@ public final class Fask_C implements GraphSearch {
                         Node X = edge.getNode1();
                         Node Y = edge.getNode2();
 
-                        int i = variables.indexOf(X);
-                        int j = variables.indexOf(Y);
+                        if (edgeForbiddenByKnowledge(X, Y)) {
+                            // Don't add an edge.
+                        } else if (knowledgeOrients(X, Y)) {
+//                            graph.addDirectedEdge(X, Y);
+                        } else if (knowledgeOrients(Y, X)) {
+//                            graph.addDirectedEdge(Y, X);
+                        } else {
 
-                        if (initialGraph != null && !initialGraph.isAdjacentTo(X, Y)) continue;
+                            int i = variables.indexOf(X);
+                            int j = variables.indexOf(Y);
 
-                        double[] x = data[i];
-                        double[] y = data[j];
+                            if (initialGraph != null && !initialGraph.isAdjacentTo(X, Y)) continue;
 
-                        List<Node> ZZ = graph.getAncestors(Collections.singletonList(X));
-                        ZZ.retainAll(graph.getAncestors(Collections.singletonList(Y)));
-                        ZZ.remove(X);
-                        ZZ.remove(Y);
+                            double[] x = data[i];
+                            double[] y = data[j];
 
-                        if (ZZ.isEmpty()) continue;
+                            List<Node> ZZ = graph.getAncestors(Collections.singletonList(X));
+                            ZZ.retainAll(graph.getAncestors(Collections.singletonList(Y)));
+                            ZZ.remove(X);
+                            ZZ.remove(Y);
 
-                        double[][] z = new double[ZZ.size()][];
+                            if (ZZ.isEmpty()) continue;
 
-                        for (int t = 0; t < ZZ.size(); t++) {
-                            z[t] = data[variables.indexOf(ZZ.get(t))];
-                        }
+                            double[][] z = new double[ZZ.size()][];
 
-                        System.out.println("X = " + X + " Y = " + Y + " | Z = " + ZZ);
+                            for (int t = 0; t < ZZ.size(); t++) {
+                                final Node V = ZZ.get(t);
+                                if (knowledge.isForbidden(V.getName(), Y.getName())) continue;;
+                                z[t] = data[variables.indexOf(V)];
+                            }
 
-                        final boolean cxy = consistent(x, y, z);
-                        final boolean cyx = consistent(y, x, z);
+                            System.out.println("X = " + X + " Y = " + Y + " | Z = " + ZZ);
 
-                        if (cxy && cyx && (!graph.isAdjacentTo(X, Y) || graph.getEdges(X, Y).size() < 2)) {
-                            graph.removeEdges(X, Y);
-                            graph.addDirectedEdge(X, Y);
-                            graph.addDirectedEdge(Y, X);
-                            changed = true;
-                        } else if (cxy && (graph.getEdges(X, Y).size() != 1 || !graph.getEdge(X, Y).pointsTowards(Y))) {
-                            graph.removeEdges(X, Y);
-                            graph.addDirectedEdge(X, Y);
-                            changed = true;
-                        } else if (cyx && (graph.getEdges(X, Y).size() != 1 || !graph.getEdge(Y, X).pointsTowards(X))) {
-                            graph.removeEdges(Y, X);
-                            graph.addDirectedEdge(Y, X);
-                            changed = true;
+                            final boolean cxy = consistent(x, y, z);
+                            final boolean cyx = consistent(y, x, z);
+
+                            if (cxy && cyx && (!graph.isAdjacentTo(X, Y) || graph.getEdges(X, Y).size() < 2)) {
+                                graph.removeEdges(X, Y);
+                                graph.addDirectedEdge(X, Y);
+                                graph.addDirectedEdge(Y, X);
+                                changed = true;
+                            } else if (cxy && (graph.getEdges(X, Y).size() != 1 || !graph.getEdge(X, Y).pointsTowards(Y))) {
+                                graph.removeEdges(X, Y);
+                                graph.addDirectedEdge(X, Y);
+                                changed = true;
+                            } else if (cyx && (graph.getEdges(X, Y).size() != 1 || !graph.getEdge(Y, X).pointsTowards(X))) {
+                                graph.removeEdges(Y, X);
+                                graph.addDirectedEdge(Y, X);
+                                changed = true;
+                            }
                         }
                     }
                 }
@@ -323,21 +343,21 @@ public final class Fask_C implements GraphSearch {
 //        }
 
 
-        for (
-                Edge edge : graph.getEdges()) {
+        for (Edge edge : graph.getEdges()) {
             Node X = edge.getNode1();
             Node Y = edge.getNode2();
 
             int i = variables.indexOf(X);
             int j = variables.indexOf(Y);
 
-            double[] x = data[i];
-            double[] y = data[j];
-
             if (twocycle(X, Y, graph)) {
                 graph.addDirectedEdge(X, Y);
                 graph.addDirectedEdge(Y, X);
             }
+        }
+
+        if (knowledge != null) {
+            SearchGraphUtils.arrangeByKnowledgeTiers(graph, knowledge);
         }
 
         System.out.println("\nGraph = " + graph);
