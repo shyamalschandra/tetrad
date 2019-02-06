@@ -356,7 +356,7 @@ public final class Fask_C implements GraphSearch {
             }
         }
 
-        if (knowledge != null) {
+        if (knowledge != null && knowledge.getNumTiers() > 0) {
             SearchGraphUtils.arrangeByKnowledgeTiers(graph, knowledge);
         }
 
