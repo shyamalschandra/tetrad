@@ -28,10 +28,13 @@ import edu.cmu.tetrad.util.*;
 import org.apache.commons.math3.distribution.TDistribution;
 
 import java.awt.*;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 
+import static edu.cmu.tetrad.util.StatUtils.max;
+import static edu.cmu.tetrad.util.StatUtils.min;
 import static edu.cmu.tetrad.util.StatUtils.*;
+import static java.lang.Math.max;
 import static java.lang.Math.*;
 
 /**
@@ -41,7 +44,7 @@ import static java.lang.Math.*;
  *
  * @author Joseph Ramsey
  */
-public final class Fask_B implements GraphSearch {
+public final class Fask_E implements GraphSearch {
 
     // The score to be used for the FAS adjacency search.
     private IndependenceTest test;
@@ -85,7 +88,7 @@ public final class Fask_B implements GraphSearch {
     /**
      * @param dataSet These datasets must all have the same variables, in the same order.
      */
-    public Fask_B(DataSet dataSet, IndependenceTest test) {
+    public Fask_E(DataSet dataSet, IndependenceTest test) {
         final SemBicScore score = new SemBicScore(new CovarianceMatrixOnTheFly(dataSet));
         score.setPenaltyDiscount(1);
         test = new IndTestScore(score);
@@ -537,8 +540,8 @@ public final class Fask_B implements GraphSearch {
         boolean b1 = false, b2 = false;
 
         try {
-            Fask_B.E hx = new E(X, Y, Z, X).invoke();
-            Fask_B.E hy = new E(X, Y, Z, Y).invoke();
+            Fask_E.E hx = new E(X, Y, Z, X).invoke();
+            Fask_E.E hy = new E(X, Y, Z, Y).invoke();
 
             double[] dx = hx.getR();
             double[] dy = hy.getR();
@@ -559,8 +562,8 @@ public final class Fask_B implements GraphSearch {
         }
 
         try {
-            Fask_B.E hy = new E(Y, X, Z, Y).invoke();
-            Fask_B.E hx = new E(Y, X, Z, X).invoke();
+            Fask_E.E hy = new E(Y, X, Z, Y).invoke();
+            Fask_E.E hx = new E(Y, X, Z, X).invoke();
 
             double[] dx = hx.getR();
             double[] dy = hy.getR();
@@ -692,8 +695,8 @@ public final class Fask_B implements GraphSearch {
             boolean b1 = false, b2 = false;
 
             try {
-                Fask_B.E hx = new E(X, Y, Z, null).invoke();
-                Fask_B.E hy = new E(X, Y, Z, X).invoke();
+                Fask_E.E hx = new E(X, Y, Z, null).invoke();
+                Fask_E.E hy = new E(X, Y, Z, X).invoke();
 
                 double[] dx = hx.getR();
                 double[] dy = hy.getR();
@@ -714,8 +717,8 @@ public final class Fask_B implements GraphSearch {
             }
 
             try {
-                Fask_B.E hy = new E(Y, X, Z, null).invoke();
-                Fask_B.E hx = new E(Y, X, Z, Y).invoke();
+                Fask_E.E hy = new E(Y, X, Z, null).invoke();
+                Fask_E.E hx = new E(Y, X, Z, Y).invoke();
 
                 double[] dx = hx.getR();
                 double[] dy = hy.getR();
@@ -837,7 +840,7 @@ public final class Fask_B implements GraphSearch {
             return rxy_over_erxx;
         }
 
-        public Fask_B.E invoke() {
+        public Fask_E.E invoke() {
 
             if (condition != null) {
                 final double[] _w = colData[variables.indexOf(condition)];

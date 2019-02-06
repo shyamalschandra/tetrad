@@ -59,7 +59,7 @@ public class Fask_Sachs implements Algorithm, HasKnowledge, UsesScoreWrapper {
             search.setKnowledge(knowledge);
             search.setDepth(parameters.getInt("depth"));
             search.setPenaltyDiscount(parameters.getDouble("penaltyDiscount"));
-            search.setExtraEdgeThreshold(parameters.getDouble("extraEdgeThreshold"));
+            search.setSkewEdgeThreshold(parameters.getDouble("extraEdgeThreshold"));
             search.setUseFasAdjacencies(parameters.getBoolean("useFasAdjacencies"));
             search.setUseSkewAdjacencies(parameters.getBoolean("useSkewAdjacencies"));
             search.setAlpha(parameters.getDouble("twoCycleAlpha"));

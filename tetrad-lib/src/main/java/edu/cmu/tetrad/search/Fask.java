@@ -34,8 +34,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static edu.cmu.tetrad.util.StatUtils.*;
-import static edu.cmu.tetrad.util.StatUtils.correlation;
+import static edu.cmu.tetrad.util.StatUtils.skewness;
 import static java.lang.Math.*;
 
 /**
@@ -87,8 +86,8 @@ public final class Fask implements GraphSearch {
     // True if skew adjacencies should be included in the output.
     private boolean useSkewAdjacencies = true;
 
-//    // Threshold for reversing casual judgments for negative coefficients.
-//    private double delta = -0.2;
+    // Threshold for reversing casual judgments for negative coefficients.
+    private double delta = -0.2;
 
     /**
      * @param dataSet These datasets must all have the same variables, in the same order.
@@ -177,7 +176,7 @@ public final class Fask implements GraphSearch {
                         graph.addEdge(edge1);
                         graph.addEdge(edge2);
                     } else {
-                        if (leftright(x, y) > 0) {
+                        if (leftright(x, y)) {
                             graph.addDirectedEdge(X, Y);
                         } else {
                             graph.addDirectedEdge(Y, X);
@@ -263,66 +262,20 @@ public final class Fask implements GraphSearch {
         return true;
     }
 
-//    private boolean leftright(double[] x, double[] y) {
-//        double left = cu(x, y, x) / (sqrt(cu(x, x, x) * cu(y, y, x)));
-//        double right = cu(x, y, y) / (sqrt(cu(x, x, y) * cu(y, y, y)));
-//        double lr = left - right;
-//
-//        double r = StatUtils.correlation(x, y);
-//        double sx = StatUtils.skewness(x);
-//        double sy = StatUtils.skewness(y);
-//
-//        r *= signum(sx) * signum(sy);2
-//        lr *= signum(r);
-//        if (r < getDelta()) lr *= -1;
-//
-//        return lr > 0;
-//    }
+    private boolean leftright(double[] x, double[] y) {
+        double left = cu(x, y, x) / (sqrt(cu(x, x, x) * cu(y, y, x)));
+        double right = cu(x, y, y) / (sqrt(cu(x, x, y) * cu(y, y, y)));
+        double lr = left - right;
 
-    // If X->Y then this number should be > 0.
-    private double leftright(double[] x, double[] y) {
+        double r = StatUtils.correlation(x, y);
+        double sx = StatUtils.skewness(x);
+        double sy = StatUtils.skewness(y);
 
-        double[] ry = residuals(y, new double[][]{x});
+        r *= signum(sx) * signum(sy);
+        lr *= signum(r);
+        if (r < getDelta()) lr *= -1;
 
-        double a = covariance(x, y) / variance(x);
-        double lr = E(a, x, ry, y, -1) - E(a, x, ry, y, +1);
-
-        return lr;
-    }
-
-    private double[] residuals(double[] _y, double[][] _x) {
-        TetradMatrix y = new TetradMatrix(new double[][]{_y}).transpose();
-        TetradMatrix x = new TetradMatrix(_x).transpose();
-
-        TetradMatrix xT = x.transpose();
-        TetradMatrix xTx = xT.times(x);
-        TetradMatrix xTxInv = xTx.inverse();
-        TetradMatrix xTy = xT.times(y);
-        TetradMatrix b = xTxInv.times(xTy);
-
-        TetradMatrix yHat = x.times(b);
-        if (yHat.columns() == 0) yHat = y.copy();
-
-        return y.minus(yHat).getColumn(0).toArray();
-    }
-
-    private static double E(double a, double[] x, double[] ry, double[] y, double dir) {
-        double exy = 0.0;
-
-        int n = 0;
-
-        for (int k = 0; k < x.length; k++) {
-            final double _x = x[k];
-            final double _ry = ry[k];
-            final double _y = abs(a) * _x + _ry;
-
-            if (_x * dir < 0 && _y * dir > 0) {
-                exy += _x * _ry;
-                n++;
-            }
-        }
-
-        return exy / n;
+        return lr > 0;
     }
 
     private static double cu(double[] x, double[] y, double[] condition) {
@@ -460,14 +413,14 @@ public final class Fask implements GraphSearch {
     public void setUseSkewAdjacencies(boolean useSkewAdjacencies) {
         this.useSkewAdjacencies = useSkewAdjacencies;
     }
-//
-//    public double getDelta() {
-//        return delta;
-//    }
-//
-//    public void setDelta(double delta) {
-//        this.delta = delta;
-//    }
+
+    public double getDelta() {
+        return delta;
+    }
+
+    public void setDelta(double delta) {
+        this.delta = delta;
+    }
 }
 
 

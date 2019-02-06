@@ -110,12 +110,12 @@ public class GraphSelectionWrapper implements SessionModel, GraphSource, Knowled
         setGraphs(graphs);
 
         calculateSelection();
-        List<Graph> selectionGraphs = getSelectionGraphs(params);
-
-        for (int i = 0; i < graphs.size(); i++) {
-            Graph graph = selectionGraphs.get(i);
-            GraphUtils.fruchtermanReingoldLayout(graph);
-        }
+//        List<Graph> selectionGraphs = getSelectionGraphs(params);
+//
+//        for (int i = 0; i < graphs.size(); i++) {
+//            Graph graph = selectionGraphs.get(i);
+//            GraphUtils.fruchtermanReingoldLayout(graph);
+//        }
 
         // No variable is selected by default - Updated 11/19/2018 by Zhou
 //        List<Node> nodes = getVariables();

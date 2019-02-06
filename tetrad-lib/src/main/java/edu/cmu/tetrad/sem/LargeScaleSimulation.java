@@ -805,7 +805,8 @@ public final class LargeScaleSimulation {
             distribution = new NormalDistribution(new Well1024a(++seed), 0, 1);
             varDist = new UniformRealDistribution(varLow, varHigh);
         } else {
-            distribution = new BetaDistribution(new Well1024a(++seed), getBetaLeftValue(), getBetaRightValue());
+//            distribution = new BetaDistribution(new Well1024a(++seed), getBetaLeftValue(), getBetaRightValue());
+            distribution = new ExponentialDistribution(new Well1024a(++seed), getBetaLeftValue(), getBetaRightValue());
         }
 
         int numVars = variableNodes.size();

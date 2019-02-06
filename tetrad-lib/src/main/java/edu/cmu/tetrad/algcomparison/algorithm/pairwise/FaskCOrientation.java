@@ -12,7 +12,6 @@ import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.search.IndTestScore;
 import edu.cmu.tetrad.search.SemBicScore;
 import edu.cmu.tetrad.util.Parameters;
-import edu.cmu.tetrad.util.TetradMatrix;
 import edu.pitt.dbmi.algo.resampling.GeneralResamplingTest;
 import edu.pitt.dbmi.algo.resampling.ResamplingEdgeEnsemble;
 
@@ -25,8 +24,8 @@ import java.util.List;
  * @author jdramsey
  */
 @edu.cmu.tetrad.annotation.Algorithm(
-        name = "Fask Orientation",
-        command = "fask_orientation",
+        name = "Fask-C Orientation",
+        command = "fask-c_orientation",
         algoType = AlgType.orient_pairwise
 //        description = "These are algorithms that orient edges X—Y for continuous variables pairwise based on non-Gaussian information. (If the variables are all Gaussian, one cannot orient these edges. That is, these rules will orient left or right randomly.) For EB, RSkew, RSkewE, Skew and SkewE, see Hyvarinen and Smith (2013). For R1, R2, R3 and R4, see Ramsey et al., 2014.\n" +
 //                "\n" +
@@ -42,17 +41,17 @@ import java.util.List;
 //                "- Cutoff for p-values (alpha). Conditional independence tests with p-values greater than this will be judged to be independent (H0).\n" +
 //                "- Maximum size of conditioning set (depth). PC in the adjacency phase will consider conditioning sets for conditional independences of increasing size, up to this value. For instance, for depth 3, the maximum size of a conditioning set considered will be 3."
 )
-public class FaskOrientation implements Algorithm, TakesInitialGraph, HasKnowledge {
+public class FaskCOrientation implements Algorithm, TakesInitialGraph, HasKnowledge {
 
     static final long serialVersionUID = 23L;
     private Algorithm algorithm = null;
     private Graph initialGraph = null;
     private IKnowledge knowledge;
 
-    public FaskOrientation() {
+    public FaskCOrientation() {
     }
 
-    public FaskOrientation(Algorithm algorithm) {
+    public FaskCOrientation(Algorithm algorithm) {
         this.algorithm = algorithm;
     }
 
@@ -80,22 +79,20 @@ public class FaskOrientation implements Algorithm, TakesInitialGraph, HasKnowled
 
             dataSet = ((DataSet) dataSet).subsetColumns(initialGraph.getNodes());
 
-            edu.cmu.tetrad.search.SemBicScore score = new edu.cmu.tetrad.search.SemBicScore(new CovarianceMatrixOnTheFly((DataSet) dataSet, false));
+            SemBicScore score = new SemBicScore(new CovarianceMatrixOnTheFly((DataSet) dataSet, false));
             score.setPenaltyDiscount(parameters.getDouble("penaltyDiscount"));
 
-            edu.cmu.tetrad.search.Fask search = new edu.cmu.tetrad.search.Fask((DataSet) dataSet, new SemBicScore(new CovarianceMatrixOnTheFly((DataSet) dataSet)));
+            edu.cmu.tetrad.search.Fask_C search
+                    = new edu.cmu.tetrad.search.Fask_C((DataSet) dataSet);
             search.setInitialGraph(initialGraph);
-            search.setUseFasAdjacencies(false);
-            search.setUseSkewAdjacencies(false);
+            search.setTwoCycleAlpha(parameters.getDouble("twoCycleAlpha"));
 
-            search.setAlpha(parameters.getDouble("twoCycleAlpha"));
-//            search.setDelta(parameters.getDouble("faskDelta"));
-
+            search.setVerbose(parameters.getBoolean("verbose"));
             search.setKnowledge(knowledge);
 
             return search.search();
         } else {
-            FaskOrientation r3 = new FaskOrientation(algorithm);
+            FaskCOrientation r3 = new FaskCOrientation(algorithm);
             if (initialGraph != null) {
                 r3.setInitialGraph(initialGraph);
             }
@@ -149,7 +146,6 @@ public class FaskOrientation implements Algorithm, TakesInitialGraph, HasKnowled
         }
 
         parameters.add("twoCycleAlpha");
-//        parameters.add("faskDelta");
 
         parameters.add("verbose");
 

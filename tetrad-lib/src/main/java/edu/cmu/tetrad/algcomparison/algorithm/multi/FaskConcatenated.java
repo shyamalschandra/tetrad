@@ -62,7 +62,7 @@ public class FaskConcatenated implements MultiDataSetAlgorithm, HasKnowledge, Us
             Fask search = new Fask(dataSet, score.getScore(dataSet, parameters));
             search.setDepth(parameters.getInt("depth"));
             search.setPenaltyDiscount(parameters.getDouble("penaltyDiscount"));
-            search.setExtraEdgeThreshold(parameters.getDouble("maskThreshold"));
+            search.setSkewEdgeThreshold(parameters.getDouble("maskThreshold"));
 //            search.setDelta(parameters.getDouble("faskDelta"));
             search.setAlpha(parameters.getDouble("twoCycleAlpha"));
             search.setKnowledge(knowledge);

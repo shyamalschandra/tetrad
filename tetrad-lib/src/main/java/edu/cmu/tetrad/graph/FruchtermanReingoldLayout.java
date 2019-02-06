@@ -24,6 +24,8 @@ package edu.cmu.tetrad.graph;
 
 import java.util.*;
 
+import static java.util.Collections.sort;
+
 /**
  * Lays out a graph by linearly summing repulsive force between all nodes and
  * attractive force between adjacent nodes.
@@ -85,23 +87,47 @@ public final class FruchtermanReingoldLayout {
 //        Graph graph = GraphUtils.undirectedGraph(this.graph);
         GraphUtils.circleLayout(graph, 300, 300, 200);
 
+        List<List<Node>> components =
+                GraphUtils.connectedComponents(this.graph);
+
+        components.sort((o1, o2) -> {
+            int i1 = o1.size();
+            int i2 = o2.size();
+            return Integer.compare(i2, i1);
+        });
+
+        for (List<Node> component1 : components) {
+            layoutComponent(component1, true);
+        }
+
+//        List<List<Node>> components = new ArrayList<>();
+//        List<Node> bigComp = new ArrayList<>(graph.getNodes());
+//
+//        for (Node node : graph.getNodes()) {
+//            if (graph.getAdjacentNodes(node).isEmpty()) {
+//                components.add(Collections.singletonList(node));
+//            } else {
+//                bigComp.add(node);
+//            }
+//        }
+//
+//        components.add(bigComp);
+
 //        List<List<Node>> components =
 //                GraphUtils.connectedComponents(this.graph());
 //
-//        Collections.sort(components, new Comparator<List<Node>>() {
-//            public int compare(List<Node> o1, List<Node> o2) {
-//                int i1 = o1.size();
-//                int i2 = o2.size();
-//                return i2 < i1 ? -1 : i2 == i1 ? 0 : 1;
-//            }
-//        });
+        components.sort((o1, o2) -> {
+            int i1 = o1.size();
+            int i2 = o2.size();
+            return Integer.compare(i2, i1);
+        });
 
-//        for (List<Node> component1 : components) {
-        layoutComponent(graph.getNodes());
-//        }
+        for (List<Node> component : components) {
+            layoutComponent(component, true);
+        }
     }
 
-    private void layoutComponent(List<Node> nodes) {
+    private void layoutComponent(List<Node> nodes, boolean shift) {
         int numNodes = nodes.size();
         nodePosition = new double[numNodes][2];
         nodeDisposition = new double[numNodes][2];

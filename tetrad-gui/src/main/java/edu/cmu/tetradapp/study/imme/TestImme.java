@@ -23,8 +23,6 @@ package edu.cmu.tetradapp.study.imme;
 
 import edu.cmu.tetrad.data.CovarianceMatrix;
 import edu.cmu.tetrad.data.DataSet;
-import edu.cmu.tetrad.data.DataUtils;
-import edu.cmu.tetrad.data.DataWriter;
 import edu.cmu.tetrad.graph.Edge;
 import edu.cmu.tetrad.graph.EdgeListGraph;
 import edu.cmu.tetrad.graph.Graph;
@@ -44,7 +42,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 
@@ -83,7 +80,7 @@ public class TestImme {
             fask.setDepth(3);
             fask.setAlpha(.001);
 //            fask.setDelta(-1);
-            fask.setExtraEdgeThreshold(9.0);
+            fask.setSkewEdgeThreshold(9.0);
             Graph graph = fask.search();
 
 //            final EdgeListGraph graph = new EdgeListGraph();

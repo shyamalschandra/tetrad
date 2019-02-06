@@ -122,12 +122,10 @@ public final class KamadaKawaiLayout {
         List<List<Node>> components =
                 GraphUtils.connectedComponents(this.graph);
 
-        Collections.sort(components, new Comparator<List<Node>>() {
-            public int compare(List<Node> o1, List<Node> o2) {
-                int i1 = o1.size();
-                int i2 = o2.size();
-                return i2 < i1 ? -1 : i2 == i1 ? 0 : 1;
-            }
+        components.sort((o1, o2) -> {
+            int i1 = o1.size();
+            int i2 = o2.size();
+            return Integer.compare(i2, i1);
         });
 
         for (List<Node> component1 : components) {
