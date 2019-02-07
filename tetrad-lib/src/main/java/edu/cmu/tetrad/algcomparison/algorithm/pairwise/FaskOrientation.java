@@ -85,7 +85,7 @@ public class FaskOrientation implements Algorithm, TakesInitialGraph, HasKnowled
 
             edu.cmu.tetrad.search.Fask search = new edu.cmu.tetrad.search.Fask((DataSet) dataSet, new SemBicScore(new CovarianceMatrixOnTheFly((DataSet) dataSet)));
             search.setInitialGraph(initialGraph);
-            search.setUseFasAdjacencies(false);
+            search.setUseFasAdjacencies(true);
             search.setUseSkewAdjacencies(false);
 
             search.setAlpha(parameters.getDouble("twoCycleAlpha"));

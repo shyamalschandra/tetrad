@@ -632,17 +632,23 @@ public class ParamDescriptions {
                 "Yes if adjacencies based on skewness should be used",
                 true));
 
-        map.put("useMask", new ParamDescription(
-                "Yes if the correlation difference mask should be used",
+        map.put("useCorrDiffAdjacencies", new ParamDescription(
+                "Yes if adjacencies from conditional correlation differences should be used",
                 true));
 
         map.put("faskDelta", new ParamDescription(
                 "Threshold for judging negative coefficient edges as X->Y (range (-1, 0))",
                 -0.2, -1.0, 1.0));
 
-        map.put("errorsPositivelySkewed", new ParamDescription(
-                "Yes if errors should be assumed to be positively skewed",
-                true));
+        map.put("faskDelta2", new ParamDescription(
+                "Threshold for judging negative coefficient edges as X->Y",
+                0.0, Double.NaN, Double.POSITIVE_INFINITY));
+
+        map.put("smallCorrelation", new ParamDescription(
+                "Abolute threshold below which edges are reversed and drawn in orange",
+                0.01, 0.0, 1.0));
+
+
 
         map.put("numLags", new ParamDescription(
                 "The number of lags in the time lag model",

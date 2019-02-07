@@ -262,7 +262,6 @@ public final class Fask_C implements GraphSearch {
 
                             for (int t = 0; t < ZZ.size(); t++) {
                                 final Node V = ZZ.get(t);
-                                if (knowledge.isForbidden(V.getName(), Y.getName())) continue;;
                                 z[t] = data[variables.indexOf(V)];
                             }
 
