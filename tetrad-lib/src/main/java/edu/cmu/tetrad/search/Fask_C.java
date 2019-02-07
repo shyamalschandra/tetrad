@@ -144,18 +144,10 @@ public final class Fask_C implements GraphSearch {
 
         TetradLogger.getInstance().forceLogMessage("");
 
-        Graph graph = new EdgeListGraph(dataSet.getVariables());
-
-        int depth = 3;//getDepth() == -1 ? 1000 : getDepth();
-
         List<Node> variables = dataSet.getVariables();
+        Graph graph = new EdgeListGraph(variables);
         dataSet = DataUtils.center(dataSet);
-        int N = dataSet.getNumRows();
-
         double[][] data = dataSet.getDoubleData().transpose().toArray();
-
-
-        initialGraph = GraphUtils.replaceNodes(initialGraph, dataSet.getVariables());
 
         {
             if (initialGraph == null) {
@@ -181,11 +173,15 @@ public final class Fask_C implements GraphSearch {
                 }
 
                 initialGraph = graph2;
+            } else {
+                initialGraph = GraphUtils.undirectedGraph(initialGraph);
+                initialGraph = GraphUtils.replaceNodes(initialGraph, dataSet.getVariables());
+
+                if (initialGraph == null) throw new NullPointerException("Initial graph is null.");
             }
         }
 
         {
-
             for (Edge edge : initialGraph.getEdges()) {
                 Node X = edge.getNode1();
                 Node Y = edge.getNode2();
@@ -197,9 +193,6 @@ public final class Fask_C implements GraphSearch {
                 } else if (knowledgeOrients(Y, X)) {
                     graph.addDirectedEdge(Y, X);
                 } else {
-
-//                    if (graph.isAdjacentTo(X, Y)) continue;
-
                     int i = variables.indexOf(X);
                     int j = variables.indexOf(Y);
 
@@ -342,14 +335,13 @@ public final class Fask_C implements GraphSearch {
 //        }
 
 
-        for (Edge edge : graph.getEdges()) {
+        for (Edge edge : initialGraph.getEdges()) {
             Node X = edge.getNode1();
             Node Y = edge.getNode2();
 
-            int i = variables.indexOf(X);
-            int j = variables.indexOf(Y);
+            if (graph.isAdjacentTo(X, Y)) continue;
 
-            if (twocycle(X, Y, graph)) {
+            if (bidirected(X, Y, initialGraph)) {
                 graph.addDirectedEdge(X, Y);
                 graph.addDirectedEdge(Y, X);
             }
@@ -539,6 +531,76 @@ public final class Fask_C implements GraphSearch {
             return this;
         }
 
+    }
+
+    private boolean bidirected(Node X, Node Y, Graph G0) {
+
+        Set<Node> adjSet = new HashSet<>(G0.getAdjacentNodes(X));
+        adjSet.addAll(G0.getAdjacentNodes(Y));
+        List<Node> adj = new ArrayList<>(adjSet);
+        adj.remove(X);
+        adj.remove(Y);
+
+        double[] x = colData[variables.indexOf(X)];
+        double[] y = colData[variables.indexOf(Y)];
+
+        DepthChoiceGenerator gen = new DepthChoiceGenerator(adj.size(), Math.min(depth, adj.size()));
+        int[] choice;
+
+        while ((choice = gen.next()) != null) {
+            List<Node> _adj = GraphUtils.asList(choice, adj);
+            double[][] _Z = new double[_adj.size()][];
+
+            for (int f = 0; f < _adj.size(); f++) {
+                Node _z = _adj.get(f);
+                int column = dataSet.getColumn(_z);
+                _Z[f] = colData[column];
+            }
+
+            double pc = 0;
+            double pc1 = 0;
+            double pc2 = 0;
+
+            try {
+                pc = partialCorrelation(x, y, _Z, x, Double.NEGATIVE_INFINITY, +1);
+                pc1 = partialCorrelation(x, y, _Z, x, 0, +1);
+                pc2 = partialCorrelation(x, y, _Z, y, 0, +1);
+            } catch (SingularMatrixException e) {
+                System.out.println("Singularity X = " + X + " Y = " + Y + " adj = " + adj);
+                TetradLogger.getInstance().log("info", "Singularity X = " + X + " Y = " + Y + " adj = " + adj);
+                continue;
+            }
+
+            int nc = StatUtils.getRows(x, Double.NEGATIVE_INFINITY, +1).size();
+            int nc1 = StatUtils.getRows(x, 0, +1).size();
+            int nc2 = StatUtils.getRows(y, 0, +1).size();
+
+            double z = 0.5 * (log(1.0 + pc) - log(1.0 - pc));
+            double z1 = 0.5 * (log(1.0 + pc1) - log(1.0 - pc1));
+            double z2 = 0.5 * (log(1.0 + pc2) - log(1.0 - pc2));
+
+            double zv1 = (z - z1) / sqrt((1.0 / ((double) nc - 3) + 1.0 / ((double) nc1 - 3)));
+            double zv2 = (z - z2) / sqrt((1.0 / ((double) nc - 3) + 1.0 / ((double) nc2 - 3)));
+
+            boolean rejected1 = abs(zv1) > cutoff;
+            boolean rejected2 = abs(zv2) > cutoff;
+
+            boolean possibleTwoCycle = false;
+
+            if (zv1 < 0 && zv2 > 0 && rejected1) {
+                possibleTwoCycle = true;
+            } else if (zv1 > 0 && zv2 < 0 && rejected2) {
+                possibleTwoCycle = true;
+            } else if (rejected1 && rejected2) {
+                possibleTwoCycle = true;
+            }
+
+            if (!possibleTwoCycle) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
 
