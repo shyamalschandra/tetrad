@@ -58,7 +58,7 @@ public final class Fask_C implements GraphSearch {
     private DataSet dataSet;
 
     // For the Fast Adjacency Search.
-    private int depth = -1;
+    private int depth = 1000;
 
     // Knowledge the the search will obey, of forbidden and required edges.
     private IKnowledge knowledge = new Knowledge2();
@@ -153,7 +153,7 @@ public final class Fask_C implements GraphSearch {
             if (initialGraph == null) {
 
                 FasStable fas = new FasStable(test);
-                fas.setDepth(getDepth());
+                fas.setDepth(5);
                 fas.setVerbose(false);
                 fas.setKnowledge(knowledge);
                 Graph graph2 = fas.search();
@@ -205,9 +205,9 @@ public final class Fask_C implements GraphSearch {
                     final boolean cyx = consistent(y, x, new double[0][]);
 
                     if (cxy && cyx) {
-                        graph.removeEdges(X, Y);
-                        graph.addDirectedEdge(X, Y);
-                        graph.addDirectedEdge(Y, X);
+//                        graph.removeEdges(X, Y);
+//                        graph.addDirectedEdge(X, Y);
+//                        graph.addDirectedEdge(Y, X);
                     } else if (cxy) {
                         graph.removeEdges(X, Y);
                         graph.addDirectedEdge(X, Y);
@@ -224,9 +224,9 @@ public final class Fask_C implements GraphSearch {
                 while (changed) {
                     changed = false;
 
-                    for (Edge edge : initialGraph.getEdges()) {
-                        Node X = edge.getNode1();
-                        Node Y = edge.getNode2();
+                    for (Edge edge : graph.getEdges()) {
+                        Node X = Edges.getDirectedEdgeTail(edge);
+                        Node Y = Edges.getDirectedEdgeHead(edge);
 
                         if (edgeForbiddenByKnowledge(X, Y)) {
                             // Don't add an edge.
@@ -235,17 +235,20 @@ public final class Fask_C implements GraphSearch {
                         } else if (knowledgeOrients(Y, X)) {
 //                            graph.addDirectedEdge(Y, X);
                         } else {
-
                             int i = variables.indexOf(X);
                             int j = variables.indexOf(Y);
-
-                            if (initialGraph != null && !initialGraph.isAdjacentTo(X, Y)) continue;
 
                             double[] x = data[i];
                             double[] y = data[j];
 
-                            List<Node> ZZ = graph.getAncestors(Collections.singletonList(X));
-                            ZZ.retainAll(graph.getAncestors(Collections.singletonList(Y)));
+                            List<Node> ZZ = graph.getAncestors(Collections.singletonList(Y));
+                            final List<Node> aY = graph.getAncestors(Collections.singletonList(X));
+                            for (Node C : graph.getChildren(X)) {
+                                if (C == Y) continue;
+                                aY.addAll(graph.getAncestors(Collections.singletonList(C)));
+                            }
+
+                            ZZ.retainAll(aY);
                             ZZ.remove(X);
                             ZZ.remove(Y);
 
@@ -254,8 +257,7 @@ public final class Fask_C implements GraphSearch {
                             double[][] z = new double[ZZ.size()][];
 
                             for (int t = 0; t < ZZ.size(); t++) {
-                                final Node V = ZZ.get(t);
-                                z[t] = data[variables.indexOf(V)];
+                                z[t] = data[variables.indexOf(ZZ.get(t))];
                             }
 
                             System.out.println("X = " + X + " Y = " + Y + " | Z = " + ZZ);
@@ -263,16 +265,16 @@ public final class Fask_C implements GraphSearch {
                             final boolean cxy = consistent(x, y, z);
                             final boolean cyx = consistent(y, x, z);
 
-                            if (cxy && cyx && (!graph.isAdjacentTo(X, Y) || graph.getEdges(X, Y).size() < 2)) {
+                            if (cxy && cyx) {
+//                            graph.removeEdges(X, Y);
+//                            graph.addDirectedEdge(X, Y);
+//                            graph.addDirectedEdge(Y, X);
+//                            changed = true;
+                            } else if (cxy && (graph.getEdge(X, Y) == null || !graph.getEdge(X, Y).pointsTowards(Y))) {
                                 graph.removeEdges(X, Y);
                                 graph.addDirectedEdge(X, Y);
-                                graph.addDirectedEdge(Y, X);
                                 changed = true;
-                            } else if (cxy && (graph.getEdges(X, Y).size() != 1 || !graph.getEdge(X, Y).pointsTowards(Y))) {
-                                graph.removeEdges(X, Y);
-                                graph.addDirectedEdge(X, Y);
-                                changed = true;
-                            } else if (cyx && (graph.getEdges(X, Y).size() != 1 || !graph.getEdge(Y, X).pointsTowards(X))) {
+                            } else if (cyx && (graph.getEdge(X, Y) == null || !graph.getEdge(Y, X).pointsTowards(X))) {
                                 graph.removeEdges(Y, X);
                                 graph.addDirectedEdge(Y, X);
                                 changed = true;
@@ -281,6 +283,93 @@ public final class Fask_C implements GraphSearch {
                     }
                 }
             }
+
+//            {
+//
+//                Set<Node> changedNodes1 = new HashSet<>(variables);
+//                Set<Node> changedNodes2;
+//
+//                for (int d = 1; d < depth; d++) {
+//
+//                    if (true) {//!changedNodes1.isEmpty()) {
+//                        boolean sufficientDepth = false;
+//
+//                        changedNodes2 = new HashSet<>();
+//
+//                        for (Edge edge : graph.getEdges()) {
+//                            Node X = Edges.getDirectedEdgeTail(edge);
+//                            Node Y = Edges.getDirectedEdgeHead(edge);
+//
+//                            if (edgeForbiddenByKnowledge(X, Y)) {
+//                                // Don't add an edge.
+//                            } else if (knowledgeOrients(X, Y)) {
+////                            graph.addDirectedEdge(X, Y);
+//                            } else if (knowledgeOrients(Y, X)) {
+////                            graph.addDirectedEdge(Y, X);
+//                            } else {
+//
+//                                int i = variables.indexOf(X);
+//                                int j = variables.indexOf(Y);
+//
+//                                if (initialGraph != null && !initialGraph.isAdjacentTo(X, Y)) continue;
+//
+//                                double[] x = data[i];
+//                                double[] y = data[j];
+//
+//                                Set<Node> ZZ = new HashSet<>();
+////                                ZZ.addAll(graph.getParents(X));
+//                                ZZ.addAll(graph.getParents(Y));
+//                                ZZ.remove(X);
+////                                ZZ.remove(Y);
+//                                List<Node> ZZZ = new ArrayList<>(ZZ);
+//
+//                                if (ZZZ.size() < d) {
+//                                    continue;
+//                                } else {
+//                                    sufficientDepth = true;
+//                                }
+//
+//                                ChoiceGenerator gen = new ChoiceGenerator(ZZZ.size(), d);
+//                                int[] choice;
+//
+//                                while ((choice = gen.next()) != null) {
+//                                    List<Node> Z = GraphUtils.asList(choice, ZZZ);
+//                                    double[][] z = new double[Z.size()][];
+//
+//                                    for (int t = 0; t < Z.size(); t++) {
+//                                        final Node V = Z.get(t);
+//                                        z[t] = data[variables.indexOf(V)];
+//                                    }
+//
+//                                    System.out.println("X = " + X + " Y = " + Y + " | Z = " + Z);
+//
+//                                    final boolean cxy = consistent(x, y, z);
+//                                    final boolean cyx = consistent(y, x, z);
+//
+//                                    if (cxy && cyx && (!graph.isAdjacentTo(X, Y) || graph.getEdges(X, Y).size() < 2)) {
+//                                        graph.removeEdges(X, Y);
+//                                        graph.addDirectedEdge(X, Y);
+//                                        graph.addDirectedEdge(Y, X);
+//                                    } else if (cxy && (graph.getEdges(X, Y).size() == 0 || !graph.getEdge(X, Y).pointsTowards(Y))) {
+//                                        graph.removeEdges(X, Y);
+//                                        graph.addDirectedEdge(X, Y);
+//                                        changedNodes2.add(Y);
+//                                    } else if (cyx && (graph.getEdges(X, Y).size() == 0 || !graph.getEdge(Y, X).pointsTowards(X))) {
+//                                        graph.removeEdges(Y, X);
+//                                        graph.addDirectedEdge(Y, X);
+//                                        changedNodes2.add(X);
+//                                    }
+//                                }
+//                            }
+//
+//                        }
+//
+//                        if (!sufficientDepth) break;
+//
+//                        changedNodes1 = new HashSet<>(changedNodes2);
+//                    }
+//                }
+//            }
         }
 
 //        System.out.println("\n===Removing===");
@@ -341,10 +430,10 @@ public final class Fask_C implements GraphSearch {
 
             if (graph.isAdjacentTo(X, Y)) continue;
 
-            if (bidirected(X, Y, initialGraph)) {
-                graph.addDirectedEdge(X, Y);
-                graph.addDirectedEdge(Y, X);
-            }
+//            if (bidirected(X, Y, initialGraph)) {
+            graph.addDirectedEdge(X, Y);
+            graph.addDirectedEdge(Y, X);
+//            }
         }
 
         if (knowledge != null && knowledge.getNumTiers() > 0) {
@@ -613,7 +702,13 @@ public final class Fask_C implements GraphSearch {
 
 
     private boolean consistent(double[] x, double[] y, double[][] z) {
-        return leftright(x, y, z) > 0 && leftright(y, x, z) < 0;
+        final double[] d = leftright2(x, y, z);
+        final double lr1 = d[0];
+        final double bound = d[1];
+        final double[] d2 = leftright2(y, x, z);
+        final double lr2 = d2[0];
+        System.out.println("lr1 = " + lr1 + " lr2 = " + lr2 + " bound = " + bound);
+        return lr1 > 0 && lr2 < bound;
     }
 
     private double leftright(double[] x, double[] y, double[]... z) {
@@ -622,9 +717,37 @@ public final class Fask_C implements GraphSearch {
         System.arraycopy(z, 0, cond, 1, z.length);
         double[] ry = residuals(y, cond);
         double a = covariance(x, y) / variance(x);
-        final double lr = E(a, x, ry, y, +1) - E(a, x, ry, y, -1);
-        System.out.println(lr);
+        final double lr = E(a, x, ry, +1) - E(a, x, ry, -1);
+
+        double xx = Exx(a, x, ry, +1) - Exx(a, x, ry, -1);
+        double yy = Eyy(a, x, ry, +1) - Eyy(a, x, ry, -1);
+
+//        double bound = a * (lr + a * xx) + yy;
+
+//        System.out.println("xx = " + xx + " yy = " + yy + " bound = " + bound);
+
+
         return lr;
+    }
+
+    private double[] leftright2(double[] x, double[] y, double[]... z) {
+        double[][] cond = new double[z.length + 1][];
+        cond[0] = x;
+        System.arraycopy(z, 0, cond, 1, z.length);
+        double[] ry = residuals(y, cond);
+        double a = covariance(x, y) / variance(x);
+        final double lr = E(a, x, ry, +1) - E(a, x, ry, -1);
+
+        double xx = Exx(a, x, ry, +1) - Exx(a, x, ry, -1);
+        double yy = Eyy(a, x, ry, +1) - Eyy(a, x, ry, -1);
+
+        double bound = a * a * xx - yy;
+
+
+//        System.out.println("xx = " + xx + " yy = " + yy + " bound = " + bound);
+
+
+        return new double[]{lr, bound};
     }
 
     /**
@@ -981,7 +1104,7 @@ public final class Fask_C implements GraphSearch {
         }
 
         double a = covariance(x, y) / variance(x);
-        double lr = E(a, x, ry, y, -1) - E(a, x, ry, y, +1);
+        double lr = E(a, x, ry, -1) - E(a, x, ry, +1);
 
         if (isVerbose()) {
             TetradLogger.getInstance().forceLogMessage(
@@ -1024,7 +1147,7 @@ public final class Fask_C implements GraphSearch {
         return y.minus(yHat).getColumn(0).toArray();
     }
 
-    private static double E(double a, double[] x, double[] ry, double[] y, double dir) {
+    private static double E(double a, double[] x, double[] ry, double dir) {
         double exy = 0.0;
 
         int n = 0;
@@ -1036,6 +1159,46 @@ public final class Fask_C implements GraphSearch {
 
             if (_x * dir > 0 && _y * dir < 0) {
                 exy += _x * _ry;
+                n++;
+            }
+        }
+
+        return exy / n;
+    }
+
+
+    private static double Exx(double a, double[] x, double[] ry, double dir) {
+        double exy = 0.0;
+
+        int n = 0;
+
+        for (int k = 0; k < x.length; k++) {
+            final double _x = x[k];
+            final double _ry = ry[k];
+            final double _y = abs(a) * _x + _ry;
+
+            if (_x * dir > 0 && _y * dir < 0) {
+                exy += _x * _x;
+                n++;
+            }
+        }
+
+        return exy / n;
+    }
+
+
+    private static double Eyy(double a, double[] x, double[] ry, double dir) {
+        double exy = 0.0;
+
+        int n = 0;
+
+        for (int k = 0; k < x.length; k++) {
+            final double _x = x[k];
+            final double _ry = ry[k];
+            final double _y = abs(a) * _x + _ry;
+
+            if (_x * dir > 0 && _y * dir < 0) {
+                exy += _y * _y;
                 n++;
             }
         }

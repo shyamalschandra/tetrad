@@ -121,12 +121,12 @@ public class SepsetsPossibleDsep implements SepsetProducer {
     /**
      * Removes from the list of nodes any that cannot be parents of x given the background knowledge.
      */
-    private List<Node> possibleParents(Node x, List<Node> nodes,
+    private List<Node> possibleParents(Node x, List<Node> possibleDsep,
                                        IKnowledge knowledge) {
         List<Node> possibleParents = new LinkedList<>();
         String _x = x.getName();
 
-        for (Node z : nodes) {
+        for (Node z : possibleDsep) {
             String _z = z.getName();
 
             if (possibleParentOf(_z, _x, knowledge)) {

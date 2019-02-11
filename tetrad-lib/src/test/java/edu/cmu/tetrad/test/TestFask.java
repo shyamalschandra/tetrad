@@ -403,8 +403,8 @@ public class TestFask {
     public void test4() {
         try {
 //            DataSet dataSet = loadData("/Users/user/Box/data/4cellLineData/4celllines.noindicators.txt", Delimiter.TAB, true);
-            DataSet dataSet = loadData("/Users/user/Box/data/Sachs/data.logged.txt", Delimiter.TAB, true);
-//            DataSet dataSet = loadData("/Users/user/Downloads/data2.txt", Delimiter.TAB, true);
+//            DataSet dataSet = loadData("/Users/user/Box/data/Sachs/data.logged.txt", Delimiter.TAB, true);
+            DataSet dataSet = loadData("/Users/user/Downloads/data2.txt", Delimiter.TAB, true);
 
 
 //            Graph initial = GraphUtils.loadGraphTxt(new File("/Users/user/Box/data/4cellLineData/goldNet2_35N_no_circles.graph.txt"));
