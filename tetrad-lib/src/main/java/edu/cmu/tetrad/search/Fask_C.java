@@ -236,11 +236,11 @@ public final class Fask_C implements GraphSearch {
                             graph.addDirectedEdge(Y, X);
                             changed2.add(X);
                             changed2.add(Y);
-                        } else if (cxy && !cyx && !(graph.getEdges(X, Y).size() == 1 && graph.getEdge(X, Y).pointsTowards(Y))) {
+                        } else if (cxy && !(graph.getEdges(X, Y).size() == 1 && graph.getEdge(X, Y).pointsTowards(Y))) {
                             graph.removeEdges(X, Y);
                             graph.addDirectedEdge(X, Y);
                             changed2.add(Y);
-                        } else if (cyx && !cxy && !(graph.getEdges(X, Y).size() == 1 && graph.getEdge(Y, X).pointsTowards(X))) {
+                        } else if (cyx && !(graph.getEdges(X, Y).size() == 1 && graph.getEdge(Y, X).pointsTowards(X))) {
                             graph.removeEdges(Y, X);
                             graph.addDirectedEdge(Y, X);
                             changed2.add(X);
@@ -286,14 +286,14 @@ public final class Fask_C implements GraphSearch {
         double[] ry = residuals(y, cond);
         double a = covariance(x, y) / variance(x);
 
-        final double lr = E(a, x, ry, +1) - E(a, x, ry, -1);
+        final double xry = E(a, x, ry, +1) - E(a, x, ry, -1);
 
         double xx = Exx(a, x, ry, +1) - Exx(a, x, ry, -1);
         double yy = Eyy(a, x, ry, +1) - Eyy(a, x, ry, -1);
 
         double bound = a * a * xx - yy;
 
-        return new double[]{lr, bound};
+        return new double[]{xry, bound};
     }
 
     /**
