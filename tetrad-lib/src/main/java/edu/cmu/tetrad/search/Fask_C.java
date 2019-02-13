@@ -230,17 +230,11 @@ public final class Fask_C implements GraphSearch {
                         final boolean cxy = consistent(x, y, z);
                         final boolean cyx = consistent(y, x, z);
 
-                        if (cxy && cyx && graph.getEdges(X, Y).size() < 2) {
-                            graph.removeEdges(X, Y);
-                            graph.addDirectedEdge(X, Y);
-                            graph.addDirectedEdge(Y, X);
-                            changed2.add(X);
-                            changed2.add(Y);
-                        } else if (cxy && !(graph.getEdges(X, Y).size() == 1 && graph.getEdge(X, Y).pointsTowards(Y))) {
+                        if (cxy && !cyx && !(graph.getEdges(X, Y).size() == 1 && graph.getEdge(X, Y).pointsTowards(Y))) {
                             graph.removeEdges(X, Y);
                             graph.addDirectedEdge(X, Y);
                             changed2.add(Y);
-                        } else if (cyx && !(graph.getEdges(X, Y).size() == 1 && graph.getEdge(Y, X).pointsTowards(X))) {
+                        } else if (cyx && !cxy && !(graph.getEdges(X, Y).size() == 1 && graph.getEdge(Y, X).pointsTowards(X))) {
                             graph.removeEdges(Y, X);
                             graph.addDirectedEdge(Y, X);
                             changed2.add(X);
