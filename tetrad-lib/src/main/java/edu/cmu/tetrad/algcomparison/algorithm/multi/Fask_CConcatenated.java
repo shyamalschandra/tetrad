@@ -1,6 +1,6 @@
 package edu.cmu.tetrad.algcomparison.algorithm.multi;
 
-import edu.cmu.tetrad.algcomparison.algorithm.Algorithm;
+import edu.cmu.tetrad.algcomparison.algorithm.MultiDataSetAlgorithm;
 import edu.cmu.tetrad.algcomparison.independence.IndependenceWrapper;
 import edu.cmu.tetrad.algcomparison.score.ScoreWrapper;
 import edu.cmu.tetrad.algcomparison.utils.HasKnowledge;
@@ -14,42 +14,53 @@ import edu.cmu.tetrad.util.Parameters;
 import edu.pitt.dbmi.algo.resampling.GeneralResamplingTest;
 import edu.pitt.dbmi.algo.resampling.ResamplingEdgeEnsemble;
 
+import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
  * Wraps the IMaGES algorithm for continuous variables.
  * </p>
  * Requires that the parameter 'randomSelectionSize' be set to indicate how many
- * datasets should be taken at a time (randomly). This cannot given multiple values.
+ * datasets should be taken at a time (randomly). This cannot given multiple
+ * values.
  *
  * @author jdramsey
  */
 @edu.cmu.tetrad.annotation.Algorithm(
-        name = "FASK_C",
-        command = "fask_c",
+        name = "FASK-C Concatenated",
+        command = "fask-c-concatenated",
         algoType = AlgType.forbid_latent_common_causes
 )
-public class Fask_C implements Algorithm, HasKnowledge, UsesScoreWrapper {
+public class Fask_CConcatenated implements MultiDataSetAlgorithm, HasKnowledge, UsesScoreWrapper {
+
     static final long serialVersionUID = 23L;
     private ScoreWrapper score;
     private IKnowledge knowledge = new Knowledge2();
 
-    public Fask_C() {
+    public Fask_CConcatenated() {
 
     }
 
-    public Fask_C(ScoreWrapper score) {
+    public Fask_CConcatenated(ScoreWrapper score) {
         this.score = score;
     }
 
-    private Graph getGraph(edu.cmu.tetrad.search.Fask_B search) {
-        return search.search();
-    }
-
     @Override
-    public Graph search(DataModel dataSet, Parameters parameters) {
+    public Graph search(List<DataModel> dataSets, Parameters parameters) {
         if (parameters.getInt("bootstrapSampleSize") < 1) {
-            edu.cmu.tetrad.search.Fask_C search = new edu.cmu.tetrad.search.Fask_C((DataSet) dataSet, score.getScore((DataSet) dataSet, parameters));
+            List<DataSet> centered = new ArrayList<>();
+
+            for (DataModel dataSet : dataSets) {
+                centered.add(DataUtils.standardizeData((DataSet) dataSet));
+            }
+
+            DataSet dataSet = DataUtils.concatenate(centered);
+
+            dataSet.setNumberFormat(new DecimalFormat("0.000000000000000000"));
+
+            edu.cmu.tetrad.search.Fask_C search = new edu.cmu.tetrad.search.Fask_C(dataSet, score.getScore(dataSet, parameters));
 
             search.setDepth(parameters.getInt("depth"));
             search.setSkewEdgeAlpha(parameters.getDouble("skewEdgeAlpha"));
@@ -59,15 +70,52 @@ public class Fask_C implements Algorithm, HasKnowledge, UsesScoreWrapper {
             search.setUseFasAdjacencies(parameters.getBoolean("useFasAdjacencies"));
 //            search.setUseMask(parameters.getBoolean("useMask"));
 //            search.setMaskThreshold(parameters.getDouble("maskThreshold"));
-
             search.setKnowledge(knowledge);
+            
             return search.search();
         } else {
-            Fask_C fask = new Fask_C(score);
-            fask.setKnowledge(knowledge);
+            Fask_CConcatenated algorithm = new Fask_CConcatenated(score);
+            algorithm.setKnowledge(knowledge);
 
-            DataSet data = (DataSet) dataSet;
-            GeneralResamplingTest search = new GeneralResamplingTest(data, fask, parameters.getInt("numberResampling"));
+            List<DataSet> datasets = new ArrayList<>();
+
+            for (DataModel dataModel : dataSets) {
+                datasets.add((DataSet) dataModel);
+            }
+
+            GeneralResamplingTest search = new GeneralResamplingTest(datasets, algorithm, parameters.getInt("numberResampling"));
+            search.setKnowledge(knowledge);
+
+            search.setResamplingWithReplacement(parameters.getBoolean("resamplingWithReplacement"));
+
+            ResamplingEdgeEnsemble edgeEnsemble = ResamplingEdgeEnsemble.Highest;
+            switch (parameters.getInt("resamplingEnsemble", 1)) {
+                case 0:
+                    edgeEnsemble = ResamplingEdgeEnsemble.Preserved;
+                    break;
+                case 1:
+                    edgeEnsemble = ResamplingEdgeEnsemble.Highest;
+                    break;
+                case 2:
+                    edgeEnsemble = ResamplingEdgeEnsemble.Majority;
+            }
+            search.setEdgeEnsemble(edgeEnsemble);
+            search.setParameters(parameters);
+            search.setVerbose(parameters.getBoolean("verbose"));
+            return search.search();
+        }
+    }
+
+    @Override
+    public Graph search(DataModel dataSet, Parameters parameters) {
+        if (!parameters.getBoolean("bootstrapping")) {
+            return search(Collections.singletonList((DataModel) DataUtils.getContinuousDataSet(dataSet)), parameters);
+        } else {
+            Fask_CConcatenated algorithm = new Fask_CConcatenated(score);
+            algorithm.setKnowledge(knowledge);
+
+            List<DataSet> dataSets = Collections.singletonList(DataUtils.getContinuousDataSet(dataSet));
+            GeneralResamplingTest search = new GeneralResamplingTest(dataSets, algorithm, parameters.getInt("numberResampling"));
             search.setKnowledge(knowledge);
 
             search.setResamplingWithReplacement(parameters.getBoolean("resamplingWithReplacement"));
@@ -97,7 +145,7 @@ public class Fask_C implements Algorithm, HasKnowledge, UsesScoreWrapper {
 
     @Override
     public String getDescription() {
-        return "FASK-C using " + score.getDescription();
+        return "FASK-C Concatenated";
     }
 
     @Override
@@ -124,6 +172,10 @@ public class Fask_C implements Algorithm, HasKnowledge, UsesScoreWrapper {
         parameters.add("resamplingEnsemble");
         parameters.add("verbose");
 
+        parameters.add("numRuns");
+        parameters.add("randomSelectionSize");
+        parameters.add("verbose");
+
         return parameters;
     }
 
@@ -137,7 +189,6 @@ public class Fask_C implements Algorithm, HasKnowledge, UsesScoreWrapper {
         this.knowledge = knowledge;
     }
 
-    @Override
     public void setScoreWrapper(ScoreWrapper score) {
         this.score = score;
     }

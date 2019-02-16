@@ -1,8 +1,10 @@
 package edu.cmu.tetrad.algcomparison.algorithm.pairwise;
 
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithm;
+import edu.cmu.tetrad.algcomparison.score.ScoreWrapper;
 import edu.cmu.tetrad.algcomparison.utils.HasKnowledge;
 import edu.cmu.tetrad.algcomparison.utils.TakesInitialGraph;
+import edu.cmu.tetrad.algcomparison.utils.UsesScoreWrapper;
 import edu.cmu.tetrad.annotation.AlgType;
 import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.EdgeListGraph;
@@ -79,11 +81,9 @@ public class FaskCOrientation implements Algorithm, TakesInitialGraph, HasKnowle
 
             dataSet = ((DataSet) dataSet).subsetColumns(initialGraph.getNodes());
 
-            SemBicScore score = new SemBicScore(new CovarianceMatrixOnTheFly((DataSet) dataSet, false));
-            score.setPenaltyDiscount(parameters.getDouble("penaltyDiscount"));
-
             edu.cmu.tetrad.search.Fask_C search
-                    = new edu.cmu.tetrad.search.Fask_C((DataSet) dataSet);
+                    = new edu.cmu.tetrad.search.Fask_C((DataSet) dataSet,
+                    new SemBicScore(new CovarianceMatrixOnTheFly((DataSet) dataSet)));
             search.setInitialGraph(initialGraph);
             search.setTwoCycleAlpha(parameters.getDouble("twoCycleAlpha"));
 
@@ -180,5 +180,4 @@ public class FaskCOrientation implements Algorithm, TakesInitialGraph, HasKnowle
 
         this.algorithm = algorithm;
     }
-
 }

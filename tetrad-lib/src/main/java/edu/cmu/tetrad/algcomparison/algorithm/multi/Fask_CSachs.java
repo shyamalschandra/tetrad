@@ -4,9 +4,11 @@ import edu.cmu.tetrad.algcomparison.algorithm.Algorithm;
 import edu.cmu.tetrad.algcomparison.independence.IndependenceWrapper;
 import edu.cmu.tetrad.algcomparison.score.ScoreWrapper;
 import edu.cmu.tetrad.algcomparison.utils.HasKnowledge;
+import edu.cmu.tetrad.algcomparison.utils.SachsUtils;
 import edu.cmu.tetrad.algcomparison.utils.TakesIndependenceWrapper;
 import edu.cmu.tetrad.algcomparison.utils.UsesScoreWrapper;
 import edu.cmu.tetrad.annotation.AlgType;
+import edu.cmu.tetrad.annotation.Experimental;
 import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.EdgeListGraph;
 import edu.cmu.tetrad.graph.Graph;
@@ -14,6 +16,7 @@ import edu.cmu.tetrad.util.Parameters;
 import edu.pitt.dbmi.algo.resampling.GeneralResamplingTest;
 import edu.pitt.dbmi.algo.resampling.ResamplingEdgeEnsemble;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -29,21 +32,18 @@ import java.util.List;
         command = "fask_c",
         algoType = AlgType.forbid_latent_common_causes
 )
-public class Fask_C implements Algorithm, HasKnowledge, UsesScoreWrapper {
+@Experimental
+public class Fask_CSachs implements Algorithm, HasKnowledge, UsesScoreWrapper {
     static final long serialVersionUID = 23L;
     private ScoreWrapper score;
     private IKnowledge knowledge = new Knowledge2();
 
-    public Fask_C() {
+    public Fask_CSachs() {
 
     }
 
-    public Fask_C(ScoreWrapper score) {
-        this.score = score;
-    }
-
-    private Graph getGraph(edu.cmu.tetrad.search.Fask_B search) {
-        return search.search();
+    public Fask_CSachs(ScoreWrapper score) {
+        this.score  = score;
     }
 
     @Override
@@ -60,10 +60,17 @@ public class Fask_C implements Algorithm, HasKnowledge, UsesScoreWrapper {
 //            search.setUseMask(parameters.getBoolean("useMask"));
 //            search.setMaskThreshold(parameters.getDouble("maskThreshold"));
 
+            SachsUtils su = new SachsUtils();
+            knowledge = su.getKnowledge();
+
+
             search.setKnowledge(knowledge);
-            return search.search();
+            return su.pruneGraph(search.search());
         } else {
-            Fask_C fask = new Fask_C(score);
+            Fask_CSachs fask = new Fask_CSachs(score);
+
+            SachsUtils su = new SachsUtils();
+
             fask.setKnowledge(knowledge);
 
             DataSet data = (DataSet) dataSet;
@@ -86,7 +93,7 @@ public class Fask_C implements Algorithm, HasKnowledge, UsesScoreWrapper {
             search.setEdgeEnsemble(edgeEnsemble);
             search.setParameters(parameters);
             search.setVerbose(parameters.getBoolean("verbose"));
-            return search.search();
+            return su.pruneGraph(search.search());
         }
     }
 
@@ -97,7 +104,7 @@ public class Fask_C implements Algorithm, HasKnowledge, UsesScoreWrapper {
 
     @Override
     public String getDescription() {
-        return "FASK-C using " + score.getDescription();
+        return "FASK-C";
     }
 
     @Override
@@ -107,7 +114,7 @@ public class Fask_C implements Algorithm, HasKnowledge, UsesScoreWrapper {
 
     @Override
     public List<String> getParameters() {
-        List<String> parameters = score.getParameters();
+        List<String> parameters = new ArrayList<>();
         parameters.add("depth");
         parameters.add("skewEdgeAlpha");
         parameters.add("twoCycleAlpha");

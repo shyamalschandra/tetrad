@@ -115,7 +115,7 @@ public final class Fask implements GraphSearch {
 
         setCutoff(alpha);
 
-        DataSet dataSet = DataUtils.standardizeData(this.dataSet);
+//        DataSet dataSet = DataUtils.getNonparanormalTransformed(this.dataSet);
 
         List<Node> variables = dataSet.getVariables();
         double[][] colData = dataSet.getDoubleData().transpose().toArray();

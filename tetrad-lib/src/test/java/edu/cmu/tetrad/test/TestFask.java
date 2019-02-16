@@ -21,10 +21,13 @@
 
 package edu.cmu.tetrad.test;
 
+import edu.cmu.tetrad.data.CovarianceMatrixOnTheFly;
 import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.data.DataUtils;
 import edu.cmu.tetrad.graph.*;
+import edu.cmu.tetrad.search.Fask;
 import edu.cmu.tetrad.search.Fask_C;
+import edu.cmu.tetrad.search.SemBicScore;
 import edu.cmu.tetrad.util.*;
 import edu.pitt.dbmi.data.Delimiter;
 import edu.pitt.dbmi.data.reader.tabular.ContinuousTabularDataFileReader;
@@ -411,8 +414,9 @@ public class TestFask {
 
 //            System.out.println(initial);
 
-            Fask_C fask = new Fask_C(dataSet);
+            Fask_C fask = new Fask_C(dataSet, new SemBicScore(new CovarianceMatrixOnTheFly(dataSet)));
 //            fask.setInitialGraph(initial);
+//            fask.setDelta(-.2);
 
             Graph graph = fask.search();
 

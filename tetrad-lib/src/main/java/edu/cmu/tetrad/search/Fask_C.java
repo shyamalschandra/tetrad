@@ -78,8 +78,6 @@ public final class Fask_C implements GraphSearch {
     // Alpha for orienting 2-cycles.
     private double twoCycleAlpha = 0.05;
 
-    private RegressionDataset regressionDataset;
-
     // The list of variables.
     private final List<Node> variables;
 
@@ -90,9 +88,9 @@ public final class Fask_C implements GraphSearch {
     /**
      * @param dataSet These datasets must all have the same variables, in the same order.
      */
-    public Fask_C(DataSet dataSet) {
-        final SemBicScore score = new SemBicScore(new CovarianceMatrixOnTheFly(dataSet));
-        score.setPenaltyDiscount(1);
+    public Fask_C(DataSet dataSet, Score score) {
+//        final SemBicScore score = new SemBicScore(new CovarianceMatrixOnTheFly(dataSet));
+//        score.setPenaltyDiscount(5);
         test = new IndTestScore(score);
 
         this.dataSet = dataSet;
@@ -106,8 +104,6 @@ public final class Fask_C implements GraphSearch {
                 TetradLogger.getInstance().forceLogMessage(variable + " skewness = " + skewness(variable));
             }
         }
-
-        regressionDataset = new RegressionDataset(dataSet);
     }
 
     //======================================== PUBLIC METHODS ====================================//
@@ -180,13 +176,27 @@ public final class Fask_C implements GraphSearch {
             }
         }
 
+//        for (Edge edge : initialGraph.getEdges()) {
+//            if (RandomUtil.getInstance().nextDouble() > 0.5) {
+//                initialGraph.removeEdge(edge);
+//                initialGraph.addEdge(Edges.directedEdge(edge.getNode1(), edge.getNode2()));
+//            } else {
+//                initialGraph.removeEdge(edge);
+//                initialGraph.addEdge(Edges.directedEdge(edge.getNode2(), edge.getNode1()));
+//            }
+//        }
+
         {
 
             Set<Node> changed1 = new HashSet<>(variables);
             Set<Node> changed2 = new HashSet<>(variables);
             for (Edge edge : initialGraph.getEdges()) graph.addEdge(edge);
 
-            while (!changed1.isEmpty()) {
+            for (int d = 0; d < 20; d++) {
+//            while (!changed1.isEmpty()) {
+
+                if (changed1.isEmpty()) break;
+//
                 changed1 = changed2;
                 changed2 = new HashSet<>();
 
@@ -215,8 +225,8 @@ public final class Fask_C implements GraphSearch {
                         double[] x = data[i];
                         double[] y = data[j];
 
-                        final List<Node> Z = graph.getParents(X);
-                        Z.remove(Y);
+                        final List<Node> Z = graph.getParents(Y);
+                        Z.remove(X);
 
                         double[][] z = new double[Z.size()][];
 
@@ -227,8 +237,8 @@ public final class Fask_C implements GraphSearch {
 
                         System.out.println("X = " + X + " Y = " + Y + " | Z = " + Z);
 
-                        final boolean cxy = consistent(x, y, z);
-                        final boolean cyx = consistent(y, x, z);
+                        final boolean cxy = leftright(x, y, z) > 0;
+                        final boolean cyx = leftright(y, x, z) > 0;
 
                         if (cxy && !cyx && !(graph.getEdges(X, Y).size() == 1 && graph.getEdge(X, Y).pointsTowards(Y))) {
                             graph.removeEdges(X, Y);
@@ -248,8 +258,8 @@ public final class Fask_C implements GraphSearch {
     }
 
     private boolean isAdj(double[] x, double[] y) {
-        double c1 = StatUtils.cov(x, y, x, 0, +1)[0];
-        double c2 = StatUtils.cov(x, y, y, 0, +1)[0];
+        double c1 = StatUtils.cov(x, y, x, 0, +1)[1];
+        double c2 = StatUtils.cov(x, y, y, 0, +1)[1];
 
         double d1 = (covariance(x, y) / variance(x)) * (StatUtils.cov(x, x, x, 0, +1)[0]
                 - StatUtils.cov(x, x, y, 0, +1)[0]);
@@ -260,34 +270,17 @@ public final class Fask_C implements GraphSearch {
 
         double d3 = Math.max(abs(d1), abs(d2));
 
-        return abs(c1 - c2) > d3 + 0;
+        return abs(c1 - c2) > .3;//  d3 + 0;
     }
 
-    private boolean consistent(double[] x, double[] y, double[][] z) {
-        final double[] d = leftright(x, y, z);
-        final double lr1 = d[0];
-        final double bound = d[1];
-        final double[] d2 = leftright(y, x, z);
-        final double lr2 = d2[0];
-        System.out.println("lr1 = " + lr1 + " lr2 = " + lr2 + " bound = " + bound);
-        return lr1 > 0 && lr2 < bound;
-    }
-
-    private double[] leftright(double[] x, double[] y, double[]... z) {
+    private double leftright(double[] x, double[] y, double[]... z) {
         double[][] cond = new double[z.length + 1][];
         cond[0] = x;
         System.arraycopy(z, 0, cond, 1, z.length);
         double[] ry = residuals(y, cond);
         double a = covariance(x, y) / variance(x);
 
-        final double xry = E(a, x, ry, +1) - E(a, x, ry, -1);
-
-        double xx = Exx(a, x, ry, +1) - Exx(a, x, ry, -1);
-        double yy = Eyy(a, x, ry, +1) - Eyy(a, x, ry, -1);
-
-        double bound = a * a * xx - yy;
-
-        return new double[]{xry, bound};
+        return E(a, x, ry, +1) - E(a, x, ry, -1);
     }
 
     /**
@@ -316,10 +309,6 @@ public final class Fask_C implements GraphSearch {
 
     public boolean isUseFasAdjacencies() {
         return useFasAdjacencies;
-    }
-
-    private boolean isUseSkewAdjacencies() {
-        return useSkewAdjacencies;
     }
 
     public void setUseSkewAdjacencies(boolean useSkewAdjacencies) {
@@ -451,46 +440,6 @@ public final class Fask_C implements GraphSearch {
 
             if (_x * dir > 0 && _y * dir < 0) {
                 exy += _x * _ry;
-                n++;
-            }
-        }
-
-        return exy / n;
-    }
-
-
-    private static double Exx(double a, double[] x, double[] ry, double dir) {
-        double exy = 0.0;
-
-        int n = 0;
-
-        for (int k = 0; k < x.length; k++) {
-            final double _x = x[k];
-            final double _ry = ry[k];
-            final double _y = abs(a) * _x + _ry;
-
-            if (_x * dir > 0 && _y * dir < 0) {
-                exy += _x * _x;
-                n++;
-            }
-        }
-
-        return exy / n;
-    }
-
-
-    private static double Eyy(double a, double[] x, double[] ry, double dir) {
-        double exy = 0.0;
-
-        int n = 0;
-
-        for (int k = 0; k < x.length; k++) {
-            final double _x = x[k];
-            final double _ry = ry[k];
-            final double _y = abs(a) * _x + _ry;
-
-            if (_x * dir > 0 && _y * dir < 0) {
-                exy += _y * _y;
                 n++;
             }
         }

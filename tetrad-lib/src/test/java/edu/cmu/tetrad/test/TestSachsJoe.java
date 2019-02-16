@@ -23,10 +23,7 @@ package edu.cmu.tetrad.test;
 
 import edu.cmu.tetrad.algcomparison.Comparison;
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithms;
-import edu.cmu.tetrad.algcomparison.algorithm.multi.FaskSachs;
-import edu.cmu.tetrad.algcomparison.algorithm.multi.Fask_BConcatenated;
-import edu.cmu.tetrad.algcomparison.algorithm.multi.Fask_BSachs;
-import edu.cmu.tetrad.algcomparison.algorithm.multi.Fask_Sachs;
+import edu.cmu.tetrad.algcomparison.algorithm.multi.*;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pag.Fci;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pag.Fci_Sachs;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pag.Gfci;
@@ -101,7 +98,7 @@ public class TestSachsJoe {
 
         Simulations simulations = new Simulations();
 
-        String dir = "/Users/user/Box Sync/data/Sachs/";
+        String dir = "/Users/user/Box/data/Sachs/";
         String subdir = "data";
 
 //        simulations.add(new LoadDataAndGraphs(dir + "mixed"));
@@ -132,7 +129,8 @@ public class TestSachsJoe {
 ////        algorithms.add(new Fci_Sachs(new KciMatlab()));
 
         algorithms.add(new Fask_Sachs(new SemBicScore()));
-        algorithms.add(new Fask_BSachs(new SemBicTest()));
+//        algorithms.add(new Fask_BSachs(new SemBicTest()));
+//        algorithms.add(new Fask_CSachs());
 
 
 

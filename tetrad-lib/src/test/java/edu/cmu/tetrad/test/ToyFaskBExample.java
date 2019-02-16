@@ -26,6 +26,7 @@ import edu.cmu.tetrad.algcomparison.algorithm.Algorithms;
 import edu.cmu.tetrad.algcomparison.graph.RandomForward;
 import edu.cmu.tetrad.algcomparison.graph.RandomGraph;
 import edu.cmu.tetrad.algcomparison.independence.SemBicTest;
+import edu.cmu.tetrad.algcomparison.score.SemBicScore;
 import edu.cmu.tetrad.algcomparison.simulation.LinearFisherModel;
 import edu.cmu.tetrad.algcomparison.simulation.Simulations;
 import edu.cmu.tetrad.algcomparison.statistic.*;
@@ -63,7 +64,7 @@ public class ToyFaskBExample {
         simulations.add(new LinearFisherModel(graph));
 
         Algorithms algorithms = new Algorithms();
-        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.multi.Fask_B(new SemBicTest()));
+        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.multi.Fask(new SemBicScore()));
 
         Statistics statistics = new Statistics();
         statistics.add(new AdjacencyPrecision());
