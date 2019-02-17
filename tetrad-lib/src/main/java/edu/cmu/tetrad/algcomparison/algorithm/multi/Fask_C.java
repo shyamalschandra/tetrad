@@ -53,12 +53,10 @@ public class Fask_C implements Algorithm, HasKnowledge, UsesScoreWrapper {
 
             search.setDepth(parameters.getInt("depth"));
             search.setSkewEdgeAlpha(parameters.getDouble("skewEdgeAlpha"));
-            search.setTwoCycleAlpha(parameters.getDouble("twoCycleAlpha"));
+            search.setMaxIterations(parameters.getInt("maxIterations"));
             search.setVerbose(parameters.getBoolean("verbose"));
             search.setUseSkewAdjacencies(parameters.getBoolean("useSkewAdjacencies"));
             search.setUseFasAdjacencies(parameters.getBoolean("useFasAdjacencies"));
-//            search.setUseMask(parameters.getBoolean("useMask"));
-//            search.setMaskThreshold(parameters.getDouble("maskThreshold"));
 
             search.setKnowledge(knowledge);
             return search.search();
@@ -111,11 +109,10 @@ public class Fask_C implements Algorithm, HasKnowledge, UsesScoreWrapper {
         parameters.add("depth");
         parameters.add("skewEdgeAlpha");
         parameters.add("twoCycleAlpha");
+        parameters.add("maxIterations");
 
         parameters.add("useFasAdjacencies");
         parameters.add("useSkewAdjacencies");
-//        parameters.add("useMask");
-//        parameters.add("maskThreshold");
 
         // Bootstrapping
         parameters.add("numberResampling");

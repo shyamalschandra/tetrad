@@ -64,7 +64,7 @@ public class Fask_CConcatenated implements MultiDataSetAlgorithm, HasKnowledge, 
 
             search.setDepth(parameters.getInt("depth"));
             search.setSkewEdgeAlpha(parameters.getDouble("skewEdgeAlpha"));
-            search.setTwoCycleAlpha(parameters.getDouble("twoCycleAlpha"));
+            search.setMaxIterations(parameters.getInt("maxIterations"));
             search.setVerbose(parameters.getBoolean("verbose"));
             search.setUseSkewAdjacencies(parameters.getBoolean("useSkewAdjacencies"));
             search.setUseFasAdjacencies(parameters.getBoolean("useFasAdjacencies"));
@@ -158,7 +158,7 @@ public class Fask_CConcatenated implements MultiDataSetAlgorithm, HasKnowledge, 
         List<String> parameters = score.getParameters();
         parameters.add("depth");
         parameters.add("skewEdgeAlpha");
-        parameters.add("twoCycleAlpha");
+        parameters.add("maxIterations");
 
         parameters.add("useFasAdjacencies");
         parameters.add("useSkewAdjacencies");

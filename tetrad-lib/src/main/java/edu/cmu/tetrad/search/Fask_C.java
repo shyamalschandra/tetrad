@@ -23,12 +23,8 @@ package edu.cmu.tetrad.search;
 
 import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.*;
-import edu.cmu.tetrad.regression.RegressionDataset;
 import edu.cmu.tetrad.util.*;
-import org.apache.commons.math3.distribution.TDistribution;
-import org.apache.commons.math3.linear.SingularMatrixException;
 
-import java.io.File;
 import java.util.List;
 import java.util.*;
 
@@ -75,15 +71,14 @@ public final class Fask_C implements GraphSearch {
     // A threshold for including extra adjacencies due to skewness.
     private double skewEdgeAlpha = 0.05;
 
-    // Alpha for orienting 2-cycles.
-    private double twoCycleAlpha = 0.05;
-
     // The list of variables.
     private final List<Node> variables;
 
     // True iff verbose output should be printed.
     private boolean verbose = false;
-    private double cutoff;
+
+    // The maximum number it iterations the loop should go through for all edges.
+    private int maxIterations = 15;
 
     /**
      * @param dataSet These datasets must all have the same variables, in the same order.
@@ -118,8 +113,6 @@ public final class Fask_C implements GraphSearch {
      * and some of the adjacencies may be two-cycles.
      */
     public Graph search() {
-        setCutoff(twoCycleAlpha);
-
         TetradLogger.getInstance().forceLogMessage("\nStarting FASK-B Algorithm");
 
         TetradLogger.getInstance().forceLogMessage("\nSmoothly skewed:");
@@ -192,7 +185,7 @@ public final class Fask_C implements GraphSearch {
             Set<Node> changed2 = new HashSet<>(variables);
             for (Edge edge : initialGraph.getEdges()) graph.addEdge(edge);
 
-            for (int d = 0; d < 20; d++) {
+            for (int d = 0; d < getMaxIterations(); d++) {
 //            while (!changed1.isEmpty()) {
 
                 if (changed1.isEmpty()) break;
@@ -254,6 +247,58 @@ public final class Fask_C implements GraphSearch {
             }
         }
 
+//        {
+//            for (Edge edge : initialGraph.getEdges()) graph.addEdge(edge);
+//
+//            for (Edge edge : graph.getEdges()) {
+//                Node X, Y;
+//
+//                if (Edges.isUndirectedEdge(edge)) {
+//                    X = edge.getNode1();
+//                    Y = edge.getNode2();
+//                } else {
+//                    X = Edges.getDirectedEdgeTail(edge);
+//                    Y = Edges.getDirectedEdgeHead(edge);
+//                }
+//
+//                if (edgeForbiddenByKnowledge(X, Y)) {
+//                    // Don't add an edge.
+//                } else if (knowledgeOrients(X, Y)) {
+//                } else if (knowledgeOrients(Y, X)) {
+//                } else {
+//
+//                    int i = variables.indexOf(X);
+//                    int j = variables.indexOf(Y);
+//
+//                    double[] x = data[i];
+//                    double[] y = data[j];
+//
+//                    final List<Node> Z = new ArrayList<>();// graph.getParents(Y);
+//                    Z.remove(X);
+//
+//                    double[][] z = new double[Z.size()][];
+//
+//                    for (int t = 0; t < Z.size(); t++) {
+//                        final Node V = Z.get(t);
+//                        z[t] = data[variables.indexOf(V)];
+//                    }
+//
+//                    System.out.println("X = " + X + " Y = " + Y + " | Z = " + Z);
+//
+//                    final boolean cxy = leftright(x, y, z) > 0;
+//                    final boolean cyx = leftright(y, x, z) > 0;
+//
+//                    if (cxy && !cyx && !(graph.getEdges(X, Y).size() == 1 && graph.getEdge(X, Y).pointsTowards(Y))) {
+//                        graph.removeEdges(X, Y);
+//                        graph.addDirectedEdge(X, Y);
+//                    } else if (cyx && !cxy && !(graph.getEdges(X, Y).size() == 1 && graph.getEdge(Y, X).pointsTowards(X))) {
+//                        graph.removeEdges(Y, X);
+//                        graph.addDirectedEdge(Y, X);
+//                    }
+//                }
+//            }
+//        }
+
         return graph;
     }
 
@@ -283,18 +328,6 @@ public final class Fask_C implements GraphSearch {
         return E(a, x, ry, +1) - E(a, x, ry, -1);
     }
 
-    /**
-     * Sets the significance level at which independence judgments should be made.  Affects the cutoff for partial
-     * correlations to be considered statistically equal to zero.
-     */
-    private void setCutoff(double alpha) {
-        if (alpha < 0.0 || alpha > 1.0) {
-            throw new IllegalArgumentException("Significance out of range: " + alpha);
-        }
-
-        this.cutoff = StatUtils.getZForAlpha(alpha);
-    }
-
     public Graph getInitialGraph() {
         return initialGraph;
     }
@@ -317,10 +350,6 @@ public final class Fask_C implements GraphSearch {
 
     public void setUseFasAdjacencies(boolean useFasAdjacencies) {
         this.useFasAdjacencies = useFasAdjacencies;
-    }
-
-    public void setTwoCycleAlpha(double twoCycleAlpha) {
-        this.twoCycleAlpha = twoCycleAlpha;
     }
 
     /**
@@ -453,6 +482,14 @@ public final class Fask_C implements GraphSearch {
 
     private boolean edgeForbiddenByKnowledge(Node left, Node right) {
         return knowledge.isForbidden(right.getName(), left.getName()) && knowledge.isForbidden(left.getName(), right.getName());
+    }
+
+    public int getMaxIterations() {
+        return maxIterations;
+    }
+
+    public void setMaxIterations(int maxIterations) {
+        this.maxIterations = maxIterations;
     }
 }
 

@@ -85,7 +85,7 @@ public class FaskCOrientation implements Algorithm, TakesInitialGraph, HasKnowle
                     = new edu.cmu.tetrad.search.Fask_C((DataSet) dataSet,
                     new SemBicScore(new CovarianceMatrixOnTheFly((DataSet) dataSet)));
             search.setInitialGraph(initialGraph);
-            search.setTwoCycleAlpha(parameters.getDouble("twoCycleAlpha"));
+            search.setMaxIterations(parameters.getInt("maxIterations"));
 
             search.setVerbose(parameters.getBoolean("verbose"));
             search.setKnowledge(knowledge);
@@ -145,7 +145,7 @@ public class FaskCOrientation implements Algorithm, TakesInitialGraph, HasKnowle
             parameters.addAll(algorithm.getParameters());
         }
 
-        parameters.add("twoCycleAlpha");
+        parameters.add("maxIterations");
 
         parameters.add("verbose");
 

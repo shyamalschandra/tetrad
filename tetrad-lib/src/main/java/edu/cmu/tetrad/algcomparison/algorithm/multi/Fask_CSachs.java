@@ -53,7 +53,7 @@ public class Fask_CSachs implements Algorithm, HasKnowledge, UsesScoreWrapper {
 
             search.setDepth(parameters.getInt("depth"));
             search.setSkewEdgeAlpha(parameters.getDouble("skewEdgeAlpha"));
-            search.setTwoCycleAlpha(parameters.getDouble("twoCycleAlpha"));
+            search.setMaxIterations(parameters.getInt("maxIterations"));
             search.setVerbose(parameters.getBoolean("verbose"));
             search.setUseSkewAdjacencies(parameters.getBoolean("useSkewAdjacencies"));
             search.setUseFasAdjacencies(parameters.getBoolean("useFasAdjacencies"));
@@ -117,7 +117,7 @@ public class Fask_CSachs implements Algorithm, HasKnowledge, UsesScoreWrapper {
         List<String> parameters = new ArrayList<>();
         parameters.add("depth");
         parameters.add("skewEdgeAlpha");
-        parameters.add("twoCycleAlpha");
+        parameters.add("maxIterations");
 
         parameters.add("useFasAdjacencies");
         parameters.add("useSkewAdjacencies");

@@ -62,8 +62,8 @@ public class TestSimulatedFmri {
 //        new ToyFaskBExample().toy_positiveSkews();
 //        new ToyFaskBExample().toy_negativeSkews();
 //        new TestSimulatedFmri().trainingData();
-        new TestSimulatedFmri().testingData();
-//        new TestSimulatedFmri().smithSim();
+//        new TestSimulatedFmri().testingData();
+        new TestSimulatedFmri().smithSim();
 //        new TestSachsJoe().task();
     }
 
@@ -305,8 +305,8 @@ public class TestSimulatedFmri {
 //        algorithms.add(new LofsConcatenated(Lofs2.Rule.SkewE));
 //        algorithms.add(new LofsConcatenated(Lofs2.Rule.Patel));
 
-        algorithms.add(new FaskConcatenated(new SemBicScore()));
-//        algorithms.add(new Fask_CConcatenated(new SemBicTest()));
+//        algorithms.add(new FaskConcatenated(new SemBicScore()));
+        algorithms.add(new Fask_CConcatenated(new SemBicScore()));
 //        algorithms.add(new SkewSearchConcatenated());
 
 //        algorithms.add(new FasLofsConcatenated(Lofs2.Rule.R1));
