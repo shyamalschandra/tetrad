@@ -1,17 +1,14 @@
 package edu.cmu.tetrad.algcomparison.algorithm.pairwise;
 
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithm;
-import edu.cmu.tetrad.algcomparison.score.ScoreWrapper;
 import edu.cmu.tetrad.algcomparison.utils.HasKnowledge;
 import edu.cmu.tetrad.algcomparison.utils.TakesInitialGraph;
-import edu.cmu.tetrad.algcomparison.utils.UsesScoreWrapper;
 import edu.cmu.tetrad.annotation.AlgType;
 import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.EdgeListGraph;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.GraphUtils;
 import edu.cmu.tetrad.graph.Node;
-import edu.cmu.tetrad.search.IndTestScore;
 import edu.cmu.tetrad.search.SemBicScore;
 import edu.cmu.tetrad.util.Parameters;
 import edu.pitt.dbmi.algo.resampling.GeneralResamplingTest;
@@ -85,6 +82,7 @@ public class FaskCOrientation implements Algorithm, TakesInitialGraph, HasKnowle
                     = new edu.cmu.tetrad.search.Fask_C((DataSet) dataSet,
                     new SemBicScore(new CovarianceMatrixOnTheFly((DataSet) dataSet)));
             search.setInitialGraph(initialGraph);
+            search.setTwoCycleAlpha(parameters.getDouble("twoCycleAlpha"));
             search.setMaxIterations(parameters.getInt("maxIterations"));
 
             search.setVerbose(parameters.getBoolean("verbose"));
@@ -145,6 +143,7 @@ public class FaskCOrientation implements Algorithm, TakesInitialGraph, HasKnowle
             parameters.addAll(algorithm.getParameters());
         }
 
+        parameters.add("twoCycleAlpha");
         parameters.add("maxIterations");
 
         parameters.add("verbose");

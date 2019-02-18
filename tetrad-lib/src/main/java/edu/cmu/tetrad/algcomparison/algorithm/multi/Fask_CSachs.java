@@ -9,6 +9,7 @@ import edu.cmu.tetrad.algcomparison.utils.TakesIndependenceWrapper;
 import edu.cmu.tetrad.algcomparison.utils.UsesScoreWrapper;
 import edu.cmu.tetrad.annotation.AlgType;
 import edu.cmu.tetrad.annotation.Experimental;
+import edu.cmu.tetrad.annotation.Score;
 import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.EdgeListGraph;
 import edu.cmu.tetrad.graph.Graph;
@@ -38,10 +39,6 @@ public class Fask_CSachs implements Algorithm, HasKnowledge, UsesScoreWrapper {
     private ScoreWrapper score;
     private IKnowledge knowledge = new Knowledge2();
 
-    public Fask_CSachs() {
-
-    }
-
     public Fask_CSachs(ScoreWrapper score) {
         this.score  = score;
     }
@@ -49,10 +46,12 @@ public class Fask_CSachs implements Algorithm, HasKnowledge, UsesScoreWrapper {
     @Override
     public Graph search(DataModel dataSet, Parameters parameters) {
         if (parameters.getInt("bootstrapSampleSize") < 1) {
-            edu.cmu.tetrad.search.Fask_C search = new edu.cmu.tetrad.search.Fask_C((DataSet) dataSet, score.getScore((DataSet) dataSet, parameters));
+            edu.cmu.tetrad.search.Fask_C search
+                    = new edu.cmu.tetrad.search.Fask_C((DataSet) dataSet, score.getScore(dataSet, parameters));
 
             search.setDepth(parameters.getInt("depth"));
             search.setSkewEdgeAlpha(parameters.getDouble("skewEdgeAlpha"));
+            search.setTwoCycleAlpha(parameters.getDouble("twoCycleAlpha"));
             search.setMaxIterations(parameters.getInt("maxIterations"));
             search.setVerbose(parameters.getBoolean("verbose"));
             search.setUseSkewAdjacencies(parameters.getBoolean("useSkewAdjacencies"));
@@ -117,6 +116,7 @@ public class Fask_CSachs implements Algorithm, HasKnowledge, UsesScoreWrapper {
         List<String> parameters = new ArrayList<>();
         parameters.add("depth");
         parameters.add("skewEdgeAlpha");
+        parameters.add("twoCycleAlpha");
         parameters.add("maxIterations");
 
         parameters.add("useFasAdjacencies");

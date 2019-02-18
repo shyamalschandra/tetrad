@@ -23,7 +23,10 @@ package edu.cmu.tetrad.search;
 
 import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.*;
+import edu.cmu.tetrad.regression.RegressionDataset;
 import edu.cmu.tetrad.util.*;
+import org.apache.commons.math3.distribution.TDistribution;
+import org.apache.commons.math3.linear.SingularMatrixException;
 
 import java.util.List;
 import java.util.*;
@@ -71,6 +74,12 @@ public final class Fask_C implements GraphSearch {
     // A threshold for including extra adjacencies due to skewness.
     private double skewEdgeAlpha = 0.05;
 
+    // A threshold for including extra adjacencies due to skewness.
+    private double twoCycleAlpha = 0.05;
+
+    // Two cycle twoCycleCutoff.
+    private double twoCycleCutoff;
+
     // The list of variables.
     private final List<Node> variables;
 
@@ -80,12 +89,13 @@ public final class Fask_C implements GraphSearch {
     // The maximum number it iterations the loop should go through for all edges.
     private int maxIterations = 15;
 
+    private RegressionDataset regressionDataset;
+
+
     /**
      * @param dataSet These datasets must all have the same variables, in the same order.
      */
     public Fask_C(DataSet dataSet, Score score) {
-//        final SemBicScore score = new SemBicScore(new CovarianceMatrixOnTheFly(dataSet));
-//        score.setPenaltyDiscount(5);
         test = new IndTestScore(score);
 
         this.dataSet = dataSet;
@@ -99,6 +109,9 @@ public final class Fask_C implements GraphSearch {
                 TetradLogger.getInstance().forceLogMessage(variable + " skewness = " + skewness(variable));
             }
         }
+
+        regressionDataset = new RegressionDataset(dataSet);
+
     }
 
     //======================================== PUBLIC METHODS ====================================//
@@ -132,6 +145,8 @@ public final class Fask_C implements GraphSearch {
         }
 
         TetradLogger.getInstance().forceLogMessage("");
+
+        this.twoCycleCutoff = cutoff(getTwoCycleAlpha());
 
         List<Node> variables = dataSet.getVariables();
         Graph graph = new EdgeListGraph(variables);
@@ -169,27 +184,29 @@ public final class Fask_C implements GraphSearch {
             }
         }
 
-//        for (Edge edge : initialGraph.getEdges()) {
-//            if (RandomUtil.getInstance().nextDouble() > 0.5) {
-//                initialGraph.removeEdge(edge);
-//                initialGraph.addEdge(Edges.directedEdge(edge.getNode1(), edge.getNode2()));
-//            } else {
-//                initialGraph.removeEdge(edge);
-//                initialGraph.addEdge(Edges.directedEdge(edge.getNode2(), edge.getNode1()));
-//            }
-//        }
+        for (Edge edge : initialGraph.getEdges()) {
+            Node X = edge.getNode1();
+            Node Y = edge.getNode2();
+
+            if (edgeForbiddenByKnowledge(X, Y)) {
+                // Don't add an edge.
+            } else if (knowledgeOrients(X, Y)) {
+                initialGraph.removeEdges(X, Y);
+                initialGraph.addDirectedEdge(X,  Y);
+            } else if (knowledgeOrients(Y, X)) {
+                initialGraph.removeEdges(Y, X);
+                initialGraph.addDirectedEdge(Y, X);
+            }
+        }
 
         {
-
             Set<Node> changed1 = new HashSet<>(variables);
             Set<Node> changed2 = new HashSet<>(variables);
             for (Edge edge : initialGraph.getEdges()) graph.addEdge(edge);
 
             for (int d = 0; d < getMaxIterations(); d++) {
-//            while (!changed1.isEmpty()) {
-
                 if (changed1.isEmpty()) break;
-//
+
                 changed1 = changed2;
                 changed2 = new HashSet<>();
 
@@ -206,12 +223,7 @@ public final class Fask_C implements GraphSearch {
 
                     if (!changed1.contains(Y)) continue;
 
-                    if (edgeForbiddenByKnowledge(X, Y)) {
-                        // Don't add an edge.
-                    } else if (knowledgeOrients(X, Y)) {
-                    } else if (knowledgeOrients(Y, X)) {
-                    } else {
-
+                    if (!edgeForbiddenByKnowledge(X, Y) && !knowledgeOrients(X, Y) && !knowledgeOrients(Y, X)) {
                         int i = variables.indexOf(X);
                         int j = variables.indexOf(Y);
 
@@ -247,57 +259,23 @@ public final class Fask_C implements GraphSearch {
             }
         }
 
-//        {
-//            for (Edge edge : initialGraph.getEdges()) graph.addEdge(edge);
-//
-//            for (Edge edge : graph.getEdges()) {
-//                Node X, Y;
-//
-//                if (Edges.isUndirectedEdge(edge)) {
-//                    X = edge.getNode1();
-//                    Y = edge.getNode2();
-//                } else {
-//                    X = Edges.getDirectedEdgeTail(edge);
-//                    Y = Edges.getDirectedEdgeHead(edge);
-//                }
-//
-//                if (edgeForbiddenByKnowledge(X, Y)) {
-//                    // Don't add an edge.
-//                } else if (knowledgeOrients(X, Y)) {
-//                } else if (knowledgeOrients(Y, X)) {
-//                } else {
-//
-//                    int i = variables.indexOf(X);
-//                    int j = variables.indexOf(Y);
-//
-//                    double[] x = data[i];
-//                    double[] y = data[j];
-//
-//                    final List<Node> Z = new ArrayList<>();// graph.getParents(Y);
-//                    Z.remove(X);
-//
-//                    double[][] z = new double[Z.size()][];
-//
-//                    for (int t = 0; t < Z.size(); t++) {
-//                        final Node V = Z.get(t);
-//                        z[t] = data[variables.indexOf(V)];
-//                    }
-//
-//                    System.out.println("X = " + X + " Y = " + Y + " | Z = " + Z);
-//
-//                    final boolean cxy = leftright(x, y, z) > 0;
-//                    final boolean cyx = leftright(y, x, z) > 0;
-//
-//                    if (cxy && !cyx && !(graph.getEdges(X, Y).size() == 1 && graph.getEdge(X, Y).pointsTowards(Y))) {
-//                        graph.removeEdges(X, Y);
-//                        graph.addDirectedEdge(X, Y);
-//                    } else if (cyx && !cxy && !(graph.getEdges(X, Y).size() == 1 && graph.getEdge(Y, X).pointsTowards(X))) {
-//                        graph.removeEdges(Y, X);
-//                        graph.addDirectedEdge(Y, X);
-//                    }
-//                }
-//            }
-//        }
+        TetradLogger.getInstance().forceLogMessage("\nOrienting 2-cycles");
+        for (int i = 0; i < variables.size(); i++) {
+            for (int j = 0; j < variables.size(); j++) {
+                Node X = variables.get(i);
+                Node Y = variables.get(j);
+
+                if (edgeForbiddenByKnowledge(X, Y)) continue;
+
+                if (graph.isAdjacentTo(X, Y)
+                        && !knowledgeOrients(X, Y) && !knowledgeOrients(Y, X)
+                        && twocycle(X, Y, graph)) {
+                    graph.removeEdges(X, Y);
+                    graph.addDirectedEdge(X, Y);
+                    graph.addDirectedEdge(Y, X);
+                }
+            }
+        }
 
         return graph;
     }
@@ -474,6 +452,251 @@ public final class Fask_C implements GraphSearch {
         }
 
         return exy / n;
+    }
+
+    private boolean bidirected( Node X, Node Y, Graph G0) {
+        double[] x = colData[variables.indexOf(X)];
+        double[] y = colData[variables.indexOf(Y)];
+
+        Set<Node> adjSet = new HashSet<>(G0.getAdjacentNodes(X));
+        adjSet.addAll(G0.getAdjacentNodes(Y));
+        List<Node> adj = new ArrayList<>(adjSet);
+        adj.remove(X);
+        adj.remove(Y);
+
+        DepthChoiceGenerator gen = new DepthChoiceGenerator(adj.size(), Math.min(depth, adj.size()));
+        int[] choice;
+
+        while ((choice = gen.next()) != null) {
+            List<Node> _adj = GraphUtils.asList(choice, adj);
+            double[][] _Z = new double[_adj.size()][];
+
+            for (int f = 0; f < _adj.size(); f++) {
+                Node _z = _adj.get(f);
+                int column = dataSet.getColumn(_z);
+                _Z[f] = colData[column];
+            }
+
+            double pc = 0;
+            double pc1 = 0;
+            double pc2 = 0;
+
+            try {
+                pc = partialCorrelation(x, y, _Z, x, Double.NEGATIVE_INFINITY, +1);
+                pc1 = partialCorrelation(x, y, _Z, x, 0, +1);
+                pc2 = partialCorrelation(x, y, _Z, y, 0, +1);
+            } catch (SingularMatrixException e) {
+                System.out.println("Singularity X = " + X + " Y = " + Y + " adj = " + adj);
+                TetradLogger.getInstance().log("info", "Singularity X = " + X + " Y = " + Y + " adj = " + adj);
+                continue;
+            }
+
+            int nc = StatUtils.getRows(x, Double.NEGATIVE_INFINITY, +1).size();
+            int nc1 = StatUtils.getRows(x, 0, +1).size();
+            int nc2 = StatUtils.getRows(y, 0, +1).size();
+
+            double z = 0.5 * (log(1.0 + pc) - log(1.0 - pc));
+            double z1 = 0.5 * (log(1.0 + pc1) - log(1.0 - pc1));
+            double z2 = 0.5 * (log(1.0 + pc2) - log(1.0 - pc2));
+
+            double zv1 = (z - z1) / sqrt((1.0 / ((double) nc - 3) + 1.0 / ((double) nc1 - 3)));
+            double zv2 = (z - z2) / sqrt((1.0 / ((double) nc - 3) + 1.0 / ((double) nc2 - 3)));
+
+            boolean rejected1 = abs(zv1) > twoCycleCutoff;
+            boolean rejected2 = abs(zv2) > twoCycleCutoff;
+
+            boolean possibleTwoCycle = false;
+
+            if (zv1 < 0 && zv2 > 0 && rejected1) {
+                possibleTwoCycle = true;
+            } else if (zv1 > 0 && zv2 < 0 && rejected2) {
+                possibleTwoCycle = true;
+            } else if (rejected1 && rejected2) {
+                possibleTwoCycle = true;
+            }
+
+            if (!possibleTwoCycle) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private double partialCorrelation(double[] x, double[] y, double[][] z, double[] condition, double threshold, double direction) throws SingularMatrixException {
+        double[][] cv = StatUtils.covMatrix(x, y, z, condition, threshold, direction);
+        TetradMatrix m = new TetradMatrix(cv).transpose();
+        return StatUtils.partialCorrelation(m);
+    }
+
+    private double cutoff(double alpha) {
+        if (alpha < 0.0 || alpha > 1.0) {
+            throw new IllegalArgumentException("Significance out of range: " + alpha);
+        }
+
+        return StatUtils.getZForAlpha(alpha);
+    }
+
+    private boolean twocycle(Node X, Node Y, Graph graph) {
+//        double[] x = colData[variables.indexOf(X)];
+//        double[] y = colData[variables.indexOf(Y)];
+
+        final List<Node> adjX = graph.getAdjacentNodes(X);
+        final List<Node> adjY = graph.getAdjacentNodes(Y);
+
+        for (Node a : new ArrayList<>(adjX)) {
+            if (graph.getEdges(a, X).size() == 2 || Edges.isUndirectedEdge(graph.getEdge(a, X))) {
+                adjX.remove(a);
+            }
+        }
+
+        for (Node a : new ArrayList<>(adjY)) {
+            if (graph.getEdges(a, Y).size() == 2 || Edges.isUndirectedEdge(graph.getEdge(a, Y))) {
+                adjY.remove(a);
+            }
+        }
+
+        Set<Node> adjSet = new HashSet<>(adjX);
+        adjSet.addAll(adjY);
+        List<Node> adj = new ArrayList<>(adjSet);
+        adj.remove(X);
+        adj.remove(Y);
+
+        DepthChoiceGenerator gen = new DepthChoiceGenerator(adj.size(), Math.min(depth, adj.size()));
+        int[] choice;
+
+        while ((choice = gen.next()) != null) {
+            List<Node> Z = GraphUtils.asList(choice, adj);
+
+            boolean b1 = false, b2 = false;
+
+            try {
+                E hx = new E(X, Y, Z, null).invoke();
+                E hy = new E(X, Y, Z, X).invoke();
+
+                double[] dx = hx.getR();
+                double[] dy = hy.getR();
+
+                int nx = hx.getRows().size();
+                int ny = hy.getRows().size();
+
+                // Welch's Test
+                double exyy = variance(dy) / ((double) ny);
+                double exyx = variance(dx) / ((double) nx);
+                double t = (mean(dy) - mean(dx)) / sqrt(exyy + exyx);
+                double df = ((exyy + exyx) * (exyy + exyx)) / ((exyy * exyy) / (ny - 1)) + ((exyx * exyx) / (nx - 1));
+
+                double p = 2 * (new TDistribution(df).cumulativeProbability(-abs(t)));
+                b1 = p < getTwoCycleAlpha();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            try {
+                E hy = new E(Y, X, Z, null).invoke();
+                E hx = new E(Y, X, Z, Y).invoke();
+
+                double[] dx = hx.getR();
+                double[] dy = hy.getR();
+
+                int nx = hx.getRows().size();
+                int ny = hy.getRows().size();
+
+                // Welch's Test
+                double exyy = variance(dy) / ((double) ny);
+                double exyx = variance(dx) / ((double) nx);
+                double t = (mean(dx) - mean(dy)) / sqrt(exyy + exyx);
+                double df = ((exyy + exyx) * (exyy + exyx)) / ((exyy * exyy) / (ny - 1)) + ((exyx * exyx) / (nx - 1));
+
+                double p = 2 * (new TDistribution(df).cumulativeProbability(-abs(t)));
+                b2 = p < getTwoCycleAlpha();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            if (!b1 || !b2) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    public double getTwoCycleAlpha() {
+        return twoCycleAlpha;
+    }
+
+    public void setTwoCycleAlpha(double twoCycleAlpha) {
+        this.twoCycleAlpha = twoCycleAlpha;
+    }
+
+    private class E {
+        private Node x;
+        private Node y;
+        private List<Node> z;
+        private Node condition;
+        private List<Integer> rows;
+        private double[] rxy_over_erxx;
+
+        E(Node X, Node Y, List<Node> Z, Node condition) {
+            x = X;
+            y = Y;
+            z = Z;
+
+            if (z.contains(x) || z.contains(y)) {
+                throw new IllegalArgumentException("Z should not contain X or Y.");
+            }
+
+            this.condition = condition;
+        }
+
+        public List<Integer> getRows() {
+            return rows;
+        }
+
+        public double[] getR() {
+            return rxy_over_erxx;
+        }
+
+        public E invoke() {
+
+            if (condition != null) {
+                final double[] _w = colData[variables.indexOf(condition)];
+                rows = StatUtils.getRows(_w, 0, +1);
+            } else {
+                rows = new ArrayList<>();
+                for (int i = 0; i < dataSet.getNumRows(); i++) rows.add(i);
+            }
+
+
+            int[] _rows = new int[rows.size()];
+            for (int i = 0; i < rows.size(); i++) _rows[i] = rows.get(i);
+
+            regressionDataset.setRows(_rows);
+
+            double[] rx = regressionDataset.regress(x, z).getResiduals().toArray();
+            double[] ry = regressionDataset.regress(y, z).getResiduals().toArray();
+
+            double[] rxy = new double[rows.size()];
+
+            for (int i = 0; i < rows.size(); i++) {
+                rxy[i] = rx[i] * ry[i];
+            }
+
+            double[] rxx = new double[rows.size()];
+
+            for (int i = 0; i < rows.size(); i++) {
+                rxx[i] = rx[i] * rx[i];
+            }
+
+            rxy_over_erxx = Arrays.copyOf(rxy, rxy.length);
+            double erxx = mean(rxx);
+
+            for (int i = 0; i < rxy_over_erxx.length; i++) rxy_over_erxx[i] /= erxx;
+
+            return this;
+        }
+
     }
 
     private boolean knowledgeOrients(Node left, Node right) {
