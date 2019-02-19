@@ -59,10 +59,10 @@ public class TestSimulatedFmri {
     public void allTests() {
 //        new ToyFaskBExample().toy_positiveSkews();
 //        new ToyFaskBExample().toy_negativeSkews();
-//        new TestSimulatedFmri().trainingData();
+        new TestSimulatedFmri().trainingData();
 //        new TestSimulatedFmri().testingData();
 //        new TestSimulatedFmri().smithSim();
-        new TestSachsJoe().task();
+//        new TestSachsJoe().task();
     }
 
     @Test
