@@ -254,6 +254,9 @@ public final class Fask_C implements GraphSearch {
 
                         final boolean cxy = leftright(x, y, zy) > 0;
                         final boolean cyx = leftright(y, x, zx) > 0;
+//
+//                        final boolean cxy = leftright2(X, Y, Zy);
+//                        final boolean cyx = leftright2(Y, X, Zx);
 
                         if (cxy && !cyx && !(graph.getEdges(X, Y).size() == 1 && graph.getEdge(X, Y).pointsTowards(Y))) {
                             graph.removeEdges(X, Y);
@@ -263,12 +266,13 @@ public final class Fask_C implements GraphSearch {
                             graph.removeEdges(Y, X);
                             graph.addDirectedEdge(Y, X);
                             changed2.add(X);
-                        } else if (!cyx && !cxy && !(graph.getEdges(X, Y).size() == 2)) {
-                            graph.removeEdges(Y, X);
-                            graph.addDirectedEdge(X, Y);
-                            graph.addDirectedEdge(Y, X);
-                            changed2.add(X);
-                            changed2.add(Y);
+                        }
+                        else if (!cyx && !cxy && !(graph.getEdges(X, Y).size() == 2)) {
+//                            graph.removeEdges(Y, X);
+//                            graph.addDirectedEdge(X, Y);
+//                            graph.addDirectedEdge(Y, X);
+//                            changed2.add(X);
+//                            changed2.add(Y);
                         }
                     }
                 }
@@ -320,6 +324,58 @@ public final class Fask_C implements GraphSearch {
         double a = covariance(x, y) / variance(x);
 
         return E(a, x, ry, +1) - E(a, x, ry, -1);
+    }
+
+    private boolean leftright2(Node X, Node Y, List<Node> Z) {
+//        boolean b1 = false, b2 = false;
+        double p1 = 0, p2 = 0;
+
+        try {
+            E hx = new E(X, Y, Z, null).invoke();
+            E hy = new E(X, Y, Z, X).invoke();
+
+            double[] dx = hx.getR();
+            double[] dy = hy.getR();
+
+            double nx = hx.getRows().size();
+            double ny = hy.getRows().size();
+
+            // Welch's Test
+            double exyy = variance(dy) / ((double) ny);
+            double exyx = variance(dx) / ((double) nx);
+            double t = (mean(dy) - mean(dx)) / sqrt(exyy + exyx);
+            double df = ((exyy + exyx) * (exyy + exyx)) / ((exyy * exyy) / (ny - 1)) + ((exyx * exyx) / (nx - 1));
+
+            p1 = 2.0 * (1.0 - new TDistribution(df).cumulativeProbability(abs(t)));
+//            b1 = p1 < getTwoCycleAlpha();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        try {
+            E hy = new E(Y, X, Z, null).invoke();
+            E hx = new E(Y, X, Z, Y).invoke();
+
+            double[] dx = hx.getR();
+            double[] dy = hy.getR();
+
+            double nx = hx.getRows().size();
+            double ny = hy.getRows().size();
+
+            // Welch's Test
+            double exyy = variance(dy) / ((double) ny);
+            double exyx = variance(dx) / ((double) nx);
+            double t = (mean(dx) - mean(dy)) / sqrt(exyy + exyx);
+            double df = ((exyy + exyx) * (exyy + exyx)) / ((exyy * exyy) / (ny - 1)) + ((exyx * exyx) / (nx - 1));
+
+            p2 = 2.0 * (1.0 - new TDistribution(df).cumulativeProbability(abs(t)));
+//            b2 = p2 < getTwoCycleAlpha();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+//        return !b1 && b2;
+        return p1 < p2;
     }
 
     public Graph getInitialGraph() {
