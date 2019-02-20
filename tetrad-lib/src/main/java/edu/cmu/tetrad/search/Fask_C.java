@@ -268,11 +268,11 @@ public final class Fask_C implements GraphSearch {
                             changed2.add(X);
                         }
                         else if (!cyx && !cxy && !(graph.getEdges(X, Y).size() == 2)) {
-//                            graph.removeEdges(Y, X);
-//                            graph.addDirectedEdge(X, Y);
-//                            graph.addDirectedEdge(Y, X);
-//                            changed2.add(X);
-//                            changed2.add(Y);
+                            graph.removeEdges(Y, X);
+                            graph.addDirectedEdge(X, Y);
+                            graph.addDirectedEdge(Y, X);
+                            changed2.add(X);
+                            changed2.add(Y);
                         }
                     }
                 }
