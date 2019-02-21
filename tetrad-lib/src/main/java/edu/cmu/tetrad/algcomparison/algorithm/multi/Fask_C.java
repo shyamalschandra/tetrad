@@ -53,12 +53,9 @@ public class Fask_C implements Algorithm, HasKnowledge, TakesIndependenceWrapper
                     test.getTest(dataSet, parameters));
 
             search.setDepth(parameters.getInt("depth"));
-            search.setSkewEdgeAlpha(parameters.getDouble("skewEdgeAlpha"));
             search.setTwoCycleAlpha(parameters.getDouble("twoCycleAlpha"));
             search.setMaxIterations(parameters.getInt("maxIterations"));
             search.setVerbose(parameters.getBoolean("verbose"));
-            search.setUseSkewAdjacencies(parameters.getBoolean("useSkewAdjacencies"));
-            search.setUseFasAdjacencies(parameters.getBoolean("useFasAdjacencies"));
 
             search.setKnowledge(knowledge);
             return search.search();
@@ -109,12 +106,8 @@ public class Fask_C implements Algorithm, HasKnowledge, TakesIndependenceWrapper
     public List<String> getParameters() {
         List<String> parameters = test.getParameters();
         parameters.add("depth");
-        parameters.add("skewEdgeAlpha");
         parameters.add("twoCycleAlpha");
         parameters.add("maxIterations");
-
-        parameters.add("useFasAdjacencies");
-        parameters.add("useSkewAdjacencies");
 
         // Bootstrapping
         parameters.add("numberResampling");

@@ -649,7 +649,7 @@ public class ParamDescriptions {
                 0.01, 0.0, 1.0));
 
         map.put("maxIterations", new ParamDescription(
-                "The maximum number of iterations the algorithm should go through for all edges",
+                "The maximum number of iterations the algorithm should go through orienting edges",
                 15, 1, Integer.MAX_VALUE));
 
 

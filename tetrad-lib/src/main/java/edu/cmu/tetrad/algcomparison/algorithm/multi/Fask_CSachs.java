@@ -50,14 +50,9 @@ public class Fask_CSachs implements Algorithm, HasKnowledge, TakesIndependenceWr
                     = new edu.cmu.tetrad.search.Fask_C((DataSet) dataSet, test.getTest(dataSet, parameters));
 
             search.setDepth(parameters.getInt("depth"));
-            search.setSkewEdgeAlpha(parameters.getDouble("skewEdgeAlpha"));
             search.setTwoCycleAlpha(parameters.getDouble("twoCycleAlpha"));
             search.setMaxIterations(parameters.getInt("maxIterations"));
             search.setVerbose(parameters.getBoolean("verbose"));
-            search.setUseSkewAdjacencies(parameters.getBoolean("useSkewAdjacencies"));
-            search.setUseFasAdjacencies(parameters.getBoolean("useFasAdjacencies"));
-//            search.setUseMask(parameters.getBoolean("useMask"));
-//            search.setMaskThreshold(parameters.getDouble("maskThreshold"));
 
             SachsUtils su = new SachsUtils();
             knowledge = su.getKnowledge();
@@ -115,14 +110,8 @@ public class Fask_CSachs implements Algorithm, HasKnowledge, TakesIndependenceWr
     public List<String> getParameters() {
         List<String> parameters = test.getParameters();
         parameters.add("depth");
-        parameters.add("skewEdgeAlpha");
         parameters.add("twoCycleAlpha");
         parameters.add("maxIterations");
-
-        parameters.add("useFasAdjacencies");
-        parameters.add("useSkewAdjacencies");
-//        parameters.add("useMask");
-//        parameters.add("maskThreshold");
 
         // Bootstrapping
         parameters.add("numberResampling");

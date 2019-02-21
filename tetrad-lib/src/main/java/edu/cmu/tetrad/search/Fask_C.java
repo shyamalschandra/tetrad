@@ -65,15 +65,6 @@ public final class Fask_C implements GraphSearch {
     // Data as a double[][].
     private final double[][] colData;
 
-    // True if FAS adjacencies should be included in the output.
-    private boolean useFasAdjacencies = true;
-
-    // True if skew adjacencies should be included in the output.
-    private boolean useSkewAdjacencies = true;
-
-    // A threshold for including extra adjacencies due to skewness.
-    private double skewEdgeAlpha = 0.05;
-
     // A threshold for including extra adjacencies due to skewness.
     private double twoCycleAlpha = 0.05;
 
@@ -381,22 +372,6 @@ public final class Fask_C implements GraphSearch {
 
     public void setInitialGraph(Graph initialGraph) {
         this.initialGraph = initialGraph;
-    }
-
-    public void setSkewEdgeAlpha(double skewEdgeAlpha) {
-        this.skewEdgeAlpha = skewEdgeAlpha;
-    }
-
-    public boolean isUseFasAdjacencies() {
-        return useFasAdjacencies;
-    }
-
-    public void setUseSkewAdjacencies(boolean useSkewAdjacencies) {
-        this.useSkewAdjacencies = useSkewAdjacencies;
-    }
-
-    public void setUseFasAdjacencies(boolean useFasAdjacencies) {
-        this.useFasAdjacencies = useFasAdjacencies;
     }
 
     /**
