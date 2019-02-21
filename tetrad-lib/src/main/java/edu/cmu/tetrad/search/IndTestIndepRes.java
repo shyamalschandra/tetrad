@@ -316,25 +316,25 @@ public final class IndTestIndepRes implements IndependenceTest {
 
     private boolean indepRes(Node X, Node Y, List<Node> Z) {
         try {
-            E h = new E(X, Y, Z, null).invoke();
+//            E h = new E(X, Y, Z, null).invoke();
             E hx = new E(X, Y, Z, X).invoke();
-            E hy = new E(X, Y, Z, Y).invoke();
+            E hy = new E(Y, X, Z, Y).invoke();
 
-            double[] d = h.getRxy();
+//            double[] d = h.getRxy();
             double[] dx = hx.getRxy();
             double[] dy = hy.getRxy();
 
-            double n = h.getN();
+//            double n = h.getN();
             double nx = hx.getN();
             double ny = hy.getN();
 
-            double p1 = getP(d, n);
+//            double p1 = getP(d, n);
             double p2 = getP(dx, nx);
             double p3 = getP(dy, ny);
 
             System.out.println(/*"p1 = " + p1 +*/ " p2 = " + p2 + " p3 = " + p3);
 
-            return p1 > getAlpha() && (p2 > getAlpha() && p3 > getAlpha());
+            return /*p1 > getAlpha() &&*/ (p2 > getAlpha() && p3 > getAlpha());
         } catch (Exception e) {
             e.printStackTrace();
             return false;

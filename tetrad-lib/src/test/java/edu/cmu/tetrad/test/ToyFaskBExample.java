@@ -64,7 +64,7 @@ public class ToyFaskBExample {
         simulations.add(new LinearFisherModel(graph));
 
         Algorithms algorithms = new Algorithms();
-        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.multi.Fask_C(new SemBicScore()));
+        algorithms.add(new edu.cmu.tetrad.algcomparison.algorithm.multi.Fask_C(new SemBicTest()));
 
         Statistics statistics = new Statistics();
         statistics.add(new AdjacencyPrecision());

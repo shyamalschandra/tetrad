@@ -34,20 +34,20 @@ import java.util.List;
         algoType = AlgType.forbid_latent_common_causes
 )
 @Experimental
-public class Fask_CSachs implements Algorithm, HasKnowledge, UsesScoreWrapper {
+public class Fask_CSachs implements Algorithm, HasKnowledge, TakesIndependenceWrapper {
     static final long serialVersionUID = 23L;
-    private ScoreWrapper score;
+    private IndependenceWrapper test;
     private IKnowledge knowledge = new Knowledge2();
 
-    public Fask_CSachs(ScoreWrapper score) {
-        this.score  = score;
+    public Fask_CSachs(IndependenceWrapper test) {
+        this.test  = test;
     }
 
     @Override
     public Graph search(DataModel dataSet, Parameters parameters) {
         if (parameters.getInt("bootstrapSampleSize") < 1) {
             edu.cmu.tetrad.search.Fask_C search
-                    = new edu.cmu.tetrad.search.Fask_C((DataSet) dataSet, score.getScore(dataSet, parameters));
+                    = new edu.cmu.tetrad.search.Fask_C((DataSet) dataSet, test.getTest(dataSet, parameters));
 
             search.setDepth(parameters.getInt("depth"));
             search.setSkewEdgeAlpha(parameters.getDouble("skewEdgeAlpha"));
@@ -66,7 +66,7 @@ public class Fask_CSachs implements Algorithm, HasKnowledge, UsesScoreWrapper {
             search.setKnowledge(knowledge);
             return su.pruneGraph(search.search());
         } else {
-            Fask_CSachs fask = new Fask_CSachs(score);
+            Fask_CSachs fask = new Fask_CSachs(test);
 
             SachsUtils su = new SachsUtils();
 
@@ -113,7 +113,7 @@ public class Fask_CSachs implements Algorithm, HasKnowledge, UsesScoreWrapper {
 
     @Override
     public List<String> getParameters() {
-        List<String> parameters = new ArrayList<>();
+        List<String> parameters = test.getParameters();
         parameters.add("depth");
         parameters.add("skewEdgeAlpha");
         parameters.add("twoCycleAlpha");
@@ -145,7 +145,7 @@ public class Fask_CSachs implements Algorithm, HasKnowledge, UsesScoreWrapper {
     }
 
     @Override
-    public void setScoreWrapper(ScoreWrapper score) {
-        this.score = score;
+    public void setIndependenceWrapper(IndependenceWrapper independenceWrapper) {
+        this.test = independenceWrapper;
     }
 }

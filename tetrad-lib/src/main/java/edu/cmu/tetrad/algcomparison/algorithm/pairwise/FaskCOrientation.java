@@ -9,6 +9,7 @@ import edu.cmu.tetrad.graph.EdgeListGraph;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.GraphUtils;
 import edu.cmu.tetrad.graph.Node;
+import edu.cmu.tetrad.search.IndTestFisherZ;
 import edu.cmu.tetrad.search.SemBicScore;
 import edu.cmu.tetrad.util.Parameters;
 import edu.pitt.dbmi.algo.resampling.GeneralResamplingTest;
@@ -80,7 +81,7 @@ public class FaskCOrientation implements Algorithm, TakesInitialGraph, HasKnowle
 
             edu.cmu.tetrad.search.Fask_C search
                     = new edu.cmu.tetrad.search.Fask_C((DataSet) dataSet,
-                    new SemBicScore(new CovarianceMatrixOnTheFly((DataSet) dataSet)));
+                    new IndTestFisherZ((DataSet) dataSet, 0.05));
             search.setInitialGraph(initialGraph);
             search.setTwoCycleAlpha(parameters.getDouble("twoCycleAlpha"));
             search.setMaxIterations(parameters.getInt("maxIterations"));

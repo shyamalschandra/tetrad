@@ -3762,8 +3762,6 @@ public final class GraphUtils {
             } else {
                 edge.addProperty(Edge.Property.pl);
             }
-
-
         }
     }
 

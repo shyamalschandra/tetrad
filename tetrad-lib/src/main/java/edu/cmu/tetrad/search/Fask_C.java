@@ -95,8 +95,8 @@ public final class Fask_C implements GraphSearch {
     /**
      * @param dataSet These datasets must all have the same variables, in the same order.
      */
-    public Fask_C(DataSet dataSet, Score score) {
-        test = new IndTestScore(score);
+    public Fask_C(DataSet dataSet, IndependenceTest test) {
+        this.test = test;
 
         this.dataSet = dataSet;
 
@@ -157,23 +157,23 @@ public final class Fask_C implements GraphSearch {
             if (initialGraph == null) {
 
                 FasStable fas = new FasStable(test);
-                fas.setDepth(5);
+                fas.setDepth(depth);
                 fas.setVerbose(false);
                 fas.setKnowledge(knowledge);
                 Graph graph2 = fas.search();
 
-                List<Node> nodes = dataSet.getVariables();
-
-                for (int i = 0; i < nodes.size(); i++) {
-                    for (int j = i + 1; j < nodes.size(); j++) {
-                        double[] x = data[i];
-                        double[] y = data[j];
-
-                        if (isAdj(x, y)) {
-                            graph2.addUndirectedEdge(nodes.get(i), nodes.get(j));
-                        }
-                    }
-                }
+//                List<Node> nodes = dataSet.getVariables();
+//
+//                for (int i = 0; i < nodes.size(); i++) {
+//                    for (int j = i + 1; j < nodes.size(); j++) {
+//                        double[] x = data[i];
+//                        double[] y = data[j];
+//
+//                        if (isAdj(x, y)) {
+//                            graph2.addUndirectedEdge(nodes.get(i), nodes.get(j));
+//                        }
+//                    }
+//                }
 
                 initialGraph = graph2;
             } else {
@@ -266,9 +266,8 @@ public final class Fask_C implements GraphSearch {
                             graph.removeEdges(Y, X);
                             graph.addDirectedEdge(Y, X);
                             changed2.add(X);
-                        }
-                        else if (!cyx && !cxy && !(graph.getEdges(X, Y).size() == 2)) {
-                            graph.removeEdges(Y, X);
+                        } else if (!cyx && !cxy && !(graph.getEdges(X, Y).size() == 2)) {
+                            graph.removeEdges(X, Y);
                             graph.addDirectedEdge(X, Y);
                             graph.addDirectedEdge(Y, X);
                             changed2.add(X);
@@ -279,23 +278,21 @@ public final class Fask_C implements GraphSearch {
             }
         }
 
-//        TetradLogger.getInstance().forceLogMessage("\nOrienting 2-cycles");
-//        for (int i = 0; i < variables.size(); i++) {
-//            for (int j = 0; j < variables.size(); j++) {
-//                Node X = variables.get(i);
-//                Node Y = variables.get(j);
-//
-//                if (edgeForbiddenByKnowledge(X, Y)) continue;
-//
-//                if (graph.isAdjacentTo(X, Y)
-//                        && !knowledgeOrients(X, Y) && !knowledgeOrients(Y, X)
-//                        && twocycle(X, Y, graph)) {
-//                    graph.removeEdges(X, Y);
-//                    graph.addDirectedEdge(X, Y);
-//                    graph.addDirectedEdge(Y, X);
-//                }
-//            }
-//        }
+        TetradLogger.getInstance().forceLogMessage("\nOrienting 2-cycles");
+        for (Edge edge : graph.getEdges()) {
+            Node X = edge.getNode1();
+            Node Y = edge.getNode2();
+
+            if (edgeForbiddenByKnowledge(X, Y)) continue;
+
+            if (graph.isAdjacentTo(X, Y)
+                    && !knowledgeOrients(X, Y) && !knowledgeOrients(Y, X)
+                    && twocycle(X, Y, graph)) {
+                graph.removeEdges(X, Y);
+                graph.addDirectedEdge(X, Y);
+                graph.addDirectedEdge(Y, X);
+            }
+        }
 
         return graph;
     }

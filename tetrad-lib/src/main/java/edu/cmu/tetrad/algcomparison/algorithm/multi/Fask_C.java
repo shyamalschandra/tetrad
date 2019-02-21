@@ -29,17 +29,17 @@ import java.util.List;
         command = "fask_c",
         algoType = AlgType.forbid_latent_common_causes
 )
-public class Fask_C implements Algorithm, HasKnowledge, UsesScoreWrapper {
+public class Fask_C implements Algorithm, HasKnowledge, TakesIndependenceWrapper {
     static final long serialVersionUID = 23L;
-    private ScoreWrapper score;
+    private IndependenceWrapper test;
     private IKnowledge knowledge = new Knowledge2();
 
     public Fask_C() {
 
     }
 
-    public Fask_C(ScoreWrapper score) {
-        this.score = score;
+    public Fask_C(IndependenceWrapper test) {
+        this.test = test;
     }
 
     private Graph getGraph(edu.cmu.tetrad.search.Fask_B search) {
@@ -49,7 +49,8 @@ public class Fask_C implements Algorithm, HasKnowledge, UsesScoreWrapper {
     @Override
     public Graph search(DataModel dataSet, Parameters parameters) {
         if (parameters.getInt("bootstrapSampleSize") < 1) {
-            edu.cmu.tetrad.search.Fask_C search = new edu.cmu.tetrad.search.Fask_C((DataSet) dataSet, score.getScore((DataSet) dataSet, parameters));
+            edu.cmu.tetrad.search.Fask_C search = new edu.cmu.tetrad.search.Fask_C((DataSet) dataSet,
+                    test.getTest(dataSet, parameters));
 
             search.setDepth(parameters.getInt("depth"));
             search.setSkewEdgeAlpha(parameters.getDouble("skewEdgeAlpha"));
@@ -62,7 +63,7 @@ public class Fask_C implements Algorithm, HasKnowledge, UsesScoreWrapper {
             search.setKnowledge(knowledge);
             return search.search();
         } else {
-            Fask_C fask = new Fask_C(score);
+            Fask_C fask = new Fask_C(test);
             fask.setKnowledge(knowledge);
 
             DataSet data = (DataSet) dataSet;
@@ -96,7 +97,7 @@ public class Fask_C implements Algorithm, HasKnowledge, UsesScoreWrapper {
 
     @Override
     public String getDescription() {
-        return "FASK-C using " + score.getDescription();
+        return "FASK-C using " + test.getDescription();
     }
 
     @Override
@@ -106,7 +107,7 @@ public class Fask_C implements Algorithm, HasKnowledge, UsesScoreWrapper {
 
     @Override
     public List<String> getParameters() {
-        List<String> parameters = score.getParameters();
+        List<String> parameters = test.getParameters();
         parameters.add("depth");
         parameters.add("skewEdgeAlpha");
         parameters.add("twoCycleAlpha");
@@ -136,7 +137,7 @@ public class Fask_C implements Algorithm, HasKnowledge, UsesScoreWrapper {
     }
 
     @Override
-    public void setScoreWrapper(ScoreWrapper score) {
-        this.score = score;
+    public void setIndependenceWrapper(IndependenceWrapper independenceWrapper) {
+        this.test = independenceWrapper;
     }
 }
