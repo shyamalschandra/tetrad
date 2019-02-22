@@ -27,7 +27,6 @@ import edu.cmu.tetrad.regression.RegressionDataset;
 import edu.cmu.tetrad.util.StatUtils;
 import edu.cmu.tetrad.util.TetradMatrix;
 import org.apache.commons.math3.distribution.NormalDistribution;
-import org.apache.commons.math3.distribution.TDistribution;
 import org.apache.commons.math3.linear.SingularMatrixException;
 
 import java.text.DecimalFormat;
@@ -329,22 +328,28 @@ public final class IndTestIndepRes implements IndependenceTest {
             double ny = hy.getN();
 
 //            double p1 = getP(d, n);
-            double p2 = getP(dx, nx);
-            double p3 = getP(dy, ny);
+            double t2 = getT(dx, nx);
+            double t3 = getT(dy, ny);
 
-            System.out.println(/*"p1 = " + p1 +*/ " p2 = " + p2 + " p3 = " + p3);
+            boolean b2 = abs(t2) < cutoff;
+            boolean b3 = abs(t3) < cutoff;
 
-            return /*p1 > getAlpha() &&*/ (p2 > getAlpha() && p3 > getAlpha());
+//            System.out.println(/*"p1 = " + p1 +*/ " p2 = " + p2 + " p3 = " + p3);
+
+            System.out.println("b2 = " + b2 + " b3 = " + b3);
+
+            return /*p1 > getAlpha() &&*/ (b2 && b3);
         } catch (Exception e) {
             e.printStackTrace();
             return false;
         }
     }
 
-    private double getP(double[] d, double n) {
+    private double getT(double[] d, double n) {
         double t = mean(d) / (sd(d) / sqrt(n));
-        double df = n - 1;
-        return 2.0 * (1.0 - new TDistribution(df).cumulativeProbability(abs(t)));
+//        double df = n - 1;
+        return t;
+//        return 2.0 * (1.0 - new NormalDistribution(0, 1).cumulativeProbability(abs(t)));
     }
 
     private class E {

@@ -41,7 +41,7 @@ public class IndependentResidual implements IndependenceWrapper {
 
     @Override
     public String getDescription() {
-        return "Fisher Z test, alpha = " + alpha;
+        return "Independent Residuals Test, alpha = " + alpha;
     }
 
     @Override

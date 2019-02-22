@@ -329,8 +329,8 @@ public final class Fask_C implements GraphSearch {
             double ny = hy.getRows().size();
 
             // Welch's Test
-            double exyy = variance(dy) / ((double) ny);
-            double exyx = variance(dx) / ((double) nx);
+            double exyy = variance(dy) / ny;
+            double exyx = variance(dx) / nx;
             double t = (mean(dy) - mean(dx)) / sqrt(exyy + exyx);
             double df = ((exyy + exyx) * (exyy + exyx)) / ((exyy * exyy) / (ny - 1)) + ((exyx * exyx) / (nx - 1));
 
@@ -351,8 +351,8 @@ public final class Fask_C implements GraphSearch {
             double ny = hy.getRows().size();
 
             // Welch's Test
-            double exyy = variance(dy) / ((double) ny);
-            double exyx = variance(dx) / ((double) nx);
+            double exyy = variance(dy) / ny;
+            double exyx = variance(dx) / nx;
             double t = (mean(dx) - mean(dy)) / sqrt(exyy + exyx);
             double df = ((exyy + exyx) * (exyy + exyx)) / ((exyy * exyy) / (ny - 1)) + ((exyx * exyx) / (nx - 1));
 
