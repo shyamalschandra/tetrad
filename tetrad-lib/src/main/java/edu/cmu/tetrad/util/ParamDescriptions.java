@@ -652,7 +652,6 @@ public class ParamDescriptions {
                 "The maximum number of iterations the algorithm should go through orienting edges",
                 15, 1, Integer.MAX_VALUE));
 
-
         map.put("numLags", new ParamDescription(
                 "The number of lags in the time lag model",
                 1, 1, Double.POSITIVE_INFINITY));

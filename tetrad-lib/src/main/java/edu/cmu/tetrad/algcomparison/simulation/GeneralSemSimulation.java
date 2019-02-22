@@ -101,11 +101,16 @@ public class GeneralSemSimulation implements Simulation {
     }
 
     private synchronized DataSet simulate(Graph graph, Parameters parameters) {
-        pm = getPm(graph, parameters);
+        if (pm == null) {
+            pm = getPm(graph, parameters);
+        }
 
         System.out.println(pm);
 
         im = new GeneralizedSemIm(pm);
+
+        System.out.println(im);
+
         ims.add(im);
         return im.simulateData(parameters.getInt("sampleSize"), true);
 
@@ -158,8 +163,15 @@ public class GeneralSemSimulation implements Simulation {
     @Override
     public List<String> getParameters() {
         List<String> parameters = new ArrayList<>();
-        parameters.addAll(randomGraph.getParameters());
-        parameters.addAll(GeneralizedSemPm.getParameterNames());
+
+        if (!(randomGraph instanceof SingleGraph)) {
+            parameters.addAll(randomGraph.getParameters());
+        }
+
+        if (pm == null) {
+            parameters.addAll(GeneralizedSemPm.getParameterNames());
+        }
+
         parameters.add("numRuns");
         parameters.add("differentGraphs");
         parameters.add("sampleSize");
