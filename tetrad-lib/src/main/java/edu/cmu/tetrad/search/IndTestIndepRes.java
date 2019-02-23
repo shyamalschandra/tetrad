@@ -34,8 +34,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static edu.cmu.tetrad.util.StatUtils.*;
-import static java.lang.Math.abs;
-import static java.lang.Math.sqrt;
+import static java.lang.Math.*;
 
 /**
  * Checks conditional independence of variable in a continuous data set using Fisher's Z test. See Spirtes, Glymour, and
@@ -320,23 +319,34 @@ public final class IndTestIndepRes implements IndependenceTest {
             E hy = new E(Y, X, Z, Y).invoke();
 
 //            double[] d = h.getRxy();
-            double[] dx = hx.getRxy();
-            double[] dy = hy.getRxy();
+//            double[] dx = hx.getRxy();
+//            double[] dy = hy.getRxy();
+
+            double cx = hx.getCorrxy();
+            double cy = hy.getCorrxy();
 
 //            double n = h.getN();
             double nx = hx.getN();
             double ny = hy.getN();
 
-//            double p1 = getP(d, n);
-            double t2 = getT(dx, nx);
-            double t3 = getT(dy, ny);
+            double zx = 0.5 * sqrt(nx) * (log(1 + cx) - log(1 - cx));
+            double zy = 0.5 * sqrt(ny) * (log(1 + cy) - log(1 - cy));
 
-            boolean b2 = abs(t2) < cutoff;
-            boolean b3 = abs(t3) < cutoff;
+//            double p1 = getP(d, n);
+//            double t2 = getT(dx, nx);
+//            double t3 = getT(dy, ny);
+//
+//            boolean b2 = abs(t2) < cutoff;
+//            boolean b3 = abs(t3) < cutoff;
+
+            boolean b2 = abs(zx) < cutoff;
+            boolean b3 = abs(zy) < cutoff;
 
 //            System.out.println(/*"p1 = " + p1 +*/ " p2 = " + p2 + " p3 = " + p3);
 
-            System.out.println("b2 = " + b2 + " b3 = " + b3);
+//            System.out.println("b2 = " + b2 + " b3 = " + b3);
+
+
 
             return /*p1 > getAlpha() &&*/ (b2 && b3);
         } catch (Exception e) {
@@ -360,6 +370,7 @@ public final class IndTestIndepRes implements IndependenceTest {
         private List<Integer> rows;
         private double[] rxy;
         private double n;
+        private double corrxy;
 
         E(Node X, Node Y, List<Node> Z, Node condition) {
             x = X;
@@ -404,6 +415,8 @@ public final class IndTestIndepRes implements IndependenceTest {
                 rxy[i] = rx[i] * ry[i];
             }
 
+            this.setCorrxy(correlation(rx, ry));
+
             this.rxy = rxy;
 
             return this;
@@ -415,6 +428,14 @@ public final class IndTestIndepRes implements IndependenceTest {
 
         public double getN() {
             return n;
+        }
+
+        public double getCorrxy() {
+            return corrxy;
+        }
+
+        public void setCorrxy(double corrxy) {
+            this.corrxy = corrxy;
         }
     }
 
