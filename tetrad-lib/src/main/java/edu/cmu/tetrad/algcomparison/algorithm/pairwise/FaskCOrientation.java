@@ -80,8 +80,7 @@ public class FaskCOrientation implements Algorithm, TakesInitialGraph, HasKnowle
             dataSet = ((DataSet) dataSet).subsetColumns(initialGraph.getNodes());
 
             edu.cmu.tetrad.search.Fask_C search
-                    = new edu.cmu.tetrad.search.Fask_C((DataSet) dataSet,
-                    new IndTestFisherZ((DataSet) dataSet, 0.05));
+                    = new edu.cmu.tetrad.search.Fask_C((DataSet) dataSet);
             search.setInitialGraph(initialGraph);
             search.setTwoCycleAlpha(parameters.getDouble("twoCycleAlpha"));
             search.setMaxIterations(parameters.getInt("maxIterations"));

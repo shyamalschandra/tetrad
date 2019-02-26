@@ -130,7 +130,7 @@ public class TestSachsJoe {
 
 //        algorithms.add(new Fask_Sachs(new SemBicScore()));
 //        algorithms.add(new Fask_BSachs(new SemBicTest()));
-        algorithms.add(new Fask_CSachs(new SemBicTest()));
+        algorithms.add(new Fask_CSachs());
 
 
 

@@ -279,7 +279,7 @@ public final class Fges implements GraphSearch, GraphScorer {
 
         this.modelScore = totalScore;
 
-        return graph;
+        return new EdgeListGraph(graph);
     }
 
     /**

@@ -46,9 +46,6 @@ import static java.lang.Math.*;
  */
 public final class Fask_C implements GraphSearch {
 
-    // The score to be used for the FAS adjacency search.
-    private IndependenceTest test;
-
     // An initial graph to orient, skipping the adjacency step.
     private Graph initialGraph = null;
 
@@ -81,14 +78,13 @@ public final class Fask_C implements GraphSearch {
     private int maxIterations = 15;
 
     private RegressionDataset regressionDataset;
+    private double alpha = 0.05;
 
 
     /**
      * @param dataSet These datasets must all have the same variables, in the same order.
      */
-    public Fask_C(DataSet dataSet, IndependenceTest test) {
-        this.test = test;
-
+    public Fask_C(DataSet dataSet) {
         this.dataSet = dataSet;
 
         dataSet = DataUtils.center(dataSet);
@@ -144,29 +140,33 @@ public final class Fask_C implements GraphSearch {
         dataSet = DataUtils.center(dataSet);
         double[][] data = dataSet.getDoubleData().transpose().toArray();
 
+        boolean doSearch = false;
+
         {
             if (initialGraph == null) {
 
-                FasStable fas = new FasStable(test);
-                fas.setDepth(depth);
-                fas.setVerbose(false);
-                fas.setKnowledge(knowledge);
-                Graph graph2 = fas.search();
-
-//                List<Node> nodes = dataSet.getVariables();
+//                FasStable fas = new FasStable(test);
+//                fas.setDepth(depth);
+//                fas.setVerbose(false);
+//                fas.setKnowledge(knowledge);
+//                Graph graph2 = fas.search();
 //
-//                for (int i = 0; i < nodes.size(); i++) {
-//                    for (int j = i + 1; j < nodes.size(); j++) {
-//                        double[] x = data[i];
-//                        double[] y = data[j];
+////                List<Node> nodes = dataSet.getVariables();
+////
+////                for (int i = 0; i < nodes.size(); i++) {
+////                    for (int j = i + 1; j < nodes.size(); j++) {
+////                        double[] x = data[i];
+////                        double[] y = data[j];
+////
+////                        if (isAdj(x, y)) {
+////                            graph2.addUndirectedEdge(nodes.get(i), nodes.get(j));
+////                        }
+////                    }
+////                }
 //
-//                        if (isAdj(x, y)) {
-//                            graph2.addUndirectedEdge(nodes.get(i), nodes.get(j));
-//                        }
-//                    }
-//                }
-
-                initialGraph = graph2;
+//                initialGraph = graph2;
+                initialGraph = GraphUtils.completeGraph(new EdgeListGraph(variables));
+                doSearch = true;
             } else {
                 initialGraph = GraphUtils.undirectedGraph(initialGraph);
                 initialGraph = GraphUtils.replaceNodes(initialGraph, dataSet.getVariables());
@@ -174,6 +174,8 @@ public final class Fask_C implements GraphSearch {
                 if (initialGraph == null) throw new NullPointerException("Initial graph is null.");
             }
         }
+
+        initialGraph = GraphUtils.completeGraph(new EdgeListGraph(variables));
 
         for (Edge edge : initialGraph.getEdges()) {
             Node X = edge.getNode1();
@@ -190,10 +192,18 @@ public final class Fask_C implements GraphSearch {
             }
         }
 
+        Set<Node> changed1 = new HashSet<>(variables);
+        Set<Node> changed2 = new HashSet<>(variables);
+        for (Edge edge : initialGraph.getEdges()) graph.addEdge(edge);
+
+
+        for (Edge edge : graph.getEdges()) {
+            Node X = edge.getNode1();
+            Node Y = edge.getNode2();
+            orientEdge(variables, graph, data, changed2, X, Y, new ArrayList<>(), new ArrayList<>());
+        }
+
         {
-            Set<Node> changed1 = new HashSet<>(variables);
-            Set<Node> changed2 = new HashSet<>(variables);
-            for (Edge edge : initialGraph.getEdges()) graph.addEdge(edge);
 
             for (int d = 0; d < getMaxIterations(); d++) {
                 if (changed1.isEmpty()) break;
@@ -214,60 +224,43 @@ public final class Fask_C implements GraphSearch {
 
                     if (!changed1.contains(Y)) continue;
 
-                    if (!edgeForbiddenByKnowledge(X, Y) && !knowledgeOrients(X, Y) && !knowledgeOrients(Y, X)) {
-                        int i = variables.indexOf(X);
-                        int j = variables.indexOf(Y);
-
-                        double[] x = data[i];
-                        double[] y = data[j];
-
-                        final List<Node> Zy = graph.getParents(Y);
-                        Zy.remove(X);
-
-                        double[][] zy = new double[Zy.size()][];
-
-                        for (int t = 0; t < Zy.size(); t++) {
-                            final Node V = Zy.get(t);
-                            zy[t] = data[variables.indexOf(V)];
-                        }
-
-                        final List<Node> Zx = graph.getParents(X);
-                        Zx.remove(Y);
-
-                        double[][] zx = new double[Zx.size()][];
-
-                        for (int t = 0; t < Zx.size(); t++) {
-                            final Node V = Zx.get(t);
-                            zx[t] = data[variables.indexOf(V)];
-                        }
-
-                        System.out.println("X = " + X + " Y = " + Y + " | Zy = " + Zy);
-
-                        final boolean cxy = leftright(x, y, zy) > 0;
-                        final boolean cyx = leftright(y, x, zx) > 0;
-//
-//                        final boolean cxy = leftright2(X, Y, Zy);
-//                        final boolean cyx = leftright2(Y, X, Zx);
-
-                        if (cxy && !cyx && !(graph.getEdges(X, Y).size() == 1 && graph.getEdge(X, Y).pointsTowards(Y))) {
-                            graph.removeEdges(X, Y);
-                            graph.addDirectedEdge(X, Y);
-                            changed2.add(Y);
-                        } else if (cyx && !cxy && !(graph.getEdges(X, Y).size() == 1 && graph.getEdge(Y, X).pointsTowards(X))) {
-                            graph.removeEdges(Y, X);
-                            graph.addDirectedEdge(Y, X);
-                            changed2.add(X);
-                        } else if (!cyx && !cxy && !(graph.getEdges(X, Y).size() == 2)) {
-                            graph.removeEdges(X, Y);
-                            graph.addDirectedEdge(X, Y);
-                            graph.addDirectedEdge(Y, X);
-                            changed2.add(X);
-                            changed2.add(Y);
-                        }
-                    }
+                    orientEdge(variables, graph, data, changed2, X, Y, graph.getParents(X), graph.getParents(Y));
                 }
             }
         }
+
+        if (doSearch) {
+            IndTestIndepRes test = new IndTestIndepRes(dataSet, getAlpha());
+            test.setGraph(graph);
+
+            FasStable fas = new FasStable(test);
+            fas.setDepth(depth);
+            fas.setVerbose(false);
+            Graph graph2 = fas.search();
+
+            List<Node> vars = graph2.getNodes();
+
+            for (int i = 0; i < vars.size(); i++) {
+                for (int j = i + 1; j < vars.size(); j++){
+                    final Node X = vars.get(i);
+                    final Node Y = vars.get(j);
+
+                    if (!graph2.isAdjacentTo(X, Y)) continue;
+
+                    List<Edge> edges = graph.getEdges(X, Y);
+
+                    graph2.removeEdges(X, Y);
+
+                    for (Edge edge : edges) {
+                        graph2.addEdge(edge);
+                    }
+                }
+            }
+
+            graph = new EdgeListGraph(graph2);
+        }
+
+        System.out.println("graph = " + graph);
 
         TetradLogger.getInstance().forceLogMessage("\nOrienting 2-cycles");
         for (Edge edge : graph.getEdges()) {
@@ -279,13 +272,71 @@ public final class Fask_C implements GraphSearch {
             if (graph.isAdjacentTo(X, Y)
                     && !knowledgeOrients(X, Y) && !knowledgeOrients(Y, X)
                     && twocycle(X, Y, graph)) {
+                System.out.println("2-cycle: " + X + "---" + Y);
                 graph.removeEdges(X, Y);
                 graph.addDirectedEdge(X, Y);
                 graph.addDirectedEdge(Y, X);
             }
         }
 
+        System.out.println("graph = " + graph);
+
         return graph;
+    }
+
+    private void orientEdge(List<Node> variables, Graph graph, double[][] data, Set<Node> changed2,
+                            Node X, Node Y, List<Node> Zx, List<Node> Zy) {
+        if (!edgeForbiddenByKnowledge(X, Y) && !knowledgeOrients(X, Y) && !knowledgeOrients(Y, X)) {
+            Zx.remove(Y);
+            Zy.remove(X);
+
+            int i = variables.indexOf(X);
+            int j = variables.indexOf(Y);
+
+            double[] x = data[i];
+            double[] y = data[j];
+
+            double[][] zy = new double[Zy.size()][];
+
+            for (int t = 0; t < Zy.size(); t++) {
+                final Node V = Zy.get(t);
+                zy[t] = data[variables.indexOf(V)];
+            }
+
+            double[][] zx = new double[Zx.size()][];
+
+            for (int t = 0; t < Zx.size(); t++) {
+                final Node V = Zx.get(t);
+                zx[t] = data[variables.indexOf(V)];
+            }
+
+            System.out.println("X = " + X + " Y = " + Y + " | Zy = " + Zy);
+
+            final boolean cxy = leftright(x, y, zy) > 0;
+            final boolean cyx = leftright(y, x, zx) > 0;
+//
+//                        final boolean cxy = leftright2(X, Y, Zy);
+//                        final boolean cyx = leftright2(Y, X, Zx);
+//
+//                        boolean cxy = leftRightMinnesota(x, y);
+//                        boolean cyx = leftRightMinnesota(y, x);
+
+            if (cxy && !cyx && !(graph.getEdges(X, Y).size() == 1 && graph.getEdge(X, Y).pointsTowards(Y))) {
+                graph.removeEdges(X, Y);
+                graph.addDirectedEdge(X, Y);
+                changed2.add(Y);
+            } else if (cyx && !cxy && !(graph.getEdges(X, Y).size() == 1 && graph.getEdge(Y, X).pointsTowards(X))) {
+                graph.removeEdges(Y, X);
+                graph.addDirectedEdge(Y, X);
+                changed2.add(X);
+            } else if (!cyx && !cxy && !(graph.getEdges(X, Y).size() == 2)) {
+                graph.removeEdges(X, Y);
+                graph.addDirectedEdge(X, Y);
+                graph.addDirectedEdge(Y, X);
+                changed2.add(X);
+                changed2.add(Y);
+            }
+        }
     }
 
     private boolean isAdj(double[] x, double[] y) {
@@ -313,6 +364,8 @@ public final class Fask_C implements GraphSearch {
 
         return E(a, x, ry, +1) - E(a, x, ry, -1);
     }
+
+
 
     private boolean leftright2(Node X, Node Y, List<Node> Z) {
 //        boolean b1 = false, b2 = false;
@@ -482,11 +535,14 @@ public final class Fask_C implements GraphSearch {
     private static double E(double a, double[] x, double[] ry, double dir) {
         double exy = 0.0;
 
+        System.out.println(" skew = " + StatUtils.skewness(ry));
+
         int n = 0;
 
         for (int k = 0; k < x.length; k++) {
             final double _x = x[k];
             final double _ry = ry[k];
+
             final double _y = abs(a) * _x + _ry;
 
             if (_x * dir > 0 && _y * dir < 0) {
@@ -496,6 +552,66 @@ public final class Fask_C implements GraphSearch {
         }
 
         return exy / n;
+    }
+
+    private boolean leftRightMinnesota(double[] x, double[] y) {
+        x = correctSkewness(x);
+        y = correctSkewness(y);
+
+        final double cxyx = cov(x, y, x);
+        final double cxyy = cov(x, y, y);
+        final double cxxx = cov(x, x, x);
+        final double cyyx = cov(y, y, x);
+        final double cxxy = cov(x, x, y);
+        final double cyyy = cov(y, y, y);
+
+        double a1 = cxyx / cxxx;
+        double a2 = cxyy / cxxy;
+        double b1 = cxyy / cyyy;
+        double b2 = cxyx / cyyx;
+
+        double Q = (a2 > 0) ? a1 / a2 : a2 / a1;
+        double R = (b2 > 0) ? b1 / b2 : b2 / b1;
+
+        double lr = Q - R;
+
+//        if (StatUtils.correlation(x, y) < 0) lr += delta;
+
+        final double sk_ey = StatUtils.skewness(residuals(y, new double[][]{x}));
+
+        if (sk_ey < 0) {
+            lr *= -1;
+        }
+
+        final double a = correlation(x, y);
+
+        if (a < 0 && sk_ey > -.2) {
+            lr *= -1;
+        }
+
+        return lr > 0;
+    }
+
+    private static double cov(double[] x, double[] y, double[] condition) {
+        double exy = 0.0;
+
+        int n = 0;
+
+        for (int k = 0; k < x.length; k++) {
+            if (condition[k] > 0) {
+                exy += x[k] * y[k];
+                n++;
+            }
+        }
+
+        return exy / n;
+    }
+
+    private double[] correctSkewness(double[] data) {
+        double skewness = StatUtils.skewness(data);
+        double[] data2 = new double[data.length];
+        for (int i = 0; i < data.length; i++) data2[i] = data[i] * Math.signum(skewness);
+        return data2;
     }
 
     private boolean bidirected(Node X, Node Y, Graph G0) {
@@ -672,6 +788,15 @@ public final class Fask_C implements GraphSearch {
 
     public void setTwoCycleAlpha(double twoCycleAlpha) {
         this.twoCycleAlpha = twoCycleAlpha;
+        this.twoCycleCutoff = cutoff(getTwoCycleAlpha());
+    }
+
+    public double getAlpha() {
+        return alpha;
+    }
+
+    public void setAlpha(double alpha) {
+        this.alpha = alpha;
     }
 
     private class E {

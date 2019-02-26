@@ -1811,13 +1811,17 @@ public final class DataUtils {
 
     public static double[] getNonparanormalTransformed(double[] x) {
         x = Arrays.copyOf(x, x.length);
-        x = DataUtils.center(x);
+        double mu = StatUtils.mean(x);
+        double std = StatUtils.sd(x);
+
+//        for (int i = 0; i < x.length; i++) {
+//            x[i] -= mu;
+//            x[i] /= std;
+//        }
+
         final double n = x.length;
         final double delta = 0.0001;//1.0 / (4.0 * Math.pow(n, 0.25) * Math.sqrt(Math.PI * Math.log(n)));
 
-        double std = Double.NaN;
-
-        double mu = StatUtils.mean(x);
         x = ranks(x);
 
         for (int i = 0; i < x.length; i++) {
@@ -1827,12 +1831,7 @@ public final class DataUtils {
             x[i] = normalDistribution.inverseCumulativeProbability(x[i]);
         }
 
-        if (Double.isNaN(std)) {
-            std = StatUtils.sd(x);
-        }
-
         for (int i = 0; i < x.length; i++) {
-            x[i] /= std;
             x[i] *= std;
             x[i] += mu;
         }

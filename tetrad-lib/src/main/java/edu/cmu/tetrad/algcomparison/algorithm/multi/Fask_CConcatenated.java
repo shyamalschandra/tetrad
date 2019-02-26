@@ -34,10 +34,9 @@ import java.util.List;
         command = "fask-c-concatenated",
         algoType = AlgType.forbid_latent_common_causes
 )
-public class Fask_CConcatenated implements MultiDataSetAlgorithm, HasKnowledge, TakesIndependenceWrapper {
+public class Fask_CConcatenated implements MultiDataSetAlgorithm, HasKnowledge {
 
     static final long serialVersionUID = 23L;
-    private IndependenceWrapper test;
     private IKnowledge knowledge = new Knowledge2();
 
     public Fask_CConcatenated() {
@@ -45,7 +44,7 @@ public class Fask_CConcatenated implements MultiDataSetAlgorithm, HasKnowledge, 
     }
 
     public Fask_CConcatenated(IndependenceWrapper test) {
-        this.test = test;
+
     }
 
     @Override
@@ -61,9 +60,10 @@ public class Fask_CConcatenated implements MultiDataSetAlgorithm, HasKnowledge, 
 
             dataSet.setNumberFormat(new DecimalFormat("0.000000000000000000"));
 
-            edu.cmu.tetrad.search.Fask_C search = new edu.cmu.tetrad.search.Fask_C(dataSet, test.getTest(dataSet, parameters));
+            edu.cmu.tetrad.search.Fask_C search = new edu.cmu.tetrad.search.Fask_C(dataSet);
 
             search.setDepth(parameters.getInt("depth"));
+            search.setAlpha(parameters.getDouble("alpha"));
             search.setTwoCycleAlpha(parameters.getDouble("twoCycleAlpha"));
             search.setMaxIterations(parameters.getInt("maxIterations"));
             search.setVerbose(parameters.getBoolean("verbose"));
@@ -71,7 +71,7 @@ public class Fask_CConcatenated implements MultiDataSetAlgorithm, HasKnowledge, 
             
             return search.search();
         } else {
-            Fask_CConcatenated algorithm = new Fask_CConcatenated(test);
+            Fask_CConcatenated algorithm = new Fask_CConcatenated();
             algorithm.setKnowledge(knowledge);
 
             List<DataSet> datasets = new ArrayList<>();
@@ -108,7 +108,7 @@ public class Fask_CConcatenated implements MultiDataSetAlgorithm, HasKnowledge, 
         if (!parameters.getBoolean("bootstrapping")) {
             return search(Collections.singletonList((DataModel) DataUtils.getContinuousDataSet(dataSet)), parameters);
         } else {
-            Fask_CConcatenated algorithm = new Fask_CConcatenated(test);
+            Fask_CConcatenated algorithm = new Fask_CConcatenated();
             algorithm.setKnowledge(knowledge);
 
             List<DataSet> dataSets = Collections.singletonList(DataUtils.getContinuousDataSet(dataSet));
@@ -152,7 +152,8 @@ public class Fask_CConcatenated implements MultiDataSetAlgorithm, HasKnowledge, 
 
     @Override
     public List<String> getParameters() {
-        List<String> parameters = test.getParameters();
+        List<String> parameters = new ArrayList<>();
+        parameters.add("alpha");
         parameters.add("depth");
         parameters.add("twoCycleAlpha");
         parameters.add("maxIterations");
@@ -179,10 +180,5 @@ public class Fask_CConcatenated implements MultiDataSetAlgorithm, HasKnowledge, 
     @Override
     public void setKnowledge(IKnowledge knowledge) {
         this.knowledge = knowledge;
-    }
-
-    @Override
-    public void setIndependenceWrapper(IndependenceWrapper independenceWrapper) {
-        this.test = independenceWrapper;
     }
 }

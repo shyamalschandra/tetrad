@@ -416,7 +416,7 @@ public class TestFask {
 
 //            System.out.println(initial);
 
-            Fask_C fask = new Fask_C(dataSet, new IndTestFisherZ(dataSet, 0.05));
+            Fask_C fask = new Fask_C(dataSet);
 //            fask.setInitialGraph(initial);
 //            fask.setDelta(-.2);
 

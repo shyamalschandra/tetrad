@@ -14,6 +14,7 @@ import edu.cmu.tetrad.util.Parameters;
 import edu.pitt.dbmi.algo.resampling.GeneralResamplingTest;
 import edu.pitt.dbmi.algo.resampling.ResamplingEdgeEnsemble;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -29,7 +30,7 @@ import java.util.List;
         command = "fask_c",
         algoType = AlgType.forbid_latent_common_causes
 )
-public class Fask_C implements Algorithm, HasKnowledge, TakesIndependenceWrapper {
+public class Fask_C implements Algorithm, HasKnowledge {
     static final long serialVersionUID = 23L;
     private IndependenceWrapper test;
     private IKnowledge knowledge = new Knowledge2();
@@ -49,10 +50,10 @@ public class Fask_C implements Algorithm, HasKnowledge, TakesIndependenceWrapper
     @Override
     public Graph search(DataModel dataSet, Parameters parameters) {
         if (parameters.getInt("bootstrapSampleSize") < 1) {
-            edu.cmu.tetrad.search.Fask_C search = new edu.cmu.tetrad.search.Fask_C((DataSet) dataSet,
-                    test.getTest(dataSet, parameters));
+            edu.cmu.tetrad.search.Fask_C search = new edu.cmu.tetrad.search.Fask_C((DataSet) dataSet);
 
             search.setDepth(parameters.getInt("depth"));
+            search.setAlpha(parameters.getDouble("alpha"));
             search.setTwoCycleAlpha(parameters.getDouble("twoCycleAlpha"));
             search.setMaxIterations(parameters.getInt("maxIterations"));
             search.setVerbose(parameters.getBoolean("verbose"));
@@ -104,7 +105,8 @@ public class Fask_C implements Algorithm, HasKnowledge, TakesIndependenceWrapper
 
     @Override
     public List<String> getParameters() {
-        List<String> parameters = test.getParameters();
+        List<String> parameters = new ArrayList<>();
+        parameters.add("alpha");
         parameters.add("depth");
         parameters.add("twoCycleAlpha");
         parameters.add("maxIterations");
@@ -127,10 +129,5 @@ public class Fask_C implements Algorithm, HasKnowledge, TakesIndependenceWrapper
     @Override
     public void setKnowledge(IKnowledge knowledge) {
         this.knowledge = knowledge;
-    }
-
-    @Override
-    public void setIndependenceWrapper(IndependenceWrapper independenceWrapper) {
-        this.test = independenceWrapper;
     }
 }

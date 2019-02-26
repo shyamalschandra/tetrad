@@ -34,22 +34,21 @@ import java.util.List;
         algoType = AlgType.forbid_latent_common_causes
 )
 @Experimental
-public class Fask_CSachs implements Algorithm, HasKnowledge, TakesIndependenceWrapper {
+public class Fask_CSachs implements Algorithm, HasKnowledge {
     static final long serialVersionUID = 23L;
-    private IndependenceWrapper test;
     private IKnowledge knowledge = new Knowledge2();
 
-    public Fask_CSachs(IndependenceWrapper test) {
-        this.test  = test;
+    public Fask_CSachs() {
     }
 
     @Override
     public Graph search(DataModel dataSet, Parameters parameters) {
         if (parameters.getInt("bootstrapSampleSize") < 1) {
             edu.cmu.tetrad.search.Fask_C search
-                    = new edu.cmu.tetrad.search.Fask_C((DataSet) dataSet, test.getTest(dataSet, parameters));
+                    = new edu.cmu.tetrad.search.Fask_C((DataSet) dataSet);
 
             search.setDepth(parameters.getInt("depth"));
+            search.setAlpha(parameters.getDouble("alpha"));
             search.setTwoCycleAlpha(parameters.getDouble("twoCycleAlpha"));
             search.setMaxIterations(parameters.getInt("maxIterations"));
             search.setVerbose(parameters.getBoolean("verbose"));
@@ -61,7 +60,7 @@ public class Fask_CSachs implements Algorithm, HasKnowledge, TakesIndependenceWr
             search.setKnowledge(knowledge);
             return su.pruneGraph(search.search());
         } else {
-            Fask_CSachs fask = new Fask_CSachs(test);
+            Fask_CSachs fask = new Fask_CSachs();
 
             SachsUtils su = new SachsUtils();
 
@@ -108,7 +107,8 @@ public class Fask_CSachs implements Algorithm, HasKnowledge, TakesIndependenceWr
 
     @Override
     public List<String> getParameters() {
-        List<String> parameters = test.getParameters();
+        List<String> parameters = new ArrayList<>();
+        parameters.add("alpha");
         parameters.add("depth");
         parameters.add("twoCycleAlpha");
         parameters.add("maxIterations");
@@ -131,10 +131,5 @@ public class Fask_CSachs implements Algorithm, HasKnowledge, TakesIndependenceWr
     @Override
     public void setKnowledge(IKnowledge knowledge) {
         this.knowledge = knowledge;
-    }
-
-    @Override
-    public void setIndependenceWrapper(IndependenceWrapper independenceWrapper) {
-        this.test = independenceWrapper;
     }
 }

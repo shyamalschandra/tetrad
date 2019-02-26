@@ -22,6 +22,7 @@
 package edu.cmu.tetrad.search;
 
 import edu.cmu.tetrad.data.*;
+import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.regression.RegressionDataset;
 import edu.cmu.tetrad.util.StatUtils;
@@ -68,7 +69,8 @@ public final class IndTestIndepRes implements IndependenceTest {
     private Map<Node, Integer> indexMap;
     private Map<String, Node> nameMap;
     private boolean verbose = true;
-    private double fisherZ = Double.NaN;
+    private double z1 = Double.NaN;
+    private double z2 = Double.NaN;
     private double cutoff = Double.NaN;
     private NormalDistribution normal = new NormalDistribution(0, 1);
 
@@ -77,6 +79,8 @@ public final class IndTestIndepRes implements IndependenceTest {
 
     private RegressionDataset regressionDataset;
 
+    private Graph graph = null;
+    private boolean indep = false;
 
 
     //==========================CONSTRUCTORS=============================//
@@ -150,7 +154,9 @@ public final class IndTestIndepRes implements IndependenceTest {
      * @throws RuntimeException if a matrix singularity is encountered.
      */
     public boolean isIndependent(Node x, Node y, List<Node> z) {
-        return indepRes(x, y, z);
+        final boolean b = indepRes(x, y, z);
+        this.indep = b;
+        return b;
     }
 
     public boolean isIndependent(Node x, Node y, Node... z) {
@@ -170,7 +176,7 @@ public final class IndTestIndepRes implements IndependenceTest {
      * @return the probability associated with the most recently computed independence test.
      */
     public double getPValue() {
-        return 2.0 * (1.0 - normal.cumulativeProbability(abs(fisherZ)));
+        return 2.0 * (1.0 - normal.cumulativeProbability(abs(z1)));
     }
 
     /**
@@ -313,6 +319,13 @@ public final class IndTestIndepRes implements IndependenceTest {
 
 
     private boolean indepRes(Node X, Node Y, List<Node> Z) {
+
+        if (graph != null) {
+            if (!graph.getParents(X).containsAll(Z) || graph.getParents(Y).containsAll(Z)) {
+                return false;
+            }
+        }
+
         try {
 //            E h = new E(X, Y, Z, null).invoke();
             E hx = new E(X, Y, Z, X).invoke();
@@ -346,7 +359,8 @@ public final class IndTestIndepRes implements IndependenceTest {
 
 //            System.out.println("b2 = " + b2 + " b3 = " + b3);
 
-
+            this.z1 = zx;
+            this.z2 = zy;
 
             return /*p1 > getAlpha() &&*/ (b2 && b3);
         } catch (Exception e) {
@@ -360,6 +374,14 @@ public final class IndTestIndepRes implements IndependenceTest {
 //        double df = n - 1;
         return t;
 //        return 2.0 * (1.0 - new NormalDistribution(0, 1).cumulativeProbability(abs(t)));
+    }
+
+    public Graph getGraph() {
+        return graph;
+    }
+
+    public void setGraph(Graph graph) {
+        this.graph = graph;
     }
 
     private class E {
@@ -452,7 +474,10 @@ public final class IndTestIndepRes implements IndependenceTest {
 
     @Override
     public double getScore() {
-        return Math.abs(fisherZ) - cutoff;
+//        return indep ? -1 : 1;
+//
+//
+        return min(abs(z1), abs(z1)) - cutoff;
     }
 
     public boolean isVerbose() {
