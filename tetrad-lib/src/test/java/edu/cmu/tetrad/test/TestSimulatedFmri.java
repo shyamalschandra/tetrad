@@ -25,6 +25,7 @@ import edu.cmu.tetrad.algcomparison.Comparison;
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithms;
 import edu.cmu.tetrad.algcomparison.algorithm.multi.FaskConcatenated;
 import edu.cmu.tetrad.algcomparison.algorithm.multi.Fask_CConcatenated;
+import edu.cmu.tetrad.algcomparison.algorithm.multi.FgesConcatenated;
 import edu.cmu.tetrad.algcomparison.independence.SemBicTest;
 import edu.cmu.tetrad.algcomparison.score.SemBicScore;
 import edu.cmu.tetrad.algcomparison.simulation.Simulations;
@@ -251,7 +252,7 @@ public class TestSimulatedFmri {
     @Test
     public void smithSim() {
         Parameters parameters = new Parameters();
-        parameters.set("penaltyDiscount", 1);
+        parameters.set("penaltyDiscount", 3);
         parameters.set("twoCycleAlpha", .000000);
         parameters.set("depth", 5);
         parameters.set("extraEdgeThreshold", 10);
@@ -289,10 +290,10 @@ public class TestSimulatedFmri {
         Algorithms algorithms = new Algorithms();
 
         for (int i = 1; i <= 28; i++) {
-//            if (i == 21) continue;
-            simulations.add(new LoadContinuousDataSmithSim("/Users/user/Downloads/smithsim/", i));
+            if (i == 21) continue;
+//            simulations.add(new LoadContinuousDataSmithSim("/Users/user/Downloads/smithsim/", i));
 //            simulations.add(new LoadContinuousDataPwdd7("/Users/user/Downloads/pwdd7/", i, "50_BOLDdemefilt1"));
-//            simulations.add(new LoadContinuousDataPwdd7("/Users/user/Downloads/pwdd7/", i, "50_BOLDnoise"));
+            simulations.add(new LoadContinuousDataPwdd7("/Users/user/Downloads/pwdd7/", i, "50_BOLDnoise"));
         }
 
 //        algorithms.add(new LofsConcatenated(Lofs2.Rule.FASKLR));
@@ -304,8 +305,8 @@ public class TestSimulatedFmri {
 //        algorithms.add(new LofsConcatenated(Lofs2.Rule.SkewE));
 //        algorithms.add(new LofsConcatenated(Lofs2.Rule.Patel));
 
-//        algorithms.add(new FaskConcatenated(new SemBicScore()));
-        algorithms.add(new Fask_CConcatenated(new SemBicTest()));
+        algorithms.add(new FaskConcatenated(new SemBicScore()));
+//        algorithms.add(new Fask_CConcatenated(new SemBicTest()));
 //        algorithms.add(new SkewSearchConcatenated());
 
 //        algorithms.add(new FasLofsConcatenated(Lofs2.Rule.R1));
@@ -315,6 +316,8 @@ public class TestSimulatedFmri {
 //        algorithms.add(new FasLofsConcatenated(Lofs2.Rule.RSkew));
 //        algorithms.add(new FasLofsConcatenated(Lofs2.Rule.RSkewE));
 //        algorithms.add(new FasLofsConcatenated(Lofs2.Rule.SkewE));
+
+        algorithms.add(new FgesConcatenated(new SemBicScore()));
 
         Comparison comparison = new Comparison();
 

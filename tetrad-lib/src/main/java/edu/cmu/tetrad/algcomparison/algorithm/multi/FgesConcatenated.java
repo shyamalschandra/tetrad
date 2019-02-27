@@ -56,6 +56,8 @@ public class FgesConcatenated implements MultiDataSetAlgorithm, HasKnowledge {
 
 			DataSet dataSet = DataUtils.concatenate(dataSets);
 
+//			dataSet = DataUtils.getNonparanormalTransformed(dataSet);
+
 			Graph initial = null;
 			if (initialGraph != null) {
 
@@ -68,7 +70,7 @@ public class FgesConcatenated implements MultiDataSetAlgorithm, HasKnowledge {
 			search.setVerbose(parameters.getBoolean("verbose"));
 			search.setMaxDegree(parameters.getInt("maxDegree"));
 
-			Object obj = parameters.get("printStedu.cmream");
+			Object obj = parameters.get("printStream");
 			if (obj instanceof PrintStream) {
 				search.setOut((PrintStream) obj);
 			}
