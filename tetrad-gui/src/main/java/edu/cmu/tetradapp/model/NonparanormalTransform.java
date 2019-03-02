@@ -21,11 +21,12 @@
 
 package edu.cmu.tetradapp.model;
 
-import edu.cmu.tetrad.data.DataSet;
-import edu.cmu.tetrad.data.DataUtils;
-import edu.cmu.tetrad.data.LogDataUtils;
+import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.TetradSerializableUtils;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Converts a continuous data set to a correlation matrix.
@@ -38,20 +39,23 @@ public class NonparanormalTransform extends DataWrapper {
     //=============================CONSTRUCTORS==============================//
 
     public NonparanormalTransform(DataWrapper wrapper, Parameters params) {
-        DataSet dataSet;
-        if (wrapper.getSelectedDataModel() instanceof DataSet) {
-            DataSet _dataSet = (DataSet) wrapper.getSelectedDataModel();
-            dataSet = DataUtils.getNonparanormalTransformed(_dataSet);
-        }
-        else {
+        try {
+            DataModelList dataSets = new DataModelList();
+
+            for (DataModel dataSet : wrapper.getDataModelList()) {
+                DataSet _dataSet = (DataSet) wrapper.getSelectedDataModel();
+                dataSet = DataUtils.getNonparanormalTransformed(_dataSet);
+                dataSet.setName(_dataSet.getName());
+                dataSets.add(dataSet);
+            }
+
+            setDataModel(dataSets);
+            setSourceGraph(wrapper.getSourceGraph());
+
+            LogDataUtils.logDataModelList("Conversion of parent data to correlation matrix form.", getDataModelList());
+        } catch (Exception e) {
             throw new IllegalArgumentException("Expecting a continuous data set or a covariance matrix.");
         }
-
-        setDataModel(dataSet);
-        setSourceGraph(wrapper.getSourceGraph());
-
-        LogDataUtils.logDataModelList("Conversion of parent data to correlation matrix form.", getDataModelList());
-
     }
 
     /**

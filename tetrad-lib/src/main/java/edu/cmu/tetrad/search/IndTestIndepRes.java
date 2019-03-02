@@ -320,11 +320,11 @@ public final class IndTestIndepRes implements IndependenceTest {
 
     private boolean indepRes(Node X, Node Y, List<Node> Z) {
 
-        if (graph != null) {
-            if (!graph.getParents(X).containsAll(Z) || graph.getParents(Y).containsAll(Z)) {
-                return false;
-            }
-        }
+//        if (graph != null) {
+//            if (!graph.getParents(X).containsAll(Z) || graph.getParents(Y).containsAll(Z)) {
+//                return false;
+//            }
+//        }
 
         try {
 //            E h = new E(X, Y, Z, null).invoke();

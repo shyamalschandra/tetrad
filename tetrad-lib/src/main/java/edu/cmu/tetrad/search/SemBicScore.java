@@ -69,6 +69,8 @@ public class SemBicScore implements Score, ISemBicScore {
 
     private Map<String, Integer> indexMap;
 
+    private double sp = 1.0;
+
 
     /**
      * Constructs the score using a covariance matrix.
@@ -107,7 +109,8 @@ public class SemBicScore implements Score, ISemBicScore {
             }
 
             int n = getSampleSize();
-            return -(n) * log(s2) - getPenaltyDiscount() * p * log(n);
+            double strucPrior = getStructurePrior(parents);
+            return -(n) * log(s2) - getPenaltyDiscount() * p * log(n) + strucPrior;
             // + getStructurePrior(parents.length);// - getStructurePrior(parents.length + 1);
         } catch (Exception e) {
             boolean removedOne = true;
@@ -125,15 +128,13 @@ public class SemBicScore implements Score, ISemBicScore {
         }
     }
 
-    double sp = 6.0;
-
     private double getStructurePrior(int parents) {
-        if (sp <= 0) {
+        if (getSp() <= 0) {
             return 0;
         } else {
             int i = parents + 1;
             int c = variables.size();
-            double p = sp / (double) c;
+            double p = getSp() / (double) c;
             return i * Math.log(p) + (c - i) * Math.log(1.0 - p);
         }
     }
@@ -154,9 +155,11 @@ public class SemBicScore implements Score, ISemBicScore {
         }
 
         int p = 2 + z.length;
+        double sp1 = getStructurePrior(append(z, x));
+        double sp2 = getStructurePrior(z);
 
         int N = covariances.getSampleSize();
-        return -N * Math.log(1.0 - r * r) - p * getPenaltyDiscount() * Math.log(N);
+        return -N * Math.log(1.0 - r * r) - p * getPenaltyDiscount() * Math.log(N) + sp1 - sp2;
 //        return localScore(y, append(z, x)) - localScore(y, z);
     }
 
@@ -378,6 +381,24 @@ public class SemBicScore implements Score, ISemBicScore {
         double v = localScore(i, k);
 
         return Double.isNaN(v);
+    }
+
+    private double getStructurePrior(int[] parents) {
+        if (getSp() < 0) { return 0; }
+        else {
+            int i = parents.length;
+            int c = covariances.getDimension() - 1;
+            double p = getSp() / (double) c;
+            return i * Math.log(p) + (c - i) * Math.log(1.0 - p);
+        }
+    }
+
+    public double getSp() {
+        return sp;
+    }
+
+    public void setSp(double sp) {
+        this.sp = sp;
     }
 }
 

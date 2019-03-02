@@ -45,7 +45,7 @@ public class JitterData extends DataWrapper {
         DataModelList inList = wrapper.getDataModelList();
         DataModelList outList = new DataModelList();
 
-        UniformRealDistribution normal = new UniformRealDistribution(0, 0.001);
+        UniformRealDistribution normal = new UniformRealDistribution(0, 0.000000001);
 
         for (DataModel model : inList) {
             if (!(model instanceof DataSet)) {

@@ -175,8 +175,6 @@ public final class Fask_C implements GraphSearch {
             }
         }
 
-        initialGraph = GraphUtils.completeGraph(new EdgeListGraph(variables));
-
         for (Edge edge : initialGraph.getEdges()) {
             Node X = edge.getNode1();
             Node Y = edge.getNode2();
@@ -230,12 +228,19 @@ public final class Fask_C implements GraphSearch {
         }
 
         if (doSearch) {
-            IndTestIndepRes test = new IndTestIndepRes(dataSet, getAlpha());
-            test.setGraph(graph);
+//            IndTestIndepRes test = new IndTestIndepRes(dataSet, getAlpha());
+//            test.setGraph(graph);
 
-            FasStable fas = new FasStable(test);
+//            FasStable fas = new FasStable(test);
+//            fas.setDepth(depth);
+//            fas.setVerbose(false);
+//            Graph graph2 = fas.search();
+
+            final SemBicScore score = new SemBicScore(new CovarianceMatrixOnTheFly(dataSet));
+            score.setPenaltyDiscount(1);
+            Fask fas = new Fask(dataSet, score);
             fas.setDepth(depth);
-            fas.setVerbose(false);
+//            fas.setVerbose(false);
             Graph graph2 = fas.search();
 
             List<Node> vars = graph2.getNodes();
