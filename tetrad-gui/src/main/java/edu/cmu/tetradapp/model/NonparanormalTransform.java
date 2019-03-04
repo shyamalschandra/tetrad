@@ -43,10 +43,9 @@ public class NonparanormalTransform extends DataWrapper {
             DataModelList dataSets = new DataModelList();
 
             for (DataModel dataSet : wrapper.getDataModelList()) {
-                DataSet _dataSet = (DataSet) wrapper.getSelectedDataModel();
-                dataSet = DataUtils.getNonparanormalTransformed(_dataSet);
-                dataSet.setName(_dataSet.getName());
-                dataSets.add(dataSet);
+                DataSet np = DataUtils.getNonparanormalTransformed((DataSet) dataSet);
+                np.setName(dataSet.getName());
+                dataSets.add(np);
             }
 
             setDataModel(dataSets);

@@ -1820,15 +1820,18 @@ public final class DataUtils {
 //        }
 
         final double n = x.length;
-        final double delta = 0.0001;//1.0 / (4.0 * Math.pow(n, 0.25) * Math.sqrt(Math.PI * Math.log(n)));
+        final double delta = 1.0 / (4.0 * Math.pow(n, 0.25) * Math.sqrt(Math.PI * Math.log(n)));
 
         x = ranks(x);
 
         for (int i = 0; i < x.length; i++) {
-            x[i] /= n;
-            if (x[i] < delta) x[i] = delta;
-            if (x[i] > (1. - delta)) x[i] = 1. - delta;
+            x[i] = x[i] / (n + 1);
+//            if (i < 1) x[i] = delta;
+//            if (i > x.length - 2) x[i] = 1. - delta;
             x[i] = normalDistribution.inverseCumulativeProbability(x[i]);
+
+            if (x[i] == Double.NEGATIVE_INFINITY) x[i] = -1000;
+            else if (x[i] == Double.POSITIVE_INFINITY) x[i] = 1000;
         }
 
         for (int i = 0; i < x.length; i++) {

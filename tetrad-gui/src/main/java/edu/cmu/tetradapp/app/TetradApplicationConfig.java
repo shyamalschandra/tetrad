@@ -566,6 +566,7 @@ public class TetradApplicationConfig {
 //            }
 //            return null;
 //        }
+
         public ParameterEditor getParameterEditorInstance() {
             if (this.paramsEditor != null) {
                 try {

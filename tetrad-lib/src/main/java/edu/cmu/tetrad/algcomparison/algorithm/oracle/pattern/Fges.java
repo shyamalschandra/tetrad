@@ -64,7 +64,7 @@ public class Fges implements Algorithm, TakesInitialGraph, HasKnowledge, UsesSco
     public Graph search(DataModel dataSet, Parameters parameters) {
     	if (parameters.getInt("numberResampling") < 1) {
             if (algorithm != null) {
-//                initialGraph = algorithm.search(dataSet, parameters);
+                initialGraph = algorithm.search(dataSet, parameters);
             }
 
             edu.cmu.tetrad.search.Fges search

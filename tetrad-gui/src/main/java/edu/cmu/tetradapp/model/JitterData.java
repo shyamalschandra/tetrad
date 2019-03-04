@@ -24,12 +24,18 @@ package edu.cmu.tetradapp.model;
 import edu.cmu.tetrad.data.*;
 import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.util.Parameters;
+import edu.cmu.tetrad.util.StatUtils;
 import edu.cmu.tetrad.util.TetradMatrix;
 import edu.cmu.tetrad.util.TetradSerializableUtils;
+import org.apache.commons.math3.distribution.AbstractRealDistribution;
 import org.apache.commons.math3.distribution.NormalDistribution;
+import org.apache.commons.math3.distribution.RealDistribution;
 import org.apache.commons.math3.distribution.UniformRealDistribution;
 
+import java.util.HashMap;
 import java.util.List;
+
+import static javax.swing.UIManager.put;
 
 /**
  * Applies a logarithmic transform
@@ -45,7 +51,7 @@ public class JitterData extends DataWrapper {
         DataModelList inList = wrapper.getDataModelList();
         DataModelList outList = new DataModelList();
 
-        UniformRealDistribution normal = new UniformRealDistribution(0, 0.000000001);
+        RealDistribution dist = new UniformRealDistribution(-.001, 0.001);
 
         for (DataModel model : inList) {
             if (!(model instanceof DataSet)) {
@@ -53,13 +59,35 @@ public class JitterData extends DataWrapper {
             }
 
             DataSet dataSet = ((DataSet) model).copy();
+//            double[][] data = dataSet.getDoubleData().transpose().toArray();
 
             for (int c = 0; c < dataSet.getNumColumns(); c++) {
                 Node node = dataSet.getVariable(c);
 
+//                HashMap<Double, Integer> repeats = new HashMap<>();
+//
+//                for (int i = 0; i < dataSet.getNumRows(); i++) {
+//                    double d = dataSet.getDouble(i, c);
+//
+//                    if (!repeats.containsKey(d)) {
+//                        repeats.put(d, 0);
+//                    }
+//
+//                    repeats.put(d, repeats.get(d) + 1);
+//                }
+//
+//                double mean = StatUtils.mean(data[c]);
+//                double sd = StatUtils.sd(data[c]);
+//
+//                for (int i = 0; i < dataSet.getNumRows(); i++) {
+//                    if (repeats.get(dataSet.getDouble(i, c)) > 20) {
+//                        dataSet.setDouble(i, c, new NormalDistribution(mean, sd).sample());
+//                    }
+//                }
+//
                 if (node instanceof ContinuousVariable) {
                     for (int r = 0; r < dataSet.getNumRows(); r++) {
-                        dataSet.setDouble(r, c, dataSet.getDouble(r, c) + normal.sample());
+                        dataSet.setDouble(r, c, dataSet.getDouble(r, c) + dist.sample());
                     }
                 }
             }

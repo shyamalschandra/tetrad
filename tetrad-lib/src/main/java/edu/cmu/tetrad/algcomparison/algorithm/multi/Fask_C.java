@@ -95,7 +95,7 @@ public class Fask_C implements Algorithm, HasKnowledge {
 
     @Override
     public String getDescription() {
-        return "FASK-C using " + test.getDescription();
+        return "FASK-C";
     }
 
     @Override

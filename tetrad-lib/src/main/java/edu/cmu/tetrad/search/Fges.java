@@ -232,8 +232,10 @@ public final class Fges implements GraphSearch, GraphScorer {
         }
 
         if (initialGraph != null) {
-            graph = new EdgeListGraphSingleConnections(initialGraph);
-            graph = GraphUtils.replaceNodes(graph, nodes);
+            Graph graph1 = new EdgeListGraphSingleConnections(initialGraph);
+            graph1 = GraphUtils.replaceNodes(graph1, nodes);
+
+            setBoundGraph(graph1);
         }
 
         addRequiredEdges(graph);

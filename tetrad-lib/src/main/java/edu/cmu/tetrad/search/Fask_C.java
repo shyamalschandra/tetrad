@@ -232,7 +232,7 @@ public final class Fask_C implements GraphSearch {
 //            test.setGraph(graph);
 
 //            FasStable fas = new FasStable(test);
-//            fas.setDepth(depth);
+
 //            fas.setVerbose(false);
 //            Graph graph2 = fas.search();
 
