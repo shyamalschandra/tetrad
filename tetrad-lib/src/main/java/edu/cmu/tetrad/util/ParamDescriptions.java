@@ -57,7 +57,7 @@ public class ParamDescriptions {
         map.put("minCategories", new ParamDescription("Minimum number of categories (min = 2)", 2, 2, Integer.MAX_VALUE));
         map.put("maxCategories", new ParamDescription("Maximum number of categories (min = 2)", 2, 2, Integer.MAX_VALUE));
         map.put("samplePrior", new ParamDescription("Sample prior (min = 1.0)", 1.0, 1.0, Double.MAX_VALUE));
-        map.put("structurePrior", new ParamDescription("Structure prior coefficient (min = 1.0)", 1.0, 1.0, Double.MAX_VALUE));
+        map.put("structurePrior", new ParamDescription("Structure prior coefficient (min = 0.0)", 1.0, 0.0, Double.MAX_VALUE));
         map.put("mgmParam1", new ParamDescription("MGM tuning parameter #1 (min = 0.0)", 0.1, 0.0, Double.MAX_VALUE));
         map.put("mgmParam2", new ParamDescription("MGM tuning parameter #2 (min = 0.0)", 0.1, 0.0, Double.MAX_VALUE));
         map.put("mgmParam3", new ParamDescription("MGM tuning parameter #3 (min = 0.0)", 0.1, 0.0, Double.MAX_VALUE));

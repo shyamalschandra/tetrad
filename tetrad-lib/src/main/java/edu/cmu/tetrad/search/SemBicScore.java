@@ -384,12 +384,12 @@ public class SemBicScore implements Score, ISemBicScore {
     }
 
     private double getStructurePrior(int[] parents) {
-        if (getSp() < 0) { return 0; }
+        if (sp <= 0) { return 0; }
         else {
             int i = parents.length;
-            int c = covariances.getDimension() - 1;
-            double p = getSp() / (double) c;
-            return i * Math.log(p) + (c - i) * Math.log(1.0 - p);
+            int c = covariances.getDimension();
+            double p = sp / (double) c;
+            return (i) * Math.log(p) + (c - i) * Math.log(1.0 - p);
         }
     }
 

@@ -1794,17 +1794,30 @@ public final class DataUtils {
 //        return(x)
 //    }
 
-    public static DataSet getNonparanormalTransformed(DataSet dataSet) {
+    public static DataSet getNonparanormalTransformed(DataSet dataSet0) {
+        DataSet dataSet = dataSet0.copy();
+
         dataSet = DataUtils.center(dataSet);
         final TetradMatrix data = dataSet.getDoubleData();
-        final TetradMatrix X = data.like();
 
         for (int j = 0; j < data.columns(); j++) {
-            final double[] x1 = data.getColumn(j).copy().toArray();
-            X.assignColumn(j, new TetradVector(getNonparanormalTransformed(x1)));
+            Node node = dataSet.getVariable(j);
+
+            if (node instanceof ContinuousVariable) {
+                final double[] x1 = data.getColumn(j).copy().toArray();
+                final double[] nonparanormalTransformed = getNonparanormalTransformed(x1);
+
+                for (int i = 0; i < nonparanormalTransformed.length; i++) {
+                    dataSet.setDouble(i, j, nonparanormalTransformed[i]);
+                }
+            } else {
+                for (int i = 0; i < dataSet.getNumRows(); i++) {
+                    dataSet.setInt(i, j, dataSet0.getInt(i, j));
+                }
+            }
         }
 
-        return ColtDataSet.makeContinuousData(dataSet.getVariables(), X);
+        return dataSet;
     }
 
     private static final NormalDistribution normalDistribution = new NormalDistribution();
