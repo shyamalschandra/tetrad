@@ -1797,7 +1797,7 @@ public final class DataUtils {
     public static DataSet getNonparanormalTransformed(DataSet dataSet0) {
         DataSet dataSet = dataSet0.copy();
 
-        dataSet = DataUtils.center(dataSet);
+//        dataSet = DataUtils.center(dataSet);
         final TetradMatrix data = dataSet.getDoubleData();
 
         for (int j = 0; j < data.columns(); j++) {
