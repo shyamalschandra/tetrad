@@ -36,7 +36,7 @@ public class Fask implements Algorithm, HasKnowledge, UsesScoreWrapper {
 
     }
 
-    public      Fask(ScoreWrapper score) {
+    public Fask(ScoreWrapper score) {
         this.score = score;
     }
 

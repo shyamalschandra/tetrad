@@ -52,10 +52,16 @@ public class Fask_C implements Algorithm, HasKnowledge {
         if (parameters.getInt("numberResampling") < 1) {
             edu.cmu.tetrad.search.Fask_C search = new edu.cmu.tetrad.search.Fask_C((DataSet) dataSet);
 
-            search.setDepth(parameters.getInt("depth"));
-            search.setAlpha(parameters.getDouble("alpha"));
-            search.setTwoCycleAlpha(parameters.getDouble("twoCycleAlpha"));
+            search.setPenaltyDiscount(parameters.getDouble("penaltyDiscount"));
+            search.setFaithfulnessAssumed(parameters.getBoolean("faithfulnessAssumed"));
+            search.setSymmetricFirstStep(parameters.getBoolean("symmetricFirstStep"));
+            search.setMaxDegree(parameters.getInt("maxDegree"));
+
             search.setMaxIterations(parameters.getInt("maxIterations"));
+
+            search.setDepth(parameters.getInt("depth"));
+            search.setTwoCycleAlpha(parameters.getDouble("twoCycleAlpha"));
+
             search.setVerbose(parameters.getBoolean("verbose"));
 
             search.setKnowledge(knowledge);
@@ -106,10 +112,13 @@ public class Fask_C implements Algorithm, HasKnowledge {
     @Override
     public List<String> getParameters() {
         List<String> parameters = new ArrayList<>();
-        parameters.add("alpha");
-        parameters.add("depth");
-        parameters.add("twoCycleAlpha");
+        parameters.add("penaltyDiscount");
+        parameters.add("faithfulnessAssumed");
+        parameters.add("symmetricFirstStep");
+        parameters.add("maxDegree");
         parameters.add("maxIterations");
+        parameters.add("twoCycleAlpha");
+        parameters.add("depth");
 
         // Bootstrapping
         parameters.add("numberResampling");

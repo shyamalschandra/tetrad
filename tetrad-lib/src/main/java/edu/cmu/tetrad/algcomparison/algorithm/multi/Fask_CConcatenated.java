@@ -63,7 +63,6 @@ public class Fask_CConcatenated implements MultiDataSetAlgorithm, HasKnowledge {
             edu.cmu.tetrad.search.Fask_C search = new edu.cmu.tetrad.search.Fask_C(dataSet);
 
             search.setDepth(parameters.getInt("depth"));
-            search.setAlpha(parameters.getDouble("alpha"));
             search.setTwoCycleAlpha(parameters.getDouble("twoCycleAlpha"));
             search.setMaxIterations(parameters.getInt("maxIterations"));
             search.setVerbose(parameters.getBoolean("verbose"));
