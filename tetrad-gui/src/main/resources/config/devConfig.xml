@@ -1527,7 +1527,7 @@
             <!--</editor-class>-->
             <!--</model>-->
 
-            <!--Restored Mimbuild on 6/20/2017 -->          
+            <!--Restored Mimbuild on 6/20/2017 -->
             <model name="MIMBuild" acronym="MIMBuild" help="mimbuild"
                    category="Multiple Indicator Model searches">
                 <logger>
