@@ -1797,7 +1797,6 @@ public final class DataUtils {
     public static DataSet getNonparanormalTransformed(DataSet dataSet0) {
         DataSet dataSet = dataSet0.copy();
 
-//        dataSet = DataUtils.center(dataSet);
         final TetradMatrix data = dataSet.getDoubleData();
 
         for (int j = 0; j < data.columns(); j++) {
@@ -1827,13 +1826,8 @@ public final class DataUtils {
         double mu = StatUtils.mean(x);
         double std = StatUtils.sd(x);
 
-//        for (int i = 0; i < x.length; i++) {
-//            x[i] -= mu;
-//            x[i] /= std;
-//        }
-
         final double n = x.length;
-        final double delta = 1.0 / (4.0 * Math.pow(n, 0.25) * Math.sqrt(Math.PI * Math.log(n)));
+//        final double delta = 1.0 / (4.0 * Math.pow(n, 0.25) * Math.sqrt(Math.PI * Math.log(n)));
 
         x = ranks(x);
 

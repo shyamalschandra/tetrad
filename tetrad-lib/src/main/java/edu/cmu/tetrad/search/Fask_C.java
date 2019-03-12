@@ -203,15 +203,16 @@ public final class Fask_C implements GraphSearch {
                 for (Edge edge : graph.getEdges()) {
                     Node X, Y;
 
-                    if (Edges.isUndirectedEdge(edge)) {
+                    if (Edges.isUndirectedEdge(edge) || Edges.isBidirectedEdge(edge)) {
                         X = edge.getNode1();
                         Y = edge.getNode2();
+                        if (!(changed1.contains(X) || changed1.contains(Y))) continue;
                     } else {
                         X = Edges.getDirectedEdgeTail(edge);
                         Y = Edges.getDirectedEdgeHead(edge);
+                        if (!changed1.contains(Y)) continue;
                     }
 
-                    if (!changed1.contains(Y)) continue;
 
                     orientEdge(variables, graph, data, changed2, X, Y, graph.getParents(X), graph.getParents(Y));
                 }
@@ -227,12 +228,13 @@ public final class Fask_C implements GraphSearch {
 
             if (edgeForbiddenByKnowledge(X, Y)) continue;
 
-            if (graph.isAdjacentTo(X, Y)
+            if (graph.isAdjacentTo(X, Y) && Edges.isUndirectedEdge(graph.getEdge(X, Y))
                     && !knowledgeOrients(X, Y) && !knowledgeOrients(Y, X)
                     && twocycle(X, Y, graph)) {
                 System.out.println("2-cycle or confounder: " + X + "<->" + Y);
                 graph.removeEdges(X, Y);
-                graph.addBidirectedEdge(X, Y);
+                graph.addDirectedEdge(X, Y);
+                graph.addDirectedEdge(Y, X);
             }
         }
 
@@ -295,7 +297,14 @@ public final class Fask_C implements GraphSearch {
                 graph.removeEdges(Y, X);
                 graph.addDirectedEdge(Y, X);
                 changed2.add(X);
-            } else if (cyx == cxy && !Edges.isUndirectedEdge(graph.getEdge(Y, X))) {
+            }
+            else if (!cyx && !cxy && !Edges.isBidirectedEdge(graph.getEdge(Y, X))) {
+                graph.removeEdges(X, Y);
+                graph.addBidirectedEdge(X, Y);
+                changed2.add(X);
+                changed2.add(Y);
+            }
+            else if (!cyx && !cxy && !Edges.isUndirectedEdge(graph.getEdge(Y, X))) {
                 graph.removeEdges(X, Y);
                 graph.addUndirectedEdge(X, Y);
                 changed2.add(X);
