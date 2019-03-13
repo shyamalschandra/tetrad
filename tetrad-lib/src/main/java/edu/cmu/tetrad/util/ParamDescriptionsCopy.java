@@ -502,11 +502,11 @@ public class ParamDescriptionsCopy {
         map.get("addOriginalDataset").setLongDescription("It has been shown that adding in the algorithm result one would " +
                 "get using the original data to those found by the bootstrap method can improve accuracy of summary graphs. Select “Yes” here to include an extra run using the original dataset.");
 
-        // Probabilistic Test
+        // Probabilistic Test THESE NEED TO BE DONE STILL--I DON'T HAVE THE INFO.
         map.put("noRandomlyDeterminedIndependence", new ParamDescription("Yes, if use the cutoff threshold for the independence test.", false));
         map.put("cutoffIndTest", new ParamDescription("Independence cutoff threshold", 0.5, 0.0, 1.0));
 
-        // RB-BSC  THESE NEED TO BE DONE STILL--I DON'T HAVE THE INFO.
+        // RB-BSC
         map.put("thresholdNoRandomDataSearch", new ParamDescription("Yes, if use the cutoff threshold for the constraints independence test (stage 1).", false));
         map.put("cutoffDataSearch", new ParamDescription("Independence cutoff threshold", 0.5, 0.0, 1.0));
         map.put("thresholdNoRandomConstrainSearch", new ParamDescription("Yes, if use the cutoff threshold for the meta-constraints independence test (stage 2).", true));
