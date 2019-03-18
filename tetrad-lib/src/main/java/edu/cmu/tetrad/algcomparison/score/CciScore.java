@@ -32,7 +32,7 @@ public class CciScore implements ScoreWrapper {
     public Score getScore(DataModel dataSet, Parameters parameters) {
         this.dataSet = dataSet;
         final IndTestConditionalCorrelation cci = new IndTestConditionalCorrelation(DataUtils.getContinuousDataSet(dataSet),
-                parameters.getDouble("cciScoreAlpha"));
+                parameters.getDouble("alpha"));
         if (parameters.getInt("kernelType") == 1) {
             cci.setKernel(ConditionalCorrelationIndependence.Kernel.Gaussian);
         } else if (parameters.getInt("kernelType") == 2) {
@@ -69,7 +69,7 @@ public class CciScore implements ScoreWrapper {
     @Override
     public List<String> getParameters() {
         List<String> parameters = new ArrayList<>();
-        parameters.add("cciScoreAlpha");
+        parameters.add("alpha");
         parameters.add("numBasisFunctions");
         parameters.add("kernelType");
         parameters.add("kernelMultiplier");

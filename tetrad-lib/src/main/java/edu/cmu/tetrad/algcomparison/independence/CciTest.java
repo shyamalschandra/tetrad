@@ -32,7 +32,7 @@ public class CciTest implements IndependenceWrapper {
     @Override
     public IndependenceTest getTest(DataModel dataSet, Parameters parameters) {
         final IndTestConditionalCorrelation cci = new IndTestConditionalCorrelation(DataUtils.getContinuousDataSet(dataSet),
-                parameters.getDouble("cciAlpha"));
+                parameters.getDouble("alpha"));
         if (parameters.getInt("kernelType") == 1) {
             cci.setKernel(ConditionalCorrelationIndependence.Kernel.Gaussian);
 
@@ -72,7 +72,7 @@ public class CciTest implements IndependenceWrapper {
     @Override
     public List<String> getParameters() {
         List<String> params = new ArrayList<>();
-        params.add("cciAlpha");
+        params.add("alpha");
         params.add("numBasisFunctions");
         params.add("kernelType");
         params.add("kernelMultiplier");

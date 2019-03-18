@@ -277,7 +277,7 @@ public final class PcAll implements GraphSearch {
     }
 
     public Graph search(List<Node> nodes) {
-        this.logger.log("info", "Starting CPC algorithm");
+        this.logger.log("info", "Starting PC algorithm");
         this.logger.log("info", "Independence test = " + getIndependenceTest() + ".");
         this.ambiguousTriples = new HashSet<>();
         this.colliderTriples = new HashSet<>();

@@ -29,12 +29,13 @@ public class Kci implements IndependenceWrapper {
     @Override
     public IndependenceTest getTest(DataModel dataSet, Parameters parameters) {
         final KCI kci = new KCI(DataUtils.getContinuousDataSet(dataSet),
-                parameters.getDouble("kciAlpha"));
+                parameters.getDouble("alpha"));
         kci.setApproximate(parameters.getBoolean("kciUseAppromation"));
         kci.setWidthMultiplier(parameters.getDouble("kernelMultiplier"));
         kci.setNumBootstraps(parameters.getInt("kciNumBootstraps"));
         kci.setThreshold(parameters.getDouble("thresholdForNumEigenvalues"));
         kci.setEpsilon(parameters.getDouble("kciEpsilon"));
+        kci.setVerbose(parameters.getBoolean("verbose"));
         return kci;
     }
 
@@ -52,11 +53,12 @@ public class Kci implements IndependenceWrapper {
     public List<String> getParameters() {
         List<String> params = new ArrayList<>();
         params.add("kciUseAppromation");
-        params.add("kciAlpha");
+        params.add("alpha");
         params.add("kernelMultiplier");
         params.add("kciNumBootstraps");
         params.add("thresholdForNumEigenvalues");
         params.add("kciEpsilon");
+        params.add("verbose");
         return params;
     }
 }
