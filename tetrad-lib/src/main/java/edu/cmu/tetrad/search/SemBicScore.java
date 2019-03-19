@@ -159,8 +159,8 @@ public class SemBicScore implements Score, ISemBicScore {
         double sp2 = getStructurePrior(z);
 
         int N = covariances.getSampleSize();
-        return -N * Math.log(1.0 - r * r) - p * getPenaltyDiscount() * Math.log(N) + sp1 - sp2;
-//        return localScore(y, append(z, x)) - localScore(y, z);
+//        return -N * Math.log(1.0 - r * r) - p * getPenaltyDiscount() * Math.log(N) + sp1 - sp2;
+        return localScore(y, append(z, x)) - localScore(y, z);
     }
 
     private List<Node> getVariableList(int[] indices) {
