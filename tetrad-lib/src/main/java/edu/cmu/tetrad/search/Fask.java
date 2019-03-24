@@ -34,8 +34,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static edu.cmu.tetrad.util.StatUtils.correlation;
-import static edu.cmu.tetrad.util.StatUtils.covMatrix;
 import static edu.cmu.tetrad.util.StatUtils.skewness;
 import static java.lang.Math.*;
 
@@ -264,74 +262,9 @@ public final class Fask implements GraphSearch {
         return true;
     }
 
-    private boolean leftRightMinnesota(double[] x, double[] y) {
-        x = correctSkewness(x);
-        y = correctSkewness(y);
-
-        final double cxyx = cov(x, y, x);
-        final double cxyy = cov(x, y, y);
-        final double cxxx = cov(x, x, x);
-        final double cyyx = cov(y, y, x);
-        final double cxxy = cov(x, x, y);
-        final double cyyy = cov(y, y, y);
-
-        double a1 = cxyx / cxxx;
-        double a2 = cxyy / cxxy;
-        double b1 = cxyy / cyyy;
-        double b2 = cxyx / cyyx;
-
-        double Q = (a2 > 0) ? a1 / a2 : a2 / a1;
-        double R = (b2 > 0) ? b1 / b2 : b2 / b1;
-
-        double lr = Q - R;
-
-//        if (StatUtils.correlation(x, y) < 0) lr += delta;
-
-        final double sk_ey = StatUtils.skewness(residuals(y, new double[][]{x}));
-
-        if (sk_ey < 0) {
-            lr *= -1;
-        }
-
-        final double a = correlation(x, y);
-
-        if (a < 0 && sk_ey > delta) {
-            lr *= -1;
-        }
-
-        return lr > 0;
-    }
-
-    private double[] correctSkewness(double[] data) {
-        double skewness = StatUtils.skewness(data);
-        double[] data2 = new double[data.length];
-        for (int i = 0; i < data.length; i++) data2[i] = data[i] * Math.signum(skewness);
-        return data2;
-    }
-
-    private double[] residuals(double[] _y, double[][] _x) {
-        TetradMatrix y = new TetradMatrix(new double[][]{_y}).transpose();
-        TetradMatrix x = new TetradMatrix(_x).transpose();
-
-        TetradMatrix xT = x.transpose();
-        TetradMatrix xTx = xT.times(x);
-        TetradMatrix xTxInv = xTx.inverse();
-        TetradMatrix xTy = xT.times(y);
-        TetradMatrix b = xTxInv.times(xTy);
-
-        TetradMatrix yHat = x.times(b);
-        if (yHat.columns() == 0) yHat = y.copy();
-
-        return y.minus(yHat).getColumn(0).toArray();
-    }
-
     private boolean leftright(double[] x, double[] y) {
-        final double cxyx = cu(x, y, x);
-        final double cxyy = cu(x, y, y);
-
-        double left = cxyx / sqrt(cu(x, x, x) * cu(y, y, x));
-        double right = cxyy / sqrt(cu(x, x, y) * cu(y, y, y));
-
+        double left = cu(x, y, x) / (sqrt(cu(x, x, x) * cu(y, y, x)));
+        double right = cu(x, y, y) / (sqrt(cu(x, x, y) * cu(y, y, y)));
         double lr = left - right;
 
         double r = StatUtils.correlation(x, y);
@@ -343,21 +276,6 @@ public final class Fask implements GraphSearch {
         if (r < getDelta()) lr *= -1;
 
         return lr > 0;
-    }
-
-    private static double cov(double[] x, double[] y, double[] condition) {
-        double exy = 0.0;
-
-        int n = 0;
-
-        for (int k = 0; k < x.length; k++) {
-            if (condition[k] > 0) {
-                exy += x[k] * y[k];
-                n++;
-            }
-        }
-
-        return exy / n;
     }
 
     private static double cu(double[] x, double[] y, double[] condition) {
@@ -504,6 +422,7 @@ public final class Fask implements GraphSearch {
         this.delta = delta;
     }
 }
+
 
 
 
