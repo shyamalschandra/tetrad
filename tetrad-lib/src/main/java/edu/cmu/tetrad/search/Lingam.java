@@ -111,7 +111,7 @@ public class Lingam {
 
         for (int j = 0; j < WTilde.columns(); j++) {
             for (int i = j ; i < WTilde.rows(); i++) {
-                WTilde.set(i, j, WTilde.get(i, j) / WTilde.get(j, j));
+                WTilde.set(i, j, WTilde.get(i, j) * WTilde.get(j, j));
             }
         }
 
