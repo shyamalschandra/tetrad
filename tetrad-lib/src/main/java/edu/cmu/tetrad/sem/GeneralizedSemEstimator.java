@@ -95,12 +95,15 @@ public class GeneralizedSemEstimator {
             allDistributions.add(distribution);
             GeneralAndersonDarlingTest test = new GeneralAndersonDarlingTest(residuals, distribution);
 
+            double L = getLikelihood(residuals, distribution);
+
             builder.append("\nEquation: ").append(node).append(" := ").append(estIm.getNodeSubstitutedString(node));
             builder.append("\n\twhere ").append(pm.getErrorNode(node)).append(" ~ ").append(estIm.getNodeSubstitutedString(pm.getErrorNode(node)));
             builder.append("\nAnderson Darling A^2* for this equation =  ").append(test.getASquaredStar()).append("\n");
+            builder.append("Log likelihood for this equation =  ").append(L).append("\n");
         }
 
-        List<String> parameters = new ArrayList<>();
+        List<String> parameters = new ArrayList<>(pm.getParameters());
         double[] values = new double[parameters.size()];
 
         for (int i = 0; i < parameters.size(); i++) {
@@ -118,11 +121,16 @@ public class GeneralizedSemEstimator {
 
         this.aSquaredStar = aSquaredStar;
 
-        String builder2 = "Report:\n" +
-                "\nModel A^2* (Anderson Darling) = " + aSquaredStar + "\n" +
-                builder;
+        double L = 0;
 
-        this.report = builder2;
+        for (int i = 0; i < allResiduals.size(); i++) {
+            L += getLikelihood(allResiduals.get(i), allDistributions.get(i));
+        }
+
+        this.report = "Report:\n" +
+                "\nModel A^2* (Anderson Darling) = " + aSquaredStar + "\n" +
+                "Model log likelihood = " + L + "\n" +
+                builder;
 
         return estIm;
     }
@@ -447,6 +455,21 @@ public class GeneralizedSemEstimator {
         public List<Node> getTierOrdering() {
             return tierOrdering;
         }
+    }
+
+    private static double getLikelihood(List<Double> residuals, RealDistribution dist) {
+        double sum = 0.0;
+
+        for (double r : residuals) {
+            try {
+                double t = dist.density(r);
+                sum += log(t + 1e-15);
+            } catch (Exception e) {
+                //
+            }
+        }
+
+        return sum;
     }
 
     static class LikelihoodFittingFunction2 implements MultivariateFunction {

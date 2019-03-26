@@ -28,7 +28,6 @@ import edu.cmu.tetrad.regression.RegressionDataset;
 import edu.cmu.tetrad.util.StatUtils;
 import edu.cmu.tetrad.util.TetradMatrix;
 import org.apache.commons.math3.distribution.NormalDistribution;
-import org.apache.commons.math3.linear.SingularMatrixException;
 
 import java.text.DecimalFormat;
 import java.util.*;
@@ -46,10 +45,10 @@ import static java.lang.Math.*;
  */
 public final class IndTestIndepRes implements IndependenceTest {
 
-    /**
-     * The covariance matrix.
-     */
-    private final ICovarianceMatrix covMatrix;
+//    /**
+//     * The covariance matrix.
+//     */
+//    private final ICovarianceMatrix covMatrix;
 
     /**
      * The variables of the covariance matrix, in order. (Unmodifiable list.)
@@ -80,7 +79,7 @@ public final class IndTestIndepRes implements IndependenceTest {
     private RegressionDataset regressionDataset;
 
     private Graph graph = null;
-    private boolean indep = false;
+//    private boolean indep = false;
 
 
     //==========================CONSTRUCTORS=============================//
@@ -101,8 +100,8 @@ public final class IndTestIndepRes implements IndependenceTest {
             throw new IllegalArgumentException("Alpha mut be in [0, 1]");
         }
 
-        this.covMatrix = new CovarianceMatrixOnTheFly(dataSet);
-        List<Node> nodes = covMatrix.getVariables();
+//        this.covMatrix = new CovarianceMatrixOnTheFly(dataSet);
+        List<Node> nodes = dataSet.getVariables();
 
         this.variables = Collections.unmodifiableList(nodes);
         this.indexMap = indexMap(variables);
@@ -155,7 +154,7 @@ public final class IndTestIndepRes implements IndependenceTest {
      */
     public boolean isIndependent(Node x, Node y, List<Node> z) {
         final boolean b = indepRes(x, y, z);
-        this.indep = b;
+//        this.indep = b;
         return b;
     }
 
@@ -231,26 +230,27 @@ public final class IndTestIndepRes implements IndependenceTest {
      * UnsupportedOperationException.
      */
     public boolean determines(List<Node> z, Node x) throws UnsupportedOperationException {
-        int[] parents = new int[z.size()];
-
-        for (int j = 0; j < parents.length; j++) {
-            parents[j] = covMatrix.getVariables().indexOf(z.get(j));
-        }
-
-        if (parents.length > 0) {
-
-            // Regress z onto i, yielding regression coefficients b.
-            TetradMatrix Czz = covMatrix.getSelection(parents, parents);
-
-            try {
-                Czz.inverse();
-            } catch (SingularMatrixException e) {
-                System.out.println(SearchLogUtils.determinismDetected(z, x));
-                return true;
-            }
-        }
-
-        return false;
+        throw new UnsupportedOperationException();
+//        int[] parents = new int[z.size()];
+//
+//        for (int j = 0; j < parents.length; j++) {
+//            parents[j] = variables.indexOf(z.get(j));
+//        }
+//
+//        if (parents.length > 0) {
+//
+//            // Regress z onto i, yielding regression coefficients b.
+//            TetradMatrix Czz = covMatrix.getSelection(parents, parents);
+//
+//            try {
+//                Czz.inverse();
+//            } catch (SingularMatrixException e) {
+//                System.out.println(SearchLogUtils.determinismDetected(z, x));
+//                return true;
+//            }
+//        }
+//
+//        return false;
     }
 
     /**
@@ -269,13 +269,13 @@ public final class IndTestIndepRes implements IndependenceTest {
 
     //==========================PRIVATE METHODS============================//
 
-    private int sampleSize() {
-        return covMatrix().getSampleSize();
-    }
+//    private int sampleSize() {
+//        return covMatrix().getSampleSize();
+//    }
 
-    private ICovarianceMatrix covMatrix() {
-        return covMatrix;
-    }
+//    private ICovarianceMatrix covMatrix() {
+//        return covMatrix;
+//    }
 
     private Map<String, Node> nameMap(List<Node> variables) {
         Map<String, Node> nameMap = new ConcurrentHashMap<>();
@@ -298,13 +298,15 @@ public final class IndTestIndepRes implements IndependenceTest {
     }
 
     public void setVariables(List<Node> variables) {
-        if (variables.size() != this.variables.size()) throw new IllegalArgumentException("Wrong # of variables.");
-        this.variables = new ArrayList<>(variables);
-        covMatrix.setVariables(variables);
+        throw new UnsupportedOperationException();
+//        if (variables.size() != this.variables.size()) throw new IllegalArgumentException("Wrong # of variables.");
+//        this.variables = new ArrayList<>(variables);
+//        covMatrix.setVariables(variables);
     }
 
     public ICovarianceMatrix getCov() {
-        return covMatrix;
+        throw new UnsupportedOperationException();
+//        return covMatrix;
     }
 
     @Override
@@ -320,49 +322,26 @@ public final class IndTestIndepRes implements IndependenceTest {
 
     private boolean indepRes(Node X, Node Y, List<Node> Z) {
 
-//        if (graph != null) {
-//            if (!graph.getParents(X).containsAll(Z) || graph.getParents(Y).containsAll(Z)) {
-//                return false;
-//            }
-//        }
-
         try {
-//            E h = new E(X, Y, Z, null).invoke();
             E hx = new E(X, Y, Z, X).invoke();
-            E hy = new E(Y, X, Z, Y).invoke();
+            E hy = new E(X, Y, Z, Y).invoke();
 
-//            double[] d = h.getRxy();
-//            double[] dx = hx.getRxy();
-//            double[] dy = hy.getRxy();
+            double cx = hx.getCorrxry();
+            double cy = hy.getCorrxry();
 
-            double cx = hx.getCorrxy();
-            double cy = hy.getCorrxy();
-
-//            double n = h.getN();
             double nx = hx.getN();
             double ny = hy.getN();
 
             double zx = 0.5 * sqrt(nx) * (log(1 + cx) - log(1 - cx));
             double zy = 0.5 * sqrt(ny) * (log(1 + cy) - log(1 - cy));
 
-//            double p1 = getP(d, n);
-//            double t2 = getT(dx, nx);
-//            double t3 = getT(dy, ny);
-//
-//            boolean b2 = abs(t2) < cutoff;
-//            boolean b3 = abs(t3) < cutoff;
-
             boolean b2 = abs(zx) < cutoff;
             boolean b3 = abs(zy) < cutoff;
-
-//            System.out.println(/*"p1 = " + p1 +*/ " p2 = " + p2 + " p3 = " + p3);
-
-//            System.out.println("b2 = " + b2 + " b3 = " + b3);
 
             this.z1 = zx;
             this.z2 = zy;
 
-            return /*p1 > getAlpha() &&*/ (b2 && b3);
+            return (b2 && b3);
         } catch (Exception e) {
             e.printStackTrace();
             return false;
@@ -452,7 +431,7 @@ public final class IndTestIndepRes implements IndependenceTest {
             return n;
         }
 
-        public double getCorrxy() {
+        public double getCorrxry() {
             return corrxy;
         }
 
@@ -464,7 +443,7 @@ public final class IndTestIndepRes implements IndependenceTest {
 
     @Override
     public int getSampleSize() {
-        return covMatrix.getSampleSize();
+        return dataSet.getNumRows();
     }
 
     @Override
