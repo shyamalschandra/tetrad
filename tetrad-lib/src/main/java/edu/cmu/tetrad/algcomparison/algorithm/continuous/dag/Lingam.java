@@ -33,7 +33,7 @@ public class Lingam implements Algorithm {
         if (parameters.getInt("numberResampling") < 1) {
             edu.cmu.tetrad.search.Lingam lingam = new edu.cmu.tetrad.search.Lingam();
             lingam.setPenaltyDiscount(parameters.getDouble("penaltyDiscount"));
-            return lingam.search(DataUtils.getContinuousDataSet(dataSet));
+            return lingam.search((DataSet) dataSet);
         } else {
             Lingam algorithm = new Lingam();
 
@@ -78,6 +78,7 @@ public class Lingam implements Algorithm {
     @Override
     public List<String> getParameters() {
         List<String> parameters = new ArrayList<>();
+        parameters.add("penaltyDiscount");
         // Resampling
         parameters.add("numberResampling");
         parameters.add("percentResampleSize");

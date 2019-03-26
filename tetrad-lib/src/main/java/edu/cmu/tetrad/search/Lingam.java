@@ -88,7 +88,7 @@ public class Lingam {
 
         PermutationGenerator gen1 = new PermutationGenerator(W.rows());
         int[] perm1 = new int[0];
-        double sum1 = Double.POSITIVE_INFINITY;
+        double sum1 = Double.NEGATIVE_INFINITY;
         int[] choice1;
 
         while ((choice1 = gen1.next()) != null) {
@@ -99,7 +99,7 @@ public class Lingam {
                 sum += 1.0 / abs(c);
             }
 
-            if (sum < sum1) {
+            if (sum > sum1) {
                 sum1 = sum;
                 perm1 = Arrays.copyOf(choice1, choice1.length);
             }
