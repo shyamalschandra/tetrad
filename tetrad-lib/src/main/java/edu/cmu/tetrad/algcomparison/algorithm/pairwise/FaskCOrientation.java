@@ -24,8 +24,8 @@ import java.util.List;
  * @author jdramsey
  */
 @edu.cmu.tetrad.annotation.Algorithm(
-        name = "Skew Orientation",
-        command = "skew_orient",
+        name = "Fask-C Orientation",
+        command = "faskc_orient",
         algoType = AlgType.orient_pairwise
 //        description = "These are algorithms that orient edges X—Y for continuous variables pairwise based on non-Gaussian information. (If the variables are all Gaussian, one cannot orient these edges. That is, these rules will orient left or right randomly.) For EB, RSkew, RSkewE, Skew and SkewE, see Hyvarinen and Smith (2013). For R1, R2, R3 and R4, see Ramsey et al., 2014.\n" +
 //                "\n" +
@@ -126,7 +126,7 @@ public class FaskCOrientation implements Algorithm, TakesInitialGraph, HasKnowle
 
     @Override
     public String getDescription() {
-        return "Skew Orientation";
+        return "Fask-C Orientation";
     }
 
     @Override

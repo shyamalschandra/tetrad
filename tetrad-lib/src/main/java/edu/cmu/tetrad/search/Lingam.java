@@ -78,6 +78,7 @@ public class Lingam {
     //================================PUBLIC METHODS========================//
 
     private CausalOrder estimateCausalOrder(DataSet dataSet) {
+        dataSet = DataUtils.standardizeData(dataSet);
         TetradMatrix X = dataSet.getDoubleData();
         FastIca fastIca = new FastIca(X, 30);
         fastIca.setVerbose(false);

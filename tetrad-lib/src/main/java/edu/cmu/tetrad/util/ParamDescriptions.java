@@ -754,6 +754,11 @@ public class ParamDescriptions {
                 "Threshold for judging negative coefficient edges as X->Y (range (-1, 0))",
                 -0.7, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY));
 
+        map.put("minnesotaRule", new ParamDescription(
+                "Use the Minnesota rule for left-right orientation",
+                false)
+        );
+
     }
 
     public static ParamDescriptions getInstance() {

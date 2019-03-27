@@ -413,25 +413,30 @@ public class GeneralizedSemEstimator {
                 }
 
                 Expression expression = pm.getNodeExpression(error);
-                RealDistribution dist = expression.getRealDistribution(context);
 
-                if (dist == null) {
-                    try {
-                        dist = new EmpiricalDistributionForExpression(pm, error, context).getDist();
-                    } catch (Exception e) {
-                        return Double.POSITIVE_INFINITY;
+                try {
+                    RealDistribution dist = expression.getRealDistribution(context);
+
+                    if (dist == null) {
+                        try {
+                            dist = new EmpiricalDistributionForExpression(pm, error, context).getDist();
+                        } catch (Exception e) {
+                            return Double.POSITIVE_INFINITY;
+                        }
                     }
+
+                    List<Double> residuals = new ArrayList<>();
+
+                    for (double[] aR : r) {
+                        residuals.add(aR[index]);
+                    }
+
+                    double likelihood = getLikelihood(residuals, dist);
+
+                    total += likelihood;
+                } catch (Exception e) {
+                    return Double.POSITIVE_INFINITY;
                 }
-
-                List<Double> residuals = new ArrayList<>();
-
-                for (double[] aR : r) {
-                    residuals.add(aR[index]);
-                }
-
-                double likelihood = getLikelihood(residuals, dist);
-
-                total += likelihood;
             }
 
             return -total;

@@ -207,7 +207,7 @@ public class TestFask {
             {
                 boolean added = true;
 
-                for (int d = 0; d <= 0; d++) {
+                for (int d = 0; d <= 1; d++) {
                     if (!added) break;
 
                     added = false;
@@ -320,6 +320,11 @@ public class TestFask {
 //            }
 
             System.out.println("\nGraph = " + graph);
+
+            Fask fask = new Fask(dataSet, new SemBicScore(new CovarianceMatrixOnTheFly(dataSet)));
+
+            System.out.println("Graph 2 = " + fask.search());
+
             GraphUtils.saveGraph(graph, new File("/Users/user/Downloads/mygraph.txt"), false);
         } catch (IOException e) {
             e.printStackTrace();

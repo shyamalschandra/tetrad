@@ -517,8 +517,6 @@ public final class Fask_C implements GraphSearch {
     private static double E(double a, double[] x, double[] ry, double dir) {
         double exy = 0.0;
 
-        System.out.println(" skew = " + StatUtils.skewness(ry));
-
         int n = 0;
 
         for (int k = 0; k < x.length; k++) {
