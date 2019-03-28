@@ -141,16 +141,16 @@ public final class Fask implements GraphSearch {
             IndependenceTest test = new IndTestScore(score, dataSet);
             System.out.println("FAS");
 
-//            FasStable fas = new FasStable(test);
-//            fas.setDepth(getDepth());
-//            fas.setVerbose(false);
-//            fas.setKnowledge(knowledge);
-//            G0 = fas.search();
+            FasStable fas = new FasStable(test);
+            fas.setDepth(getDepth());
+            fas.setVerbose(false);
+            fas.setKnowledge(knowledge);
+            G0 = fas.search();
 
-            Fges fges = new Fges(new SemBicScore(new CovarianceMatrixOnTheFly(dataSet)));
-            fges.setFaithfulnessAssumed(false);
-            fges.setKnowledge(knowledge);
-            G0 = fges.search();
+//            Fges fges = new Fges(new SemBicScore(new CovarianceMatrixOnTheFly(dataSet)));
+//            fges.setFaithfulnessAssumed(false);
+//            fges.setKnowledge(knowledge);
+//            G0 = fges.search();
         }
 
         SearchGraphUtils.pcOrientbk(knowledge, G0, G0.getNodes());
