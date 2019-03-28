@@ -22,10 +22,10 @@
 package edu.cmu.tetrad.search;
 
 import edu.cmu.tetrad.data.*;
+import edu.cmu.tetrad.graph.EdgeListGraph;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.Node;
 import edu.cmu.tetrad.util.PermutationGenerator;
-import edu.cmu.tetrad.util.TetradLogger;
 import edu.cmu.tetrad.util.TetradMatrix;
 
 import java.util.*;
@@ -35,7 +35,7 @@ import static java.lang.StrictMath.abs;
 /**
  * Implements the LiNGAM algorithm in Shimizu, Hoyer, Hyvarinen, and Kerminen, A linear nongaussian acyclic model for
  * causal discovery, JMLR 7 (2006). Largely follows the Matlab code.
- *
+ * <p>
  * We use FGES with knowledge of causal order for the pruning step.
  *
  * @author Joseph Ramsey
@@ -54,52 +54,39 @@ public class Lingam {
     public Graph search(DataSet data) {
         data = DataUtils.center(data);
 
-        CausalOrder result = estimateCausalOrder(data);
-        int[] perm = result.getPerm();
-
-        final SemBicScore score = new SemBicScore(new CovarianceMatrixOnTheFly(data));
-        score.setPenaltyDiscount(penaltyDiscount);
-        Fges fges = new Fges(score);
-
-        IKnowledge knowledge = new Knowledge2();
-        final List<Node> variables = data.getVariables();
-
-        for (int i = 0; i < variables.size(); i++) {
-            knowledge.addToTier(i + 1, variables.get(perm[i]).getName());
-        }
-
-        fges.setKnowledge(knowledge);
-
-        final Graph graph = fges.search();
-        System.out.println("graph Returning this graph: " + graph);
-        return graph;
-    }
-
-    //================================PUBLIC METHODS========================//
-
-    private CausalOrder estimateCausalOrder(DataSet dataSet) {
+        DataSet dataSet = data;
+//        dataSet = DataUtils.standardizeData(dataSet);
         TetradMatrix X = dataSet.getDoubleData();
         FastIca fastIca = new FastIca(X, 30);
+
+//        TetradMatrix winit = new TetradMatrix(X.columns(), X.columns());
+//        for (int i1 = 0; i1 < X.columns(); i1++) {
+//            for (int j = 0; j < X.columns(); j++) {
+//                winit.set(i1, j, );
+//            }
+//        }
+
+//        fastIca.setWInit(winit);
         fastIca.setVerbose(false);
-        FastIca.IcaResult result = fastIca.findComponents();
-        TetradMatrix W = result.getW().transpose();
+        FastIca.IcaResult result11 = fastIca.findComponents();
+        TetradMatrix W = result11.getW().transpose();
 
         System.out.println("W = " + W);
 
         PermutationGenerator gen1 = new PermutationGenerator(W.rows());
         int[] perm1 = new int[0];
-        double sum1 = Double.POSITIVE_INFINITY;
+        double sum1 = Double.NEGATIVE_INFINITY;
         int[] choice1;
 
         while ((choice1 = gen1.next()) != null) {
             double sum = 0.0;
 
-            for (int i = 0; i < W.rows(); i++) {
-                final double c = W.get(i, choice1[i]);
+            for (int i1 = 0; i1 < W.rows(); i1++) {
+                final double c = W.get(i1, choice1[i1]);
                 sum += 1.0 / abs(c);
             }
 
-            if (sum < sum1) {
+            if (sum > sum1) {
                 sum1 = sum;
                 perm1 = Arrays.copyOf(choice1, choice1.length);
             }
@@ -110,44 +97,197 @@ public class Lingam {
         System.out.println("WTilde before normalization = " + WTilde);
 
         for (int j = 0; j < WTilde.columns(); j++) {
-            for (int i = j ; i < WTilde.rows(); i++) {
-                WTilde.set(i, j, WTilde.get(i, j) / WTilde.get(j, j));
+            for (int i = j; i > 0; i--) {
+                WTilde.set(i, j, WTilde.get(i, j) * WTilde.get(j, j));
             }
         }
 
         System.out.println("WTilde after normalization = " + WTilde);
 
         final int m = dataSet.getNumColumns();
-        TetradMatrix B = TetradMatrix.identity(m).minus(WTilde.transpose());
+        TetradMatrix b = TetradMatrix.identity(m).minus(WTilde.transpose());
+        System.out.println("b = " + b);
 
-        System.out.println("B = " + B);
+        final List<Node> variables = data.getVariables();
 
-        PermutationGenerator gen2 = new PermutationGenerator(B.rows());
-        int[] perm2 = new int[0];
-        double sum2 = Double.POSITIVE_INFINITY;
-        int[] choice2;
+        if (true) {
 
-        while ((choice2 = gen2.next()) != null) {
-            double sum = 0.0;
+            PermutationGenerator gen2 = new PermutationGenerator(b.rows());
+            int[] perm2 = new int[0];
+            double sum2 = Double.POSITIVE_INFINITY;
+            int[] choice2;
 
-            for (int i = 0; i < W.rows(); i++) {
-                for (int j = i; j < W.rows(); j++) {
-                    final double c = B.get(choice2[i], choice2[j]);
-                    sum += c * c;
+            while ((choice2 = gen2.next()) != null) {
+                double sum = 0.0;
+
+                for (int i1 = 0; i1 < W.rows(); i1++) {
+                    for (int j = i1; j < W.rows(); j++) {
+                        final double c = b.get(choice2[i1], choice2[j]);
+                        sum += c * c;
+                    }
+                }
+
+                if (sum < sum2) {
+                    sum2 = sum;
+                    perm2 = Arrays.copyOf(choice2, choice2.length);
                 }
             }
 
-            if (sum < sum2) {
-                sum2 = sum;
-                perm2 = Arrays.copyOf(choice2, choice2.length);
+            TetradMatrix BTilde = b.getSelection(perm2, perm2);
+
+            System.out.println("BTilde = " + BTilde);
+
+            final SemBicScore score = new SemBicScore(new CovarianceMatrixOnTheFly(data));
+            score.setPenaltyDiscount(penaltyDiscount);
+            Fges fges = new Fges(score);
+
+            IKnowledge knowledge = new Knowledge2();
+
+            for (int i = 0; i < variables.size(); i++) {
+                knowledge.addToTier(i + 1, variables.get(perm2[i]).getName());
+            }
+
+            fges.setKnowledge(knowledge);
+
+            final Graph graph = fges.search();
+            System.out.println("graph Returning this graph: " + graph);
+            return graph;
+        } else {
+            List<Double> elements = new ArrayList<>();
+            for (int i = 0; i < m; i++) {
+                for (int j = 0; j < m; j++) {
+                    elements.add(abs(b.get(i, j)));
+                }
+            }
+
+            Collections.sort(elements);
+            double cutoff = elements.get(m * (m + 1) / 2);
+
+            for (int i = 0; i < m; i++) {
+                for (int j = 0; j < m; j++) {
+                    if (abs(b.get(i, j)) <= cutoff) {
+                        b.set(i, j, 0);
+                    }
+                }
+            }
+
+            int[] perm3 = null;
+            int extra = 0;
+            int[] choice2;
+
+            LOOP:
+            while (true) {
+                PermutationGenerator gen2 = new PermutationGenerator(b.rows());
+
+                PERM:
+                while (((choice2 = gen2.next()) != null)) {
+                    for (int i = 0; i < m; i++) {
+                        for (int j = i; j < m; j++) {
+                            if (b.get(choice2[i], choice2[j]) != 0) {
+                                System.out.println(b.getSelection(choice2, choice2));
+
+                                System.out.println("Rejecting " + Arrays.toString(choice2));
+                                continue PERM;
+                            }
+                        }
+                    }
+
+                    System.out.println("PP = " + b);
+
+                    perm3 = Arrays.copyOf(choice2, choice2.length);
+                    break LOOP;
+                }
+
+                extra++;
+
+                cutoff = elements.get(m * (m + 1) / 2 + extra);
+
+                for (int q = 0; q < m; q++) {
+                    for (int r = 0; r < m; r++) {
+                        if (abs(b.get(q, r)) <= cutoff) {
+                            b.set(q, r, 0);
+
+                            System.out.println("BB = " + b);
+                        }
+                    }
+                }
+            }
+
+
+            System.out.println("B after zeros: " + b);
+
+            Graph graph = new EdgeListGraph(variables);
+
+            for (int i = 0; i < m; i++) {
+                for (int j = 0; j < m; j++) {
+                    if (b.get(j, i) != 0) {
+                        graph.addDirectedEdge(variables.get(perm3[j]), variables.get(perm3[i]));
+                    }
+                }
+            }
+
+            return graph;
+        }
+    }
+
+    //================================PUBLIC METHODS========================//
+
+    private int[] algorithmC(TetradMatrix b) {
+        int m = b.rows();
+
+        List<Double> elements = new ArrayList<>();
+        for (int i = 0; i < m; i++) {
+            for (int j = 0; j < m; j++) {
+                elements.add(abs(b.get(i, j)));
             }
         }
 
-        TetradMatrix BTilde = B.getSelection(perm2, perm2);
+        Collections.sort(elements);
+        double cutoff = elements.get(m * (m + 1) / 2);
 
-        System.out.println("BTilde = " + BTilde);
+        for (int i = 0; i < m; i++) {
+            for (int j = 0; j < m; j++) {
+                if (abs(b.get(i, j)) <= cutoff) {
+                    b.set(i, j, 0);
+                }
+            }
+        }
 
-        return new CausalOrder(perm2);
+        int[] perm3 = null;
+        int extra = 0;
+        int[] choice2;
+
+        PermutationGenerator gen2 = new PermutationGenerator(b.rows());
+
+        PERM:
+        while (((choice2 = gen2.next()) != null)) {
+            for (int i = 0; i < m; i++) {
+                for (int j = i; j < m; j++) {
+                    final double c = b.get(choice2[i], choice2[j]);
+
+                    if (c != 0) {
+                        extra++;
+
+                        cutoff = elements.get(m * (m + 1) / 2 + extra);
+
+                        for (int q = 0; q < m; q++) {
+                            for (int r = 0; r < m; r++) {
+                                if (abs(b.get(q, r)) <= cutoff) {
+                                    b.set(q, r, 0);
+                                }
+                            }
+                        }
+
+                        continue PERM;
+                    }
+                }
+            }
+
+            perm3 = Arrays.copyOf(choice2, choice2.length);
+            break;
+        }
+
+        return perm3;
     }
 
     public void setPenaltyDiscount(double penaltyDiscount) {
