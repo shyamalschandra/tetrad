@@ -81,7 +81,15 @@ public class Lingam {
         dataSet = DataUtils.standardizeData(dataSet);
         TetradMatrix X = dataSet.getDoubleData();
         FastIca fastIca = new FastIca(X, 30);
-        fastIca.setWInit(new TetradMatrix(X.columns(), X.columns()));
+
+        TetradMatrix winit = new TetradMatrix(X.columns(), X.columns());
+        for (int i = 0; i < X.columns(); i++) {
+            for (int j = 0; j < X.columns(); j++) {
+                winit.set(i, j, 0);
+            }
+        }
+
+        fastIca.setWInit(winit);
         fastIca.setVerbose(false);
         FastIca.IcaResult result = fastIca.findComponents();
         TetradMatrix W = result.getW().transpose();
