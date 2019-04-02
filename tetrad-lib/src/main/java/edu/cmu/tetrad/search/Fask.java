@@ -284,8 +284,8 @@ public final class Fask implements GraphSearch {
         r *= signum(sx) * signum(sy);
         lr *= signum(r);
         if (r < getDelta()) lr *= -1;
-        return lr > 0;
 
+        return lr > 0;
     }
 
     private boolean leftRightMinnesota(double[] x, double[] y) {
@@ -309,7 +309,7 @@ public final class Fask implements GraphSearch {
 
         double lr = Q - R;
 
-        if (StatUtils.correlation(x, y) < 0) lr += delta;
+//        if (StatUtils.correlation(x, y) < 0) lr += delta;
 
         final double sk_ey = StatUtils.skewness(residuals(y, new double[][]{x}));
 
