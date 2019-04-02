@@ -47,6 +47,8 @@ public class IndTestProbabilistic implements IndependenceTest {
      * Calculates probabilities of independence for conditional independence facts.
      */
     private final BCInference bci;
+    // Not
+    private boolean threshold = false;
 
     /**
      * The data set for which conditional  independence judgments are requested.
