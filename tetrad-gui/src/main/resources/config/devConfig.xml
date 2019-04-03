@@ -348,6 +348,22 @@
                 <model-class>edu.cmu.tetradapp.model.DataWrapper</model-class>
                 <editor-class>edu.cmu.tetradapp.editor.DataEditor</editor-class>
             </model>
+            
+            <!-- Merge Deterministic Variables for interventional data, added by Zhou -->
+            <model name="Merge Deterministic Interventional Variables" acronym="Determinism" help="data" category="Manipulation of Data">
+                <logger>
+                    <event id="info" description="Information" default="on"/>
+                    <event id="data" description="Data"/>
+                </logger>
+                <model-class>
+                    edu.cmu.tetradapp.model.datamanip.DeterminismWraper
+                </model-class>
+                <editor-class>edu.cmu.tetradapp.editor.DataEditor</editor-class>
+                <params-editor-class>
+                    edu.cmu.tetradapp.editor.datamanip.DeterminismEditor
+                </params-editor-class>
+            </model>
+            
             <model name="Discretize Dataset" acronym="Discretize" help="data"
                    category="Manipulation of Data">
                 <logger>
@@ -520,7 +536,7 @@
                     edu.cmu.tetradapp.editor.datamanip.TimeSeriesParamsEditor
                 </params-editor-class>
             </model>
-            <model name="Add an index predictor" acronym="Add Index"
+            <model name="Add an index variable" acronym="Add Index"
                    help="data" category="Conversion of Data">
                 <logger>
                     <event id="info" description="Information" default="on"/>
@@ -545,16 +561,6 @@
                 <params-editor-class>
                     edu.cmu.tetradapp.editor.datamanip.ArResidualsParamsEditor
                 </params-editor-class>
-            </model>
-            <model name="Whiten" acronym="Whiten"
-                   help="corr" category="Conversion of Data">
-                <logger>
-                    <event id="info" description="Information" default="on"/>
-                    <event id="data" description="Data"/>
-                </logger>
-                <model-class>edu.cmu.tetradapp.model.Whitener
-                </model-class>
-                <editor-class>edu.cmu.tetradapp.editor.DataEditor</editor-class>
             </model>
             <model name="Logarithmic Transform" acronym="Log"
                    help="data" category="Conversion of Data">
@@ -668,16 +674,6 @@
                 <params-editor-class>
                     edu.cmu.tetradapp.editor.MissingDataInjectorParamsEditor
                 </params-editor-class>
-            </model>
-            <model name="Jitter Data" acronym="Jitter"
-                   help="data" category="Missing Values">
-                <logger>
-                    <event id="info" description="Information" default="on"/>
-                    <event id="data" description="Data"/>
-                </logger>
-                <model-class>edu.cmu.tetradapp.model.JitterData
-                </model-class>
-                <editor-class>edu.cmu.tetradapp.editor.DataEditor</editor-class>
             </model>
             <model name="Standardize Data" acronym="Standardized"
                    help="data" category="Conversion of Data">
@@ -1528,18 +1524,19 @@
             <!--</model>-->
 
             <!--Restored Mimbuild on 6/20/2017 -->
-            <model name="MIMBuild" acronym="MIMBuild" help="mimbuild"
-                   category="Multiple Indicator Model searches">
-                <logger>
-                    <event id="info" description="Information" default="on"/>
-                    <event id="details" description="Misc Fine Details" default="on"/>
-                    <event id="maxmodel" description="Max P Value Model" default="on"/>
-                </logger>
-                <model-class>edu.cmu.tetradapp.model.MimBuildRunner
-                </model-class>
-                <editor-class>edu.cmu.tetradapp.editor.MimbuildEditor
-                </editor-class>
-            </model>
+            <!--Removing again Mimbuild on 4/9/2019; folded into FOFC -->
+            <!--<model name="MIMBuild" acronym="MIMBuild" help="mimbuild"-->
+                   <!--category="Multiple Indicator Model searches">-->
+                <!--<logger>-->
+                    <!--<event id="info" description="Information" default="on"/>-->
+                    <!--<event id="details" description="Misc Fine Details" default="on"/>-->
+                    <!--<event id="maxmodel" description="Max P Value Model" default="on"/>-->
+                <!--</logger>-->
+                <!--<model-class>edu.cmu.tetradapp.model.MimBuildRunner-->
+                <!--</model-class>-->
+                <!--<editor-class>edu.cmu.tetradapp.editor.MimbuildEditor-->
+                <!--</editor-class>-->
+            <!--</model>-->
 
             <!--<model name="MIMTrekBuild" acronym="MIMTrekBuild" help="mimbuild"-->
             <!--category="Multiple Indicator Model searches">-->
@@ -1753,6 +1750,8 @@
             ]]>
         </node-specific-message>
     </session-node>
+    
+    <!-- Disabled on 4/2/2019
     <session-node id="Classify">
         <models>
             <model name="Bayes Updater Classifier" acronym="BayesUpClass"
@@ -1775,6 +1774,8 @@
             ]]>
         </node-specific-message>
     </session-node>
+    -->
+    
     <session-node id="Compare">
         <models>
             <model name="Edgewise Comparison" acronym="Edge Comp"
