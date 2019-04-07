@@ -35,16 +35,16 @@ import edu.pitt.dbmi.data.MixedTabularDataset;
 import edu.pitt.dbmi.data.VerticalDiscreteTabularDataset;
 import edu.pitt.dbmi.data.reader.tabular.DiscreteVarInfo;
 import edu.pitt.dbmi.data.reader.tabular.MixedVarInfo;
+
 import java.util.LinkedList;
 import java.util.List;
 
 /**
- *
  * Jun 20, 2017 11:10:30 AM
  *
  * @author Kevin V. Bui (kvb2@pitt.edu)
  */
-    public class DataConvertUtils {
+public class DataConvertUtils {
 
     private DataConvertUtils() {
     }
