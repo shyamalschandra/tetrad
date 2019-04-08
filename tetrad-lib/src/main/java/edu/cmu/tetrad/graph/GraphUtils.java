@@ -86,12 +86,13 @@ public final class GraphUtils {
             return;
         }
         List<Node> nodes = graph.getNodes();
+        Collections.sort(nodes);
 
-        Collections.sort(nodes, new Comparator<Node>() {
-            public int compare(Node o1, Node o2) {
-                return o1.getName().compareTo(o2.getName());
-            }
-        });
+//        Collections.sort(nodes, new Comparator<Node>() {
+//            public int compare(Node o1, Node o2) {
+//                return o1.getName().compareTo(o2.getName());
+//            }
+//        });
 
         double rad = 6.28 / nodes.size();
         double phi = .75 * 6.28;    // start from 12 o'clock.
@@ -311,6 +312,8 @@ public final class GraphUtils {
             int numEdges, int maxDegree,
             int maxIndegree, int maxOutdegree, boolean connected,
             boolean layoutAsCircle) {
+        Collections.sort(nodes);
+
         if (nodes.size() <= 0) {
             throw new IllegalArgumentException(
                     "NumNodes most be > 0: " + nodes.size());

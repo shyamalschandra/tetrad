@@ -348,7 +348,7 @@ public final class SimulationEditor extends JPanel implements KnowledgeEditable,
             if (selectedFile == null) {
                 return;
             }
-            new Comparison().saveToFiles(selectedFile.getAbsolutePath(), simulation.getSimulation(),
+            new Comparison().saveToFilesSingleSimulation(selectedFile.getAbsolutePath(), simulation.getSimulation(),
                     simulation.getParams());
         });
 
