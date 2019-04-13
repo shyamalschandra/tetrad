@@ -87,11 +87,6 @@ public final class Fask implements GraphSearch {
     // True if skew adjacencies should be included in the output.
     private boolean useSkewAdjacencies = true;
 
-    // Threshold for reversing casual judgments for negative coefficients.
-    private double delta = -0.2;
-
-    private boolean minnesotaRule = false;
-
     /**
      * @param dataSet These datasets must all have the same variables, in the same order.
      */
@@ -184,7 +179,7 @@ public final class Fask implements GraphSearch {
                         graph.addEdge(edge1);
                         graph.addEdge(edge2);
                     } else {
-                        if (leftright(x, y)) {
+                        if (leftRightMinnesota(x, y)) {
                             graph.addDirectedEdge(X, Y);
                         } else {
                             graph.addDirectedEdge(Y, X);
@@ -270,24 +265,6 @@ public final class Fask implements GraphSearch {
         return true;
     }
 
-    private boolean leftright(double[] x, double[] y) {
-        if (minnesotaRule) return leftRightMinnesota(x, y);
-
-        double left = cu(x, y, x) / (sqrt(cu(x, x, x) * cu(y, y, x)));
-        double right = cu(x, y, y) / (sqrt(cu(x, x, y) * cu(y, y, y)));
-        double lr = left - right;
-
-        double r = StatUtils.correlation(x, y);
-        double sx = StatUtils.skewness(x);
-        double sy = StatUtils.skewness(y);
-
-        r *= signum(sx) * signum(sy);
-        lr *= signum(r);
-        if (r < getDelta()) lr *= -1;
-
-        return lr > 0;
-    }
-
     private boolean leftRightMinnesota(double[] x, double[] y) {
         x = correctSkewness(x);
         y = correctSkewness(y);
@@ -309,8 +286,6 @@ public final class Fask implements GraphSearch {
 
         double lr = Q - R;
 
-//        if (StatUtils.correlation(x, y) < 0) lr += delta;
-
         final double sk_ey = StatUtils.skewness(residuals(y, new double[][]{x}));
 
         if (sk_ey < 0) {
@@ -319,7 +294,7 @@ public final class Fask implements GraphSearch {
 
         final double a = correlation(x, y);
 
-        if (a < 0 && sk_ey > -.2) {
+        if (a < 0 && sk_ey > 0) {
             lr *= -1;
         }
 
@@ -458,10 +433,6 @@ public final class Fask implements GraphSearch {
         this.knowledge = knowledge;
     }
 
-    public void setMinnesotaRule(boolean minnesotaRule) {
-        this.minnesotaRule = minnesotaRule;
-    }
-
     //======================================== PRIVATE METHODS ====================================//
 
     private boolean knowledgeOrients(Node left, Node right) {
@@ -502,14 +473,6 @@ public final class Fask implements GraphSearch {
 
     public void setUseSkewAdjacencies(boolean useSkewAdjacencies) {
         this.useSkewAdjacencies = useSkewAdjacencies;
-    }
-
-    public double getDelta() {
-        return delta;
-    }
-
-    public void setDelta(double delta) {
-        this.delta = delta;
     }
 }
 

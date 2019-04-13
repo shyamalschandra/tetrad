@@ -29,6 +29,7 @@ import edu.cmu.tetrad.util.dist.Uniform;
 
 import java.io.PrintStream;
 
+import static java.lang.Math.abs;
 import static java.lang.Math.sqrt;
 
 import java.util.*;
@@ -70,8 +71,6 @@ public final class LargeScaleSimulation {
     private boolean includeNegativeCoefs = true;
 
     private boolean errorsNormal = true;
-    private double betaLeftValue;
-    private double betaRightValue;
     private double selfLoopCoef = 0.0;
 
     //=============================CONSTRUCTORS============================//
@@ -316,7 +315,7 @@ public final class LargeScaleSimulation {
                 boolean converged = true;
 
                 for (int j = 0; j < t1.length; j++) {
-                    if (Math.abs(t2[j] - t1[j]) > epsilon) {
+                    if (abs(t2[j] - t1[j]) > epsilon) {
                         converged = false;
                         break;
                     }
@@ -462,20 +461,10 @@ public final class LargeScaleSimulation {
 
             double coef = edgeCoefDist.nextRandom();
 
-//            if (tail.getName().equals("X") && head.getName().equals("Y")) {
-//                coef = 0.8;
-//            } else if (tail.getName().equals("Y") && head.getName().equals("Z")) {
-//                coef = 0.4;
-//            } else if (tail.getName().equals("Z") && head.getName().equals("X")) {
-//                coef = 0.8;
-//            } else {
-//                throw new IllegalArgumentException();
-//            }
-
             if (includePositiveCoefs && !includeNegativeCoefs) {
-                coef = Math.abs(coef);
+                coef = abs(coef);
             } else if (!includePositiveCoefs && includeNegativeCoefs) {
-                coef = -Math.abs(coef);
+                coef = -abs(coef);
             } else if (!includePositiveCoefs && !includeNegativeCoefs) {
                 coef = 0;
             }
@@ -801,13 +790,8 @@ public final class LargeScaleSimulation {
         AbstractRealDistribution distribution;
         AbstractRealDistribution varDist = null;
 
-        if (errorsNormal) {
-            distribution = new NormalDistribution(new Well1024a(++seed), 0, 1);
-            varDist = new UniformRealDistribution(varLow, varHigh);
-        } else {
-            distribution = new BetaDistribution(new Well1024a(++seed), getBetaLeftValue(), getBetaRightValue());
-//            distribution = new ExponentialDistribution(new Well1024a(++seed), getBetaLeftValue(), getBetaRightValue());
-        }
+        distribution = new NormalDistribution(new Well1024a(++seed), 0, 1);
+        varDist = new UniformRealDistribution(varLow, varHigh);
 
         int numVars = variableNodes.size();
         setupModel(numVars);
@@ -817,11 +801,10 @@ public final class LargeScaleSimulation {
         for (int j = 0; j < numVars; j++) {
             for (int i = 0; i < sampleSize; i++) {
                 double sample = distribution.sample();
+                sample *= sqrt(varDist.sample());
 
-                if (errorsNormal) {
-                    sample *= sqrt(varDist.sample());
-                } else {
-                    sample *= 10;
+                if (!errorsNormal) {
+                    sample = abs(sample);
                 }
 
                 shocks[i][j] = sample;
@@ -868,21 +851,13 @@ public final class LargeScaleSimulation {
         this.errorsNormal = errorsNormal;
     }
 
-    public double getBetaRightValue() {
-        return betaRightValue;
-    }
-
-    public void setBetaRightValue(double betaRightValue) {
-        this.betaRightValue = betaRightValue;
-    }
-
-    public double getBetaLeftValue() {
-        return betaLeftValue;
-    }
-
-    public void setBetaLeftValue(double betaLeftValue) {
-        this.betaLeftValue = betaLeftValue;
-    }
+//    public boolean isErrorsPositivelySkewedIfNonNormal() {
+//        return errorsPositivelySkewedIfNonNormal;
+//    }
+//
+//    public void setErrorsPositivelySkewedIfNonNormal(boolean errorsPositivelySkewedIfNonNormal) {
+//        this.errorsPositivelySkewedIfNonNormal = errorsPositivelySkewedIfNonNormal;
+//    }
 
     public double getSelfLoopCoef() {
         return selfLoopCoef;

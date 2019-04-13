@@ -39,7 +39,7 @@ public class LinearFisherModel implements Simulation, TakesData {
         if (shocks != null) {
             JOptionPane.showMessageDialog(JOptionUtils.centeringComp(),
                     "The initial dataset you've provided will be used as initial shocks"
-                    + "\nfor a Fisher model.");
+                            + "\nfor a Fisher model.");
 
             for (DataModel _shocks : shocks) {
                 if (_shocks == null) {
@@ -95,8 +95,6 @@ public class LinearFisherModel implements Simulation, TakesData {
                     parameters.getDouble("varHigh"));
             simulator.setIncludePositiveCoefs(parameters.getBoolean("includePositiveCoefs"));
             simulator.setIncludeNegativeCoefs(parameters.getBoolean("includeNegativeCoefs"));
-            simulator.setBetaLeftValue(parameters.getDouble("betaLeftValue"));
-            simulator.setBetaRightValue(parameters.getDouble("betaRightValue"));
             simulator.setSelfLoopCoef(parameters.getDouble("selfLoopCoef"));
             simulator.setMeanRange(
                     parameters.getDouble("meanLow"),
@@ -171,11 +169,6 @@ public class LinearFisherModel implements Simulation, TakesData {
     }
 
     @Override
-    public DataModel getDataModelWithLatents(int index) {
-        return dataSets.get(index);
-    }
-
-    @Override
     public Graph getTrueGraph(int index) {
         return graphs.get(index);
     }
@@ -203,10 +196,6 @@ public class LinearFisherModel implements Simulation, TakesData {
         parameters.add("includePositiveCoefs");
         parameters.add("includeNegativeCoefs");
         parameters.add("errorsNormal");
-        parameters.add("includePositiveSkewsForBeta");
-        parameters.add("includeNegativeSkewsForBeta");
-        parameters.add("betaLeftValue");
-        parameters.add("betaRightValue");
         parameters.add("numRuns");
         parameters.add("percentDiscrete");
         parameters.add("numCategories");

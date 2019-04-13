@@ -87,12 +87,8 @@ public class FaskOrientation implements Algorithm, TakesInitialGraph, HasKnowled
             search.setInitialGraph(initialGraph);
             search.setUseFasAdjacencies(true);
             search.setUseSkewAdjacencies(false);
-            search.setDelta(parameters.getDouble("faskDelta"));
 
             search.setAlpha(parameters.getDouble("twoCycleAlpha"));
-//            search.setDelta(parameters.getDouble("faskDelta"));
-
-            search.setMinnesotaRule(parameters.getBoolean("minnesotaRule"));
 
             search.setKnowledge(knowledge);
 

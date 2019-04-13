@@ -54,8 +54,8 @@ public class Fask implements Algorithm, HasKnowledge, UsesScoreWrapper {
             search.setUseFasAdjacencies(parameters.getBoolean("useFasAdjacencies"));
             search.setUseSkewAdjacencies(parameters.getBoolean("useCorrDiffAdjacencies"));
             search.setAlpha(parameters.getDouble("twoCycleAlpha"));
-            search.setDelta(parameters.getDouble("faskDelta"));
-            search.setMinnesotaRule(parameters.getBoolean("minnesotaRule"));
+//            search.setDelta(parameters.getDouble("faskDelta"));
+//            search.setMinnesotaRule(parameters.getBoolean("minnesotaRule"));
 
 //            search.setPercentBootstrapForLinearityTest(parameters.getDouble("percentBootstrapForLinearityTest"));
 //            search.setNumBootstrapForLinearityTest(parameters.getInt("numBootstrapForLinearityTest"));
@@ -113,11 +113,11 @@ public class Fask implements Algorithm, HasKnowledge, UsesScoreWrapper {
         parameters.add("depth");
         parameters.add("twoCycleAlpha");
         parameters.add("extraEdgeThreshold");
-        parameters.add("faskDelta");
+//        parameters.add("faskDelta");
 
         parameters.add("useFasAdjacencies");
         parameters.add("useCorrDiffAdjacencies");
-        parameters.add("minnesotaRule");
+//        parameters.add("minnesotaRule");
 
         // Resampling
         parameters.add("numberResampling");
