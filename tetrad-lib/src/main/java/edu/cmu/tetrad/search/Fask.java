@@ -198,6 +198,53 @@ public final class Fask implements GraphSearch {
         return graph;
     }
 
+    public Graph search2() {
+        DataSet dataSet = DataUtils.standardizeData(this.dataSet);
+
+        List<Node> variables = dataSet.getVariables();
+        double[][] colData = dataSet.getDoubleData().transpose().toArray();
+
+        Graph graph = new EdgeListGraph(variables);
+
+        for (int i = 0; i < variables.size(); i++) {
+            for  (int j = i + 1; j < variables.size(); j++) {
+                final double[] x = colData[i];
+                final double[] y = colData[j];
+
+                if (leftRightMinnesota(x, y)) {
+                    graph.addDirectedEdge(variables.get(i), variables.get(j));
+                } else  {
+                    graph.addDirectedEdge(variables.get(j), variables.get(i));
+                }
+            }
+        }
+
+        Knowledge2 knowledge = new Knowledge2();
+
+        int numOfNodes = variables.size();
+        for (int i = 0; i < numOfNodes; i++) {
+            for (int j = i + 1; j < numOfNodes; j++) {
+                Node n1 = variables.get(i);
+                Node n2 = variables.get(j);
+
+                if (n1.getName().startsWith("E_") || n2.getName().startsWith("E_")) {
+                    continue;
+                }
+
+                Edge edge = graph.getEdge(n1, n2);
+                if (edge != null && edge.isDirected()) {
+                    knowledge.setForbidden(edge.getNode2().getName(), edge.getNode1().getName());
+                }
+            }
+        }
+
+        final SemBicScore score = new SemBicScore(new CovarianceMatrixOnTheFly(dataSet));
+        score.setPenaltyDiscount(penaltyDiscount);
+        Fges fges = new Fges(score);
+        fges.setKnowledge(knowledge);
+        return fges.search();
+    }
+
     private boolean bidirected(double[] x, double[] y, Graph G0, Node X, Node Y) {
 
         Set<Node> adjSet = new HashSet<>(G0.getAdjacentNodes(X));

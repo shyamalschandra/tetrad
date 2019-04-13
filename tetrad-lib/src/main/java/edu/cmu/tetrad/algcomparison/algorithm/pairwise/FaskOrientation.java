@@ -9,10 +9,8 @@ import edu.cmu.tetrad.graph.EdgeListGraph;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.GraphUtils;
 import edu.cmu.tetrad.graph.Node;
-import edu.cmu.tetrad.search.IndTestScore;
 import edu.cmu.tetrad.search.SemBicScore;
 import edu.cmu.tetrad.util.Parameters;
-import edu.cmu.tetrad.util.TetradMatrix;
 import edu.pitt.dbmi.algo.resampling.GeneralResamplingTest;
 import edu.pitt.dbmi.algo.resampling.ResamplingEdgeEnsemble;
 
@@ -71,7 +69,7 @@ public class FaskOrientation implements Algorithm, TakesInitialGraph, HasKnowled
             List<String> nodes = initialGraph.getNodeNames();
 
             initialGraph = GraphUtils.replaceNodes(initialGraph, dataSet.getVariables());
-
+    
             for (Node node : initialGraph.getNodes()){
                 if (!nodes.contains(node.getName())) {
                     initialGraph.removeNode(node);
@@ -148,9 +146,6 @@ public class FaskOrientation implements Algorithm, TakesInitialGraph, HasKnowled
         }
 
         parameters.add("twoCycleAlpha");
-        parameters.add("faskDelta");
-        parameters.add("minnesotaRule");
-
         parameters.add("verbose");
 
         return parameters;
