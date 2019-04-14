@@ -29,10 +29,7 @@ import edu.cmu.tetrad.util.TetradLogger;
 import edu.cmu.tetrad.util.TetradMatrix;
 import org.apache.commons.math3.linear.SingularMatrixException;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static edu.cmu.tetrad.util.StatUtils.correlation;
 import static edu.cmu.tetrad.util.StatUtils.skewness;
@@ -108,7 +105,7 @@ public final class Fask implements GraphSearch {
      * @return the graph. Some of the edges may be undirected (though it shouldn't be many in most cases)
      * and some of the adjacencies may be two-cycles.
      */
-    public Graph search() {
+    public Graph search1() {
         long start = System.currentTimeMillis();
 
         setCutoff(alpha);
@@ -198,11 +195,23 @@ public final class Fask implements GraphSearch {
         return graph;
     }
 
-    public Graph search2() {
+    public Graph search() {
         DataSet dataSet = DataUtils.standardizeData(this.dataSet);
+        double[][] colData = dataSet.getDoubleData().transpose().toArray();
 
         List<Node> variables = dataSet.getVariables();
-        double[][] colData = dataSet.getDoubleData().transpose().toArray();
+
+//        Collections.sort(variables, new Comparator<Node>() {
+//            @Override
+//            public int compare(Node o1, Node o2) {
+//                if (o1 == o2) return 0;
+//                int i = variables.indexOf(o1);
+//                int j = variables.indexOf(o2);
+//                final double[] x = colData[i];
+//                final double[] y = colData[j];
+//                return leftRightMinnesota(x, y) ? +1 : -1;
+//            }
+//        });
 
         Graph graph = new EdgeListGraph(variables);
 
@@ -219,7 +228,11 @@ public final class Fask implements GraphSearch {
             }
         }
 
-        Knowledge2 knowledge = new Knowledge2();
+//        Knowledge2 knowledge = new Knowledge2();
+//
+//        for (int i = 0; i < variables.size(); i++) {
+//            knowledge.addToTier(i + 1, variables.get(i).getName());
+//        }
 
         int numOfNodes = variables.size();
         for (int i = 0; i < numOfNodes; i++) {
