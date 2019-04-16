@@ -105,7 +105,7 @@ public final class Fask implements GraphSearch {
      * @return the graph. Some of the edges may be undirected (though it shouldn't be many in most cases)
      * and some of the adjacencies may be two-cycles.
      */
-    public Graph search1() {
+    public Graph search() {
         long start = System.currentTimeMillis();
 
         setCutoff(alpha);
@@ -195,68 +195,68 @@ public final class Fask implements GraphSearch {
         return graph;
     }
 
-    public Graph search() {
-        DataSet dataSet = DataUtils.standardizeData(this.dataSet);
-        double[][] colData = dataSet.getDoubleData().transpose().toArray();
-
-        List<Node> variables = dataSet.getVariables();
-
-//        Collections.sort(variables, new Comparator<Node>() {
-//            @Override
-//            public int compare(Node o1, Node o2) {
-//                if (o1 == o2) return 0;
-//                int i = variables.indexOf(o1);
-//                int j = variables.indexOf(o2);
-//                final double[] x = colData[i];
-//                final double[] y = colData[j];
-//                return leftRightMinnesota(x, y) ? +1 : -1;
-//            }
-//        });
-
-        Graph graph = new EdgeListGraph(variables);
-
-        for (int i = 0; i < variables.size(); i++) {
-            for  (int j = i + 1; j < variables.size(); j++) {
-                final double[] x = colData[i];
-                final double[] y = colData[j];
-
-                if (leftRightMinnesota(x, y)) {
-                    graph.addDirectedEdge(variables.get(i), variables.get(j));
-                } else  {
-                    graph.addDirectedEdge(variables.get(j), variables.get(i));
-                }
-            }
-        }
-
-//        Knowledge2 knowledge = new Knowledge2();
+//    public Graph search2() {
+//        DataSet dataSet = DataUtils.standardizeData(this.dataSet);
+//        double[][] colData = dataSet.getDoubleData().transpose().toArray();
+//
+//        List<Node> variables = dataSet.getVariables();
+//
+////        Collections.sort(variables, new Comparator<Node>() {
+////            @Override
+////            public int compare(Node o1, Node o2) {
+////                if (o1 == o2) return 0;
+////                int i = variables.indexOf(o1);
+////                int j = variables.indexOf(o2);
+////                final double[] x = colData[i];
+////                final double[] y = colData[j];
+////                return leftRightMinnesota(x, y) ? +1 : -1;
+////            }
+////        });
+//
+//        Graph graph = new EdgeListGraph(variables);
 //
 //        for (int i = 0; i < variables.size(); i++) {
-//            knowledge.addToTier(i + 1, variables.get(i).getName());
+//            for  (int j = i + 1; j < variables.size(); j++) {
+//                final double[] x = colData[i];
+//                final double[] y = colData[j];
+//
+//                if (leftRightMinnesota(x, y)) {
+//                    graph.addDirectedEdge(variables.get(i), variables.get(j));
+//                } else  {
+//                    graph.addDirectedEdge(variables.get(j), variables.get(i));
+//                }
+//            }
 //        }
-
-        int numOfNodes = variables.size();
-        for (int i = 0; i < numOfNodes; i++) {
-            for (int j = i + 1; j < numOfNodes; j++) {
-                Node n1 = variables.get(i);
-                Node n2 = variables.get(j);
-
-                if (n1.getName().startsWith("E_") || n2.getName().startsWith("E_")) {
-                    continue;
-                }
-
-                Edge edge = graph.getEdge(n1, n2);
-                if (edge != null && edge.isDirected()) {
-                    knowledge.setForbidden(edge.getNode2().getName(), edge.getNode1().getName());
-                }
-            }
-        }
-
-        final SemBicScore score = new SemBicScore(new CovarianceMatrixOnTheFly(dataSet));
-        score.setPenaltyDiscount(penaltyDiscount);
-        Fges fges = new Fges(score);
-        fges.setKnowledge(knowledge);
-        return fges.search();
-    }
+//
+////        Knowledge2 knowledge = new Knowledge2();
+////
+////        for (int i = 0; i < variables.size(); i++) {
+////            knowledge.addToTier(i + 1, variables.get(i).getName());
+////        }
+//
+//        int numOfNodes = variables.size();
+//        for (int i = 0; i < numOfNodes; i++) {
+//            for (int j = i + 1; j < numOfNodes; j++) {
+//                Node n1 = variables.get(i);
+//                Node n2 = variables.get(j);
+//
+//                if (n1.getName().startsWith("E_") || n2.getName().startsWith("E_")) {
+//                    continue;
+//                }
+//
+//                Edge edge = graph.getEdge(n1, n2);
+//                if (edge != null && edge.isDirected()) {
+//                    knowledge.setForbidden(edge.getNode2().getName(), edge.getNode1().getName());
+//                }
+//            }
+//        }
+//
+//        final SemBicScore score = new SemBicScore(new CovarianceMatrixOnTheFly(dataSet));
+//        score.setPenaltyDiscount(penaltyDiscount);
+//        Fges fges = new Fges(score);
+//        fges.setKnowledge(knowledge);
+//        return fges.search();
+//    }
 
     private boolean bidirected(double[] x, double[] y, Graph G0, Node X, Node Y) {
 
