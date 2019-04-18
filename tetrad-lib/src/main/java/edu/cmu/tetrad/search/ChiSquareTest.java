@@ -26,6 +26,7 @@ import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.data.DiscreteVariable;
 import edu.cmu.tetrad.util.CombinationIterator;
 import edu.cmu.tetrad.util.ProbUtils;
+import org.apache.commons.math3.distribution.ChiSquaredDistribution;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -195,10 +196,11 @@ public class ChiSquareTest {
 
             int _df = (numAttestedRows - 1) * (numAttestedCols - 1);
 
-            if (_df > 0) {
-                xSquare += _xSquare;
+            if (_df >= 0) {
                 df += _df;
             }
+
+            xSquare += _xSquare;
         }
 
         // If df == 0, return indep.
@@ -209,7 +211,8 @@ public class ChiSquareTest {
             return new ChiSquareTest.Result(xSquare, pValue, df, indep);
         }
 
-        double pValue = 1.0 - ProbUtils.chisqCdf(xSquare, df);
+//        double pValue = 1.0 - ProbUtils.chisqCdf(xSquare, df);
+        double pValue = 1.0 - new ChiSquaredDistribution(df).cumulativeProbability(xSquare);
         boolean indep = (pValue > this.getAlpha());
         return new ChiSquareTest.Result(xSquare, pValue, df, indep);
     }
