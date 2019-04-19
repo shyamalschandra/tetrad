@@ -846,54 +846,54 @@ public final class DataReader implements IDataReader {
      * </pre>
      */
     private IKnowledge parseKnowledge(Lineizer lineizer, Pattern delimiter) {
-        IKnowledge knowledge = new Knowledge2();
-
-        String line = lineizer.nextLine();
-        String firstLine = line;
-
-        if (line == null) {
-            return new Knowledge2();
-        }
-
-        if (line.startsWith("/knowledge")) {
-            line = lineizer.nextLine();
-            firstLine = line;
-        }
-
         this.logger.log("info", "\nLoading knowledge.");
 
+        IKnowledge knowledge = new Knowledge2();
+
+        if (!lineizer.hasMoreLines()) {
+            throw new IllegalArgumentException("Empty file.");
+        }
+
+        if (!lineizer.nextLine().startsWith("/knowledge")) {
+            throw new IllegalArgumentException("First line should be \"/knowledge\"");
+        }
+
+        String firstLine = null;
+
+        if (lineizer.hasMoreLines()) {
+            firstLine = lineizer.nextLine();
+        }
+
         SECTIONS:
-        while (lineizer.hasMoreLines()) {
-            if (firstLine == null) {
-                line = lineizer.nextLine();
-            } else {
-                line = firstLine;
-            }
+        while (lineizer. hasMoreLines()) {
+            if (firstLine == null) continue;
 
             // "addtemp" is the original in Tetrad 2.
-            if ("addtemporal".equalsIgnoreCase(line.trim())) {
+            if ("addtemporal".equalsIgnoreCase(firstLine.trim())) {
                 while (lineizer.hasMoreLines()) {
-                    line = lineizer.nextLine();
+                    String line = lineizer.nextLine();
+                    if (line == null) continue;
 
                     if (line.startsWith("forbiddirect")) {
                         firstLine = line;
                         continue SECTIONS;
                     }
 
-                    if (line.startsWith("requiredirect")) {
+                    else if (line.startsWith("requiredirect")) {
                         firstLine = line;
                         continue SECTIONS;
                     }
 
-                    if (line.startsWith("forbiddengroup")) {
+                    else if (line.startsWith("forbiddengroup")) {
                         firstLine = line;
                         continue SECTIONS;
                     }
 
-                    if (line.startsWith("requiredgroup")) {
+                    else if (line.startsWith("requiredgroup")) {
                         firstLine = line;
                         continue SECTIONS;
                     }
+
 
                     int tier = -1;
 
@@ -930,60 +930,68 @@ public final class DataReader implements IDataReader {
                         this.logger.log("info", "Adding to tier " + (tier - 1) + " " + name);
                     }
                 }
-            } else if ("forbiddengroup".equalsIgnoreCase(line.trim())) {
-                while (lineizer.hasMoreLines()) {
-                    line = lineizer.nextLine();
+            } else if ("forbiddengroup".equalsIgnoreCase(firstLine.trim())) {
+//                while (lineizer.hasMoreLines()) {
+                String line = lineizer.nextLine();
+//                if (line == null) continue;
 
-                    if (line.startsWith("forbiddirect")) {
-                        firstLine = line;
-                        continue SECTIONS;
-                    }
-
-                    if (line.startsWith("requiredirect")) {
-                        firstLine = line;
-                        continue SECTIONS;
-                    }
-
-                    if (line.startsWith("addtemporal")) {
-                        firstLine = line;
-                        continue SECTIONS;
-                    }
-
-                    if (line.startsWith("requiredgroup")) {
-                        firstLine = line;
-                        continue SECTIONS;
-                    }
-
-                    Set<String> from = new HashSet<>();
-                    Set<String> to = new HashSet<>();
-
-                    RegexTokenizer st = new RegexTokenizer(line, delimiter, quoteChar);
-
-                    while (st.hasMoreTokens()) {
-                        String token = st.nextToken();
-                        token = token.trim();
-                        String name = substitutePeriodsForSpaces(token);
-                        from.add(name);
-                    }
-
-                    line = lineizer.nextLine();
-
-                    st = new RegexTokenizer(line, delimiter, quoteChar);
-
-                    while (st.hasMoreTokens()) {
-                        String token = st.nextToken();
-                        token = token.trim();
-                        String name = substitutePeriodsForSpaces(token);
-                        to.add(name);
-                    }
-
-                    KnowledgeGroup group = new KnowledgeGroup(KnowledgeGroup.FORBIDDEN, from, to);
-
-                    knowledge.addKnowledgeGroup(group);
+                if (line.startsWith("forbiddirect")) {
+                    firstLine = line;
+                    continue;
                 }
-            } else if ("requiredgroup".equalsIgnoreCase(line.trim())) {
+
+                if (line.startsWith("requiredirect")) {
+                    firstLine = line;
+                    continue;
+                }
+
+                if (line.startsWith("addtemporal")) {
+                    firstLine = line;
+                    continue;
+                }
+
+                if (line.startsWith("requiredgroup")) {
+                    firstLine = line;
+                    continue;
+                }
+
+                Set<String> from = new HashSet<>();
+                Set<String> to = new HashSet<>();
+
+                line = lineizer.nextLine();
+                if (line == null) continue;
+
+                RegexTokenizer st = new RegexTokenizer(line, delimiter, quoteChar);
+                System.out.println("from " + line);
+
+                while (st.hasMoreTokens()) {
+                    String token = st.nextToken();
+                    token = token.trim();
+                    String name = substitutePeriodsForSpaces(token);
+                    from.add(name);
+                }
+
+                line = lineizer.nextLine();
+                System.out.println("to " + line);
+
+                st = new RegexTokenizer(line, delimiter, quoteChar);
+
+                while (st.hasMoreTokens()) {
+                    String token = st.nextToken();
+                    token = token.trim();
+                    String name = substitutePeriodsForSpaces(token);
+                    to.add(name);
+                }
+
+                KnowledgeGroup group = new KnowledgeGroup(KnowledgeGroup.FORBIDDEN, from, to);
+
+                knowledge.addKnowledgeGroup(group);
+//                    break;
+//                }
+            } else if ("requiredgroup".equalsIgnoreCase(firstLine.trim())) {
                 while (lineizer.hasMoreLines()) {
-                    line = lineizer.nextLine();
+                    String line = lineizer.nextLine();
+                    if (line == null) continue;
 
                     if (line.startsWith("forbiddirect")) {
                         firstLine = line;
@@ -1031,10 +1039,12 @@ public final class DataReader implements IDataReader {
                     KnowledgeGroup group = new KnowledgeGroup(KnowledgeGroup.REQUIRED, from, to);
 
                     knowledge.addKnowledgeGroup(group);
+                    break;
                 }
-            } else if ("forbiddirect".equalsIgnoreCase(line.trim())) {
+            } else if ("forbiddirect".equalsIgnoreCase(firstLine.trim())) {
                 while (lineizer.hasMoreLines()) {
-                    line = lineizer.nextLine();
+                    String line = lineizer.nextLine();
+                    if (line == null) continue;
 
                     if (line.startsWith("addtemporal")) {
                         firstLine = line;
@@ -1079,9 +1089,10 @@ public final class DataReader implements IDataReader {
 
                     knowledge.setForbidden(from, to);
                 }
-            } else if ("requiredirect".equalsIgnoreCase(line.trim())) {
+            } else if ("requiredirect".equalsIgnoreCase(firstLine.trim())) {
                 while (lineizer.hasMoreLines()) {
-                    line = lineizer.nextLine();
+                    String line = lineizer.nextLine();
+                    if (line == null) continue;
 
                     if (line.startsWith("forbiddirect")) {
                         firstLine = line;
@@ -1131,6 +1142,8 @@ public final class DataReader implements IDataReader {
                 throw new IllegalArgumentException("Line " + lineizer.getLineNumber()
                         + ": Expecting 'addtemporal', 'forbiddirect' or 'requiredirect'.");
             }
+
+            firstLine = null;
         }
 
         return knowledge;
