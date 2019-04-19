@@ -131,7 +131,7 @@ public class ChiSquareTest {
             Arrays.fill(attestedRows, true);
             Arrays.fill(attestedCols, true);
 
-            long total = 0;// this.getCellTable().calcMargin(coords, bothVars);
+            long total = this.getCellTable().calcMargin(coords, bothVars);
 
             double _xSquare = 0.0;
 
@@ -162,8 +162,6 @@ public class ChiSquareTest {
                     if (skip) {
                         continue;
                     }
-
-                    total += observed;
 
                     e.add((double) sumCol * sumRow);
                     o.add(observed);
@@ -196,11 +194,10 @@ public class ChiSquareTest {
 
             int _df = (numAttestedRows - 1) * (numAttestedCols - 1);
 
-            if (_df >= 0) {
+            if (_df > 0) {
                 df += _df;
+                xSquare += _xSquare;
             }
-
-            xSquare += _xSquare;
         }
 
         // If df == 0, return indep.

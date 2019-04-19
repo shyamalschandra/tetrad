@@ -1663,7 +1663,11 @@ public class Comparison {
         Collections.sort(order, new Comparator<Integer>() {
             @Override
             public int compare(Integer o1, Integer o2) {
-                return -Double.compare(_utilities[o1], _utilities[o2]);
+                double u1 = _utilities[o1];
+                double u2 = _utilities[o2];
+                if (Double.isNaN(u1)) u1 = 0.0;
+                if (Double.isNaN(u2)) u2 = 0.0;
+                return -Double.compare(u1, u2);
             }
         });
 
